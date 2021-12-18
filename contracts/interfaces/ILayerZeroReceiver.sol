@@ -2,6 +2,8 @@
 
 pragma solidity ^0.8.4;
 
+// this interfaace should be implemented by any User Application contract
+// to receive a LayerZero message.
 interface ILayerZeroReceiver {
 
     function lzReceive(

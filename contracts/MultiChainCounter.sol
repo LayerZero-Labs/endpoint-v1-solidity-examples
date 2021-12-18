@@ -5,6 +5,9 @@ pragma solidity ^0.8.4;
 import "./interfaces/ILayerZeroReceiver.sol";
 import "./interfaces/ILayerZeroEndpoint.sol";
 
+// A classic "counter" example with a twist.
+// Deploy two instances of this contract and call incrementCounter()
+// to increment the messageCounter on the destination contract!
 contract MultiChainCounter is ILayerZeroReceiver {
 
     // keep track of how many messages have been received from other chains

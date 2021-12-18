@@ -2,6 +2,9 @@
 
 pragma solidity ^0.8.4;
 
+// an interface for the two primary methods of a LayerZero endpoint:
+//    - send()
+//    - estimateNativeFees()
 interface ILayerZeroEndpoint {
 
     function send(

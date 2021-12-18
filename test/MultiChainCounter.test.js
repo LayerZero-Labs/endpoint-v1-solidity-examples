@@ -4,8 +4,8 @@ const { ethers } = require("hardhat");
 describe("MultiChainCounter", function () {
 
     beforeEach(async function(){
-        this.accounts = await ethers.getSigners();
-        this.owner = this.accounts[0];
+        // this.accounts = await ethers.getSigners();
+        // this.owner = this.accounts[0];
 
         // use this chainId
         this.chainId = 123;
