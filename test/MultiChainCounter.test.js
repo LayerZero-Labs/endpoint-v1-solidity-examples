@@ -1,7 +1,7 @@
 const { expect } = require("chai");
 const { ethers } = require("hardhat");
 
-describe("Factory", function () {
+describe("MultiChainCounter", function () {
 
     beforeEach(async function(){
         this.accounts = await ethers.getSigners();

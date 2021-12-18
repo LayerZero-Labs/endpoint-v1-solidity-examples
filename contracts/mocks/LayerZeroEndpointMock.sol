@@ -52,7 +52,7 @@ contract LayerZeroEndpointMock is ILayerZeroEndpoint {
         return 0;
     }
 
-    function packedBytesToAddr(bytes calldata _b) public view returns (address){
+    function packedBytesToAddr(bytes calldata _b) public pure returns (address){
         address addr;
         assembly {
             let ptr := mload(0x40)
@@ -62,7 +62,7 @@ contract LayerZeroEndpointMock is ILayerZeroEndpoint {
         return addr;
     }
 
-    function addrToPackedBytes(address _a) public view returns (bytes memory){
+    function addrToPackedBytes(address _a) public pure returns (bytes memory){
         bytes memory data = abi.encodePacked(_a);
         return data;
     }

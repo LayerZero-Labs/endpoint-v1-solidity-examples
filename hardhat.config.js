@@ -1,6 +1,5 @@
 require("dotenv").config();
 
-require("@nomiclabs/hardhat-waffle");
 require('hardhat-contract-sizer');
 require("@nomiclabs/hardhat-waffle");
 
