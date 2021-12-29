@@ -3,6 +3,8 @@ require("dotenv").config();
 require('hardhat-contract-sizer');
 require("@nomiclabs/hardhat-waffle");
 
+require('./tasks/deploy');
+
 // This is a sample Hardhat task. To learn how to create your own go to
 // https://hardhat.org/guides/create-task.html
 task("accounts", "Prints the list of accounts", async (taskArgs, hre) => {
@@ -27,5 +29,14 @@ module.exports = {
     runOnCompile: true,
     disambiguatePaths: false,
   },
+
+  networks: {
+    mumbai: {
+      url: "https://rpc-mumbai.maticvigil.com/",
+      chainId: 80001,
+      gasMultiplier: 2,
+      accounts: [`0x${process.env.PK}`],
+    }
+  }
 
 };
