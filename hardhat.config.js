@@ -2,7 +2,7 @@ require("dotenv").config();
 
 require('hardhat-contract-sizer');
 require("@nomiclabs/hardhat-waffle");
-
+require('hardhat-gas-reporter');
 require('./tasks/deploy');
 
 // This is a sample Hardhat task. To learn how to create your own go to
