@@ -10,7 +10,8 @@
     "@openzeppelin/contracts": "^4.4.1",
     "dotenv": "^10.0.0",
     "hardhat": "^2.8.0",
-    "hardhat-contract-sizer": "^2.1.1"
+    "hardhat-contract-sizer": "^2.1.1",
+    "hardhat-gas-reporter": "^1.0.6"
   },
   "devDependencies": {
     "@nomiclabs/hardhat-ethers": "^2.0.3",
