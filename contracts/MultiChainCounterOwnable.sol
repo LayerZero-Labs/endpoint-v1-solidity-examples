@@ -5,11 +5,13 @@ pragma solidity ^0.8.4;
 import "@openzeppelin/contracts/access/Ownable.sol";
 import "./interfaces/ILayerZeroReceiver.sol";
 import "./interfaces/ILayerZeroEndpoint.sol";
+import "./libraries/BytesLib.sol";
 
 // A classic "counter" example with a twist.
 // Deploy two instances of this contract and call incrementCounter()
 // to increment the messageCounter on the destination contract!
 contract MultiChainCounterOwnable is ILayerZeroReceiver, Ownable {
+    using BytesLib for bytes;
 
     // keep track of how many messages have been received from other chains
     uint public messageCounter;
@@ -32,8 +34,9 @@ contract MultiChainCounterOwnable is ILayerZeroReceiver, Ownable {
 
     // overrides lzReceive function in ILayerZeroReceiver.
     // automatically invoked on the receiving chain after the source chain calls endpoint.send(...)
-    function lzReceive(uint16 , bytes memory , uint64 , bytes memory ) override external {
+    function lzReceive(uint16 _sourceChainId, bytes memory _sourceContractAddress, uint64 , bytes memory ) override external {
         require(msg.sender == address(endpoint));
+        require(_sourceContractAddress.equals(destinationContractAddresses[_dstChainId]), "sending contract not allowed");
         messageCounter += 1;
     }
 
