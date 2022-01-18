@@ -36,7 +36,7 @@ contract MultiChainCounterOwnable is ILayerZeroReceiver, Ownable {
     // automatically invoked on the receiving chain after the source chain calls endpoint.send(...)
     function lzReceive(uint16 _sourceChainId, bytes memory _sourceContractAddress, uint64 , bytes memory ) override external {
         require(msg.sender == address(endpoint));
-        require(_sourceContractAddress.equals(destinationContractAddresses[_dstChainId]), "sending contract not allowed");
+        require(_sourceContractAddress.equals(destinationContractAddresses[_sourceChainId]), "sending contract not allowed");
         messageCounter += 1;
     }
 
