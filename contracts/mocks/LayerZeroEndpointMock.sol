@@ -11,8 +11,14 @@ import "../interfaces/ILayerZeroEndpoint.sol";
 contract LayerZeroEndpointMock is ILayerZeroEndpoint {
 
     mapping(uint16 => mapping(address => uint64)) public nonceMap;
+    uint public estimatedNativeFee;
 
     constructor(){}
+
+    // mock helper to set the value returned by `estimateNativeFees`
+    function setTheEstimatedNativeFee(uint _newFee) public {
+        estimatedNativeFee = _newFee;
+    }
 
     // The user application on chain A (the source, or "from" chain) sends a message
     // to the communicator. It includes the following information:
@@ -49,7 +55,7 @@ contract LayerZeroEndpointMock is ILayerZeroEndpoint {
         bool payInZRO,
         bytes calldata txParameters
     ) override view external returns(uint totalFee) {
-        return 0;
+        return estimatedNativeFee;
     }
 
     function packedBytesToAddr(bytes calldata _b) public pure returns (address){

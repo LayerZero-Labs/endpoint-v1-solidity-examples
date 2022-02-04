@@ -20,6 +20,8 @@ contract PingPong is ILayerZeroReceiver {
     bool public pingsEnabled;
     // event emitted every ping() to keep track of consecutive pings count
     event Ping(uint pings);
+    // keep track of the totalPings sent
+    uint public numPings;
 
     // constructor requires the LayerZero endpoint for this chain
     constructor(address _layerZeroEndpoint){
@@ -78,7 +80,9 @@ contract PingPong is ILayerZeroReceiver {
         (uint pings) = abi.decode(_payload, (uint));
 
         // "recursively" call ping in order to *pong*     (and increment pings)
-        ping(_srcChainId, fromAddress, pings++);
+        ++pings;
+        numPings = pings;
+        ping(_srcChainId, fromAddress, pings);
     }
 
     /**
