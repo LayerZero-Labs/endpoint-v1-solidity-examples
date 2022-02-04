@@ -22,7 +22,8 @@ contract MultiChainCounter is ILayerZeroReceiver {
     }
 
     // overrides lzReceive function in ILayerZeroReceiver.
-    // automatically invoked on the receiving chain after the source chain calls endpoint.send(...)
+    // automatically invoked on the receiving chain after
+    // the source chain calls endpoint.send(...)
     function lzReceive(uint16 , bytes memory , uint64 , bytes memory ) override external {
         require(msg.sender == address(endpoint));
         messageCounter += 1;
