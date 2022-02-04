@@ -4,7 +4,7 @@
 // PingPong sends a LayerZero message back and forth between chains until stopped!
 //
 // Demonstrates:
-//  1. a cool recursive feature of calling send() from inside lzReceive()
+//  1. a recursive feature of calling send() from inside lzReceive()
 //  2. how to `estimateNativeFees` for a send()'ing a LayerZero message
 //  3. the contract pays the message fee
 
@@ -58,7 +58,7 @@ contract PingPong is ILayerZeroReceiver {
             _dstChainId,                            // destination chainId
             abi.encodePacked(_dstPingPongAddr),     // destination address of PingPong
             payload,                                // abi.encode()'ed bytes
-            payable(msg.sender),                             // (msg.sender will be this contract) refund address (LayerZero will refund any extra gas back to caller of send()
+            payable(msg.sender),                    // (msg.sender will be this contract) refund address (LayerZero will refund any extra gas back to caller of send()
             address(0x0),                           // 'zroPaymentAddress' unused for this mock/example
             bytes("")                               // 'txParameters' unused for this mock/example
         );
