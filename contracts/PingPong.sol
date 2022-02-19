@@ -12,8 +12,9 @@ pragma solidity ^0.8.4;
 
 import "./interfaces/ILayerZeroReceiver.sol";
 import "./interfaces/ILayerZeroEndpoint.sol";
+import "./interfaces/ILayerZeroUserApplicationConfig.sol";
 
-contract PingPong is ILayerZeroReceiver {
+contract PingPong is ILayerZeroReceiver, ILayerZeroUserApplicationConfig {
     // the LayerZero endpoint calls .send() to send a cross chain message
     ILayerZeroEndpoint public endpoint;
     // whether PingPong is ping-ponging
@@ -52,7 +53,7 @@ contract PingPong is ILayerZeroReceiver {
 
         // get the fees we need to pay to LayerZero + Relayer to cover message delivery
         // see Communicator.sol's .estimateNativeFees() function for more details.
-        uint messageFee = endpoint.estimateNativeFees(_dstChainId, address(this), payload, false, bytes(""));
+        (uint messageFee, ) = endpoint.estimateFees(_dstChainId, address(this), payload, false, bytes(""));
         require(address(this).balance >= messageFee, "address(this).balance < messageFee. pls send gas for message fees");
 
         // send LayerZero message
@@ -85,17 +86,46 @@ contract PingPong is ILayerZeroReceiver {
         ping(_srcChainId, fromAddress, pings);
     }
 
-    /**
-     * @dev Fallback function that delegates calls to the address returned by `_implementation()`. Will run if no other
-     * function in the contract matches the call data.
-     */
-    fallback () external payable {
+    function setConfig(
+        uint16, /*_dstChainId*/
+        uint _configType,
+        bytes memory _config
+    ) external override {
+        endpoint.setConfig(endpoint.getSendVersion(), _configType, _config);
     }
 
-    /**
-     * @dev Fallback function that delegates calls to the address returned by `_implementation()`. Will run if call data
-     * is empty.
-     */
-    receive () external payable {
+    function getConfig(
+        uint16, /*_dstChainId*/
+        uint16 _chainId,
+        address,
+        uint _configType
+    ) external view override returns (bytes memory) {
+        return endpoint.getConfig(endpoint.getSendVersion(), _chainId, address(this), _configType);
     }
+
+    function setSendVersion(uint16 version) external override {
+        endpoint.setSendVersion(version);
+    }
+
+    function setReceiveVersion(uint16 version) external override {
+        endpoint.setReceiveVersion(version);
+    }
+
+    function getSendVersion() external view override returns (uint16) {
+        return endpoint.getSendVersion();
+    }
+
+    function getReceiveVersion() external view override returns (uint16) {
+        return endpoint.getReceiveVersion();
+    }
+
+    function forceResumeReceive(uint16 _srcChainId, bytes calldata _srcAddress) external override {
+        // do nth
+    }
+
+
+    // allow this contract to receive ether
+    fallback() external payable {}
+    receive() external payable {}
+
 }

@@ -14,7 +14,11 @@ describe("PingPong", function () {
         const LayerZeroEndpointMock = await ethers.getContractFactory("LayerZeroEndpointMock");
         this.layerZeroEndpointMock = await LayerZeroEndpointMock.deploy();
         this.mockEstimatedNativeFee = ethers.utils.parseEther('0.001')
-        await this.layerZeroEndpointMock.setTheEstimatedNativeFee(this.mockEstimatedNativeFee)
+        this.mockEstimatedZroFee = ethers.utils.parseEther('0.00025')
+        await this.layerZeroEndpointMock.setEstimatedFees(
+            this.mockEstimatedNativeFee,
+            this.mockEstimatedZroFee,
+        )
 
         // create two PingPong instances
         const PingPong = await ethers.getContractFactory("PingPong");
