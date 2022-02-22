@@ -1,11 +1,11 @@
 //
-// * you will need to fund each deployed contract with native token *
+// Note: you will need to fund each deployed contract with gas
 //
 // PingPong sends a LayerZero message back and forth between chains until stopped!
 //
 // Demonstrates:
 //  1. a recursive feature of calling send() from inside lzReceive()
-//  2. how to `estimateNativeFees` for a send()'ing a LayerZero message
+//  2. how to `estimateFees` for a send()'ing a LayerZero message
 //  3. the contract pays the message fee
 
 pragma solidity ^0.8.4;
@@ -122,7 +122,6 @@ contract PingPong is ILayerZeroReceiver, ILayerZeroUserApplicationConfig {
     function forceResumeReceive(uint16 _srcChainId, bytes calldata _srcAddress) external override {
         // do nth
     }
-
 
     // allow this contract to receive ether
     fallback() external payable {}

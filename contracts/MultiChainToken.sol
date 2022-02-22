@@ -5,7 +5,7 @@ import "./interfaces/ILayerZeroEndpoint.sol";
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 
-// example token contract which can be deployed on multiple chains.
+// deploy this contract to 2+ chains for testing.
 //
 // sendTokens() function works like this:
 //  1. burn local tokens (logic in sendTokens)
