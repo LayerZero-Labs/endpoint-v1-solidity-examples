@@ -49,7 +49,17 @@ task("omniCounterSetOracle", "set the UA (an OmniCounter contract) to use the sp
     .addParam("dstChainId", "the destination chain id")
     .addParam("oracle", "the oracle address")
 
-//
+// get the Oracle for sending to the destination chain
 task("omniCounterGetOracle", "get the Oracle address being used by the OmniCounter",
     require("./omniCounterGetOracle"))
     .addParam("dstChainId", "the destination chain id")
+
+//
+task("omniCounterIncrement", "increment the destination OmniCounter",
+    require("./omniCounterIncrement"))
+    .addParam("dstChainId", "the destination chain id")
+    .addParam("dstAddr", "the destination OmniCounter address")
+
+//
+task("omniCounterPoll", "poll the counter of the OmniCounter",
+    require("./omniCounterPoll"))
