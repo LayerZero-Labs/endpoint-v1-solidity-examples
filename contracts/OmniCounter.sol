@@ -123,6 +123,16 @@ contract OmniCounter is ILayerZeroReceiver, ILayerZeroUserApplicationConfig {
         // do nth
     }
 
+    // set the Oracle to be used by this UA for LayerZero messages
+    function setOracle(uint16 dstChainId, address oracle) external { // should technically be onlyOwner but this is a mock
+        uint TYPE_ORACLE = 6; // from UltraLightNode
+        // set the Oracle
+        endpoint.setConfig(
+            endpoint.getSendVersion(),
+            TYPE_ORACLE,
+            abi.encode(dstChainId, oracle)
+        );
+    }
 
     // allow this contract to receive ether
     fallback() external payable {}

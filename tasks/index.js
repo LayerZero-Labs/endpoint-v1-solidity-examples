@@ -1,19 +1,4 @@
 // for example purposes
-task("deploy", "deploy an instance of MultiChainCounter.sol")
-    .addParam("endpoint", "LayerZero Communicator.sol instance, what we call the 'endpoint'")
-    .setAction(async (taskArgs) => {
-
-        let signers = await ethers.getSigners();
-        let owner = signers[0];
-        console.log(`owner.address: ${owner.address}`);
-
-        //--------------- DocsCounterMock -----------------------------------------------
-        const MultiChainCounter = await ethers.getContractFactory("MultiChainCounter");
-        const multiChainCounter = await MultiChainCounter.deploy(taskArgs.endpoint);
-        await multiChainCounter.deployed();
-        console.log("multiChainCounter.address:", multiChainCounter.address);
-    });
-
 task("deployMultiChainToken", "deploys a MultiChainToken")
     .addParam("name", "the string name of the token")
     .addParam("symbol", "the string symbol of the token")
@@ -57,3 +42,14 @@ task("incrementMultiChainCounter", "increment the counter of a destination Multi
         )).wait()
         console.log(`tx: ${tx.transactionHash}`)
     });
+
+// set the Oracle address for the OmniCounter
+task("omniCounterSetOracle", "set the UA (an OmniCounter contract) to use the specified oracle for the destination chain",
+    require("./omniCounterSetOracle"))
+    .addParam("dstChainId", "the destination chain id")
+    .addParam("oracle", "the oracle address")
+
+//
+task("omniCounterGetOracle", "get the Oracle address being used by the OmniCounter",
+    require("./omniCounterGetOracle"))
+    .addParam("dstChainId", "the destination chain id")

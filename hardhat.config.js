@@ -3,9 +3,10 @@ require("dotenv").config();
 require('hardhat-contract-sizer');
 require("@nomiclabs/hardhat-waffle");
 require("solidity-coverage");
-
 require('hardhat-gas-reporter');
-require('./tasks/deploy');
+require('hardhat-deploy');
+require('hardhat-deploy-ethers');
+require('./tasks');
 
 // This is a sample Hardhat task. To learn how to create your own go to
 // https://hardhat.org/guides/create-task.html
@@ -49,6 +50,12 @@ module.exports = {
     alphaSort: false,
     runOnCompile: true,
     disambiguatePaths: false,
+  },
+
+  namedAccounts: {
+    deployer: {
+      default: 0,    // wallet address 0, of the mnemonic in .env
+    }
   },
 
   networks: {
