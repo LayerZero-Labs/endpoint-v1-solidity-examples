@@ -1,4 +1,4 @@
-# Simple LayerZero multi chain contracts
+# Simple LayerZero omni chain contracts
 
 ### Setup the project
 ```shell
@@ -22,20 +22,20 @@ configure an .env file to have the values of .env.example and test deploy! (Use 
 
 # Testing Cross Chain Messages
 
-1. Deploy both OmniCounters and send a cross chain message by calling the scripts below:
+1. Deploy both OmniCounters:
 
 ```
 npx hardhat --network fuji deploy
 npx hardhat --network mumbai deploy 
 ````
 
-2. Call the command below to send a cross chain message from `fuji` to `mumbai` !
+2. Send a cross chain message from `fuji` to `mumbai` !
 ```angular2html
 npx hardhat --network fuji omniCounterIncrement --target-network mumbai
 ```
 
 
-3. Optionally use this command in a separate terminal watch the counter on the destination
+3. Optionally use this command in a separate terminal to watch the counter increment in real-time.
 ```
 npx hardhat --network mumbai omniCounterPoll    
 ```
