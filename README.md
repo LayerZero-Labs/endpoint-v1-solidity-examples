@@ -10,13 +10,6 @@ npm install
 npx hardhat test
 ```
 
-### See some examples in `/contracts`  🙌
-
-Many of the example contracts make use of LayerZeroEndpointMock.sol which is a nice way to test LayerZero locally!
-
-
-### Most recently tested with node version `16.13.1` 
-
 ### NOTE: You must add a .env with a MNEMONIC that is funded on testnets !
 configure an .env file to have the values of .env.example and test deploy! (Use a real LayerZero endpoint in place of 0x0000..) 
 
@@ -50,3 +43,12 @@ npx hardhat --network mumbai omniCounterPoll
 
 ### Set a custom Oracle for the deployed OmniCounter
 ```npx hardhat --network fuji omniCounterSetOracle --target-network mumbai --oracle 0xORACLE_ADDR```
+
+
+
+### See some examples in `/contracts`  🙌
+
+Many of the example contracts make use of LayerZeroEndpointMock.sol which is a nice way to test LayerZero locally!
+
+## Most recently tested with node version `16.13.1` 
+
