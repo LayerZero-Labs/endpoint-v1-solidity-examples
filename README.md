@@ -17,7 +17,7 @@ Many of the example contracts make use of LayerZeroEndpointMock.sol which is a n
 
 ### Most recently tested with node version `16.13.1` 
 
-###
+### NOTE: You must add a .env with a MNEMONIC that is funded on testnets !
 configure an .env file to have the values of .env.example and test deploy! (Use a real LayerZero endpoint in place of 0x0000..) 
 
 # Testing Cross Chain Messages
