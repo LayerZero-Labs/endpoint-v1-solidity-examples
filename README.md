@@ -39,7 +39,7 @@ npx hardhat --network fantom-testnet omniCounterPoll
 
 
 ### Read the currently set Oracle
-```npx hardhat --network mumbai omniCounterGetOracle```
+```npx hardhat --network mumbai omniCounterGetOracle --target-network fantom-testnet```
 
 ### Set a custom Oracle for the deployed OmniCounter
 ```npx hardhat --network mumbai omniCounterSetOracle --target-network mumbai --oracle 0xORACLE_ADDR```
