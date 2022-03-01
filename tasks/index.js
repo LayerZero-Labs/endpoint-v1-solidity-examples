@@ -46,8 +46,8 @@ task("incrementMultiChainCounter", "increment the counter of a destination Multi
 // set the Oracle address for the OmniCounter
 task("omniCounterSetOracle", "set the UA (an OmniCounter contract) to use the specified oracle for the destination chain",
     require("./omniCounterSetOracle"))
-    .addParam("dstChainId", "the destination chain id")
-    .addParam("oracle", "the oracle address")
+    .addParam("targetNetwork", "the target network name, ie: fuji, or mumbai, etc (from hardhat.config.js)")
+    .addParam("oracle", "the Oracle address for the specified targetNetwork")
 
 // get the Oracle for sending to the destination chain
 task("omniCounterGetOracle", "get the Oracle address being used by the OmniCounter",
@@ -56,9 +56,7 @@ task("omniCounterGetOracle", "get the Oracle address being used by the OmniCount
 //
 task("omniCounterIncrement", "increment the destination OmniCounter",
     require("./omniCounterIncrement"))
-    .addParam('targetNetwork', 'the target network name, ie: fuji, or mumbai, etc (from hardhat.config.js)')
-    // .addParam("dstChainId", "the destination chain id")
-    // .addParam("dstAddr", "the destination OmniCounter address")
+    .addParam("targetNetwork", "the target network name, ie: fuji, or mumbai, etc (from hardhat.config.js)")
 
 //
 task("omniCounterPoll", "poll the counter of the OmniCounter",

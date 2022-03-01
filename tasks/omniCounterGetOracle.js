@@ -16,6 +16,5 @@ module.exports = async function (taskArgs, hre) {
         TYPE_ORACLE
     )
 
-    console.log(data)
-    console.log(` ^ Oracle ... for (${hre.network.name}) -> [${dstChainId}]`)
+    console.log(`✅ Oracle for src (${hre.network.name}) -> dst [${dstChainId}]: ${data.replace('000000000000000000000000','')}`)
 }
