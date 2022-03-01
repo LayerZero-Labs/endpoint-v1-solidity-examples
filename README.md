@@ -22,28 +22,20 @@ configure an .env file to have the values of .env.example and test deploy! (Use 
 
 # Testing Cross Chain Messages
 
-1. Deploy 2+ OmniCounters and send a cross chain message by calling incrementCounter()
+1. Deploy both OmniCounters and send a cross chain message by calling the scripts below:
 
 ```
 npx hardhat --network fuji deploy
 npx hardhat --network mumbai deploy 
 ````
 
-2. When you deploy, it will output something like:
-```
-deploying "OmniCounter" (tx: 0xf1219eb9f29a54300b998c48e6dcb02900a0d8499f0829282ffa7f39727fa5c4)...: deployed at 0xA79595A48a01b7a3A5AfA8cD62cfEC9F3f7EAfE5 with 1758818 gas
-```
-
-3. Copy the address of the target deployed OmniCounter, in this case for `mumbai` `0xA79595A48a01b7a3A5AfA8cD62cfEC9F3f7EAfE5```
-
-
-4. Call the command below to send a cross chain message from `fuji` to `mumbai` !
+2. Call the command below to send a cross chain message from `fuji` to `mumbai` !
 ```angular2html
-npx hardhat --network fuji omniCounterIncrement --dst-chain-id 10009 --dst-addr 0xA79595A48a01b7a3A5AfA8cD62cfEC9F3f7EAfE5
+npx hardhat --network fuji omniCounterIncrement --target-network mumbai
 ```
 
 
-5. Use this command to poll the counter on the destination to wait for the cross chain message
+3. Optionally use this command in a separate terminal watch the counter on the destination
 ```
 npx hardhat --network mumbai omniCounterPoll    
 ```
@@ -51,3 +43,10 @@ npx hardhat --network mumbai omniCounterPoll
 
 
 ### For further reading, and a list of endpoint ids and deployed LayerZero contract addresses please take a look at the Gitbook here: https://layerzero.gitbook.io/
+
+
+### Read the currently set Oracle
+```npx hardhat --network fuji omniCounterGetOracle```
+
+### Set a custom Oracle for the deployed OmniCounter
+```npx hardhat --network fuji omniCounterSetOracle --target-network mumbai --oracle 0xORACLE_ADDR```
