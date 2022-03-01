@@ -69,6 +69,14 @@ module.exports = {
       url: `https://api.avax-test.network/ext/bc/C/rpc`,
       chainId: 43113,
       accounts: accounts(),
+    },
+
+    // fantom-testnet
+    // https://rpc.testnet.fantom.network/
+    'fantom-testnet': {
+      url: `https://rpc.testnet.fantom.network/`,
+      chainId: 4002,
+      accounts: accounts(),
     }
   }
 
