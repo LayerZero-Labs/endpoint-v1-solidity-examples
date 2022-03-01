@@ -52,6 +52,7 @@ task("omniCounterSetOracle", "set the UA (an OmniCounter contract) to use the sp
 // get the Oracle for sending to the destination chain
 task("omniCounterGetOracle", "get the Oracle address being used by the OmniCounter",
     require("./omniCounterGetOracle"))
+    .addParam("targetNetwork", "the target network name, ie: fuji, or mumbai, etc (from hardhat.config.js)")
 
 //
 task("omniCounterIncrement", "increment the destination OmniCounter",

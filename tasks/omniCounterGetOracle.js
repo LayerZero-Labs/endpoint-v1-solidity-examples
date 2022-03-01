@@ -3,7 +3,7 @@ const ENDPOINT_IDS = require('../constants/endpointIds.json')
 const TYPE_ORACLE = 6
 
 module.exports = async function (taskArgs, hre) {
-    const dstChainId = ENDPOINT_IDS[hre.network.name]
+    const dstChainId = ENDPOINT_IDS[taskArgs.targetNetwork]
     // get the local contract
     const omniCounter = await ethers.getContract("OmniCounter")
     console.log(`omniCounter.address: ${omniCounter.address}`)
