@@ -59,20 +59,36 @@ module.exports = {
   },
 
   networks: {
-    mumbai: {
-      url: "https://rpc-mumbai.maticvigil.com/",
-      chainId: 80001,
+    rinkeby: {
+      url: "https://rinkeby.infura.io/v3/9aa3d95b3bc440fa88ea12eaa4456161",
+      chainId: 4,
       accounts: accounts(),
     },
-
+    'bsc-testnet': {
+      url: 'https://data-seed-prebsc-1-s1.binance.org:8545/',
+      chainId: 97,
+      accounts: accounts(),
+    },
     fuji: {
       url: `https://api.avax-test.network/ext/bc/C/rpc`,
       chainId: 43113,
       accounts: accounts(),
     },
-
-    // fantom-testnet
-    // https://rpc.testnet.fantom.network/
+    mumbai: {
+      url: "https://rpc-mumbai.maticvigil.com/",
+      chainId: 80001,
+      accounts: accounts(),
+    },
+    'arbitrum-rinkeby': {
+      url: `https://rinkeby.arbitrum.io/rpc`,
+      chainId: 421611,
+      accounts: accounts(),
+    },
+    'optimism-kovan': {
+      url: `https://kovan.optimism.io/`,
+      chainId: 69,
+      accounts: accounts(),
+    },
     'fantom-testnet': {
       url: `https://rpc.testnet.fantom.network/`,
       chainId: 4002,
