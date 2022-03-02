@@ -14,7 +14,7 @@ module.exports = async function (taskArgs, hre) {
     let tx = await (await omniCounter.incrementCounter(
         dstChainId,
         dstAddr,
-        {value: ethers.utils.parseEther('0.01')} // estimate/guess
+        {value: ethers.utils.parseEther('1')} // estimate/guess
     )).wait()
     console.log(`✅ Message Sent [${hre.network.name}] incrementCounter on destination OmniCounter @ [${dstChainId}] [${dstAddr}]`)
     console.log(`tx: ${tx.transactionHash}`)

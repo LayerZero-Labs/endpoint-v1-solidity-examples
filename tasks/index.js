@@ -60,5 +60,11 @@ task("omniCounterIncrement", "increment the destination OmniCounter",
     .addParam("targetNetwork", "the target network name, ie: fuji, or mumbai, etc (from hardhat.config.js)")
 
 //
+task("omniCounterIncrementMulti", "increment the destination OmniCounter",
+    require("./omniCounterIncrementMulti"))
+    .addParam("targetNetworks", "target network names, separated by comma (no spaces)")
+
+
+//
 task("omniCounterPoll", "poll the counter of the OmniCounter",
     require("./omniCounterPoll"))
