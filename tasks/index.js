@@ -58,6 +58,7 @@ task("omniCounterGetOracle", "get the Oracle address being used by the OmniCount
 task("omniCounterIncrement", "increment the destination OmniCounter",
     require("./omniCounterIncrement"))
     .addParam("targetNetwork", "the target network name, ie: fuji, or mumbai, etc (from hardhat.config.js)")
+    .addOptionalParam("n", "number of tx", 1, types.int)
 
 //
 task("omniCounterIncrementMulti", "increment the destination OmniCounter",
