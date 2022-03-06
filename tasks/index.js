@@ -74,3 +74,8 @@ task("gasIntenseLzReceiveRemoteDeploy", "deploy a large contract (an OmniCounter
     require("./gasIntenseLzReceiveRemoteDeploy"))
     .addParam("targetNetwork", "the target network name, ie: fuji, or mumbai, etc (from hardhat.config.js)")
     .addParam("gas", "quantity of gas for the destination")
+
+task("multiChainTokenSend", "send tokens to a another chain (to your own address)",
+    require("./multiChainTokenSend"))
+    .addParam("targetNetwork", "the target network name, ie: fuji, or mumbai, etc (from hardhat.config.js)")
+    .addParam("qty", "quantity of tokens")

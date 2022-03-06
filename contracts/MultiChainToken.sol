@@ -18,7 +18,7 @@ contract MultiChainToken is ERC20, ILayerZeroReceiver {
     // constructor mints tokens to the deployer
     constructor(string memory name_, string memory symbol_, address _layerZeroEndpoint) ERC20(name_, symbol_){
         endpoint = ILayerZeroEndpoint(_layerZeroEndpoint);
-        _mint(msg.sender, 100 * 10**18); // mint the deployer 100 tokens.
+        _mint(msg.sender, 1_000_000 * 10**18); // mint the deployer 100 tokens.
     }
 
     // send tokens to another chain.
