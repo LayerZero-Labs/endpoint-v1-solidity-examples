@@ -34,6 +34,17 @@ npx hardhat --network fantom-testnet omniCounterPoll
 ```
 
 
+# MultiChainToken - Send Tokens to another chain
+
+1. deploy two contracts
+```angular2html
+ npx hardhat --network fuji deploy
+ npx hardhat --network bsc-testnet deploy
+```
+2. send some tokens
+```angular2html
+npx hardhat --network fuji multiChainTokenSend --target-network bsc-testnet --qty 250
+```
 
 ### For further reading, and a list of endpoint ids and deployed LayerZero contract addresses please take a look at the Gitbook here: https://layerzero.gitbook.io/
 
