@@ -124,13 +124,31 @@ contract OmniCounter is ILayerZeroReceiver, ILayerZeroUserApplicationConfig {
     }
 
     // set the Oracle to be used by this UA for LayerZero messages
-    function setOracle(uint16 dstChainId, address oracle) external { // should technically be onlyOwner but this is a mock
+    function setOracle(uint16 dstChainId, address oracle) external {
         uint TYPE_ORACLE = 6; // from UltraLightNode
         // set the Oracle
         endpoint.setConfig(
             endpoint.getSendVersion(),
             TYPE_ORACLE,
             abi.encode(dstChainId, oracle)
+        );
+    }
+
+    // set the inbound block confirmations
+    function setInboundConfirmations(uint16 remoteChainId, uint16 confirmations) external {
+        endpoint.setConfig(
+            endpoint.getSendVersion(),
+            2, // CONFIG_TYPE_INBOUND_BLOCK_CONFIRMATIONS
+            abi.encode(remoteChainId, confirmations)
+        );
+    }
+
+    // set outbound block confirmations
+    function setOutboundConfirmations(uint16 remoteChainId, uint16 confirmations) external {
+        endpoint.setConfig(
+            endpoint.getSendVersion(),
+            5, // CONFIG_TYPE_OUTBOUND_BLOCK_CONFIRMATIONS
+            abi.encode(remoteChainId, confirmations)
         );
     }
 

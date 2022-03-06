@@ -3,6 +3,7 @@ function sleep(millis) {
 }
 
 module.exports = async function (taskArgs, hre) {
+    console.log(`owner:`, (await ethers.getSigners())[0].address)
     const omniCounter = await ethers.getContract("OmniCounter")
     console.log(`omniCounter: ${omniCounter.address}`)
 

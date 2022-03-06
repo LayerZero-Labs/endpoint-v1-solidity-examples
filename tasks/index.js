@@ -69,3 +69,8 @@ task("omniCounterIncrementMulti", "increment the destination OmniCounter",
 //
 task("omniCounterPoll", "poll the counter of the OmniCounter",
     require("./omniCounterPoll"))
+
+task("gasIntenseLzReceiveRemoteDeploy", "deploy a large contract (an OmniCounter) on the destination",
+    require("./gasIntenseLzReceiveRemoteDeploy"))
+    .addParam("targetNetwork", "the target network name, ie: fuji, or mumbai, etc (from hardhat.config.js)")
+    .addParam("gas", "quantity of gas for the destination")
