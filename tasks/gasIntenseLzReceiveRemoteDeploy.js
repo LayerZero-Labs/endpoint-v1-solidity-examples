@@ -19,5 +19,5 @@ module.exports = async function (taskArgs, hre) {
         {value: ethers.utils.parseEther('2')} // estimate/guess message cost
     )).wait()
     console.log(`✅ Message Sent [${hre.network.name}] deployRemote on destination GasIntenseLzReceive @ [${dstChainId}] [${dstAddr}]`)
-    console.log(`[${i}] tx: ${tx.transactionHash}`)
+    console.log(`  tx: ${tx.transactionHash}`)
 }
