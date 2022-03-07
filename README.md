@@ -18,7 +18,7 @@ configure an .env file to have the values of .env.example and test deploy! (Use 
 1. Deploy both OmniCounters:
 
 ```
-npx hardhat --network fantom-testnet deploy
+npx hardhat --network fuji deploy
 npx hardhat --network mumbai deploy 
 ````
 
@@ -27,14 +27,14 @@ npx hardhat --network mumbai deploy
 npx hardhat --network mumbai omniCounterSetRemote --target-network fuji
 npx hardhat --network fuji omniCounterSetRemote --target-network mumbai
 ```
-3. Send a cross chain message from `mumbai` to `fantom-testnet` !
+3. Send a cross chain message from `mumbai` to `fuji` !
 ```angular2html
-npx hardhat --network mumbai omniCounterIncrement --target-network fantom-testnet
+npx hardhat --network mumbai omniCounterIncrement --target-network fuji
 ```
 
 Optionally use this command in a separate terminal to watch the counter increment in real-time.
 ```
-npx hardhat --network fantom-testnet omniCounterPoll    
+npx hardhat --network fuji omniCounterPoll    
 ```
 
 
