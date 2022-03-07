@@ -8,7 +8,6 @@ module.exports = async function (taskArgs, hre) {
     const dstChainId = ENDPOINT_IDS[taskArgs.targetNetwork]
     const qty = ethers.utils.parseEther(taskArgs.qty);
 
-    console.log(`[destination] MultiChainToken`, getDeploymentAddresses(taskArgs.targetNetwork))
     const dstAddr = getDeploymentAddresses(taskArgs.targetNetwork)["MultiChainToken"]
     // get local contract instance
     const multiChainToken = await ethers.getContract("MultiChainToken")
