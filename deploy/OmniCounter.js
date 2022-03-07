@@ -3,7 +3,7 @@ const ENDPOINTS = require('../constants/layerzeroEndpoints.json')
 module.exports = async function ({ deployments, getNamedAccounts }) {
     const { deploy } = deployments
     const { deployer } = await getNamedAccounts()
-    console.log(deployer)
+    console.log(`>>> your address: ${deployer}` )
 
     // get the Endpoint address
     const endpointAddr = ENDPOINTS[hre.network.name]
