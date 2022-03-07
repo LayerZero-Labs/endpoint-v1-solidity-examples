@@ -19,6 +19,10 @@ describe("MultiChainToken", function () {
         this.multiChainTokenA = await MultiChainToken.deploy("NAME1", "SYM1", this.layerZeroEndpointMock.address);
         this.multiChainTokenB = await MultiChainToken.deploy("NAME2", "SYM2", this.layerZeroEndpointMock.address);
 
+        // set each contracts remote address so it can send to each other
+        await this.multiChainTokenA.setRemote(this.chainId, this.multiChainTokenB.address) // for A, set B
+        await this.multiChainTokenB.setRemote(this.chainId, this.multiChainTokenA.address) // for B, set A
+
         // retrieve the starting tokens
         this.startingTokens = await this.multiChainTokenA.balanceOf(this.owner.address);
     });

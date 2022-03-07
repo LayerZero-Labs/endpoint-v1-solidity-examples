@@ -22,13 +22,17 @@ npx hardhat --network fantom-testnet deploy
 npx hardhat --network mumbai deploy 
 ````
 
-2. Send a cross chain message from `mumbai` to `fantom-testnet` !
+2. Set the remote addresses, so each contract can receive messages
+```angular2html
+npx hardhat --network mumbai omniCounterSetRemote --target-network fuji
+npx hardhat --network fuji omniCounterSetRemote --target-network mumbai
+```
+3. Send a cross chain message from `mumbai` to `fantom-testnet` !
 ```angular2html
 npx hardhat --network mumbai omniCounterIncrement --target-network fantom-testnet
 ```
 
-
-3. Optionally use this command in a separate terminal to watch the counter increment in real-time.
+Optionally use this command in a separate terminal to watch the counter increment in real-time.
 ```
 npx hardhat --network fantom-testnet omniCounterPoll    
 ```
@@ -41,7 +45,12 @@ npx hardhat --network fantom-testnet omniCounterPoll
  npx hardhat --network fuji deploy
  npx hardhat --network bsc-testnet deploy
 ```
-2. send some tokens
+2. set the remotes, so each contract can receive messages
+```angular2html
+npx hardhat --network fuji multiChainTokenSetRemote --target-network bsc-testnet
+npx hardhat --network bsc-testnet multiChainTokenSetRemote --target-network fuji
+```
+3. send some tokens
 ```angular2html
 npx hardhat --network fuji multiChainTokenSend --target-network bsc-testnet --qty 250
 ```

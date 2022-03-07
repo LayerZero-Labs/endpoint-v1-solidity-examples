@@ -3,8 +3,6 @@ const {getDeploymentAddresses} = require('../utils/readStatic')
 
 module.exports = async function (taskArgs, hre) {
     const dstChainId = ENDPOINT_IDS[taskArgs.targetNetwork]
-    // console.log(`dstChainId: ${dstChainId}`)
-    console.log(`[destination] OmniCounter`, getDeploymentAddresses(taskArgs.targetNetwork))
     const dstAddr = getDeploymentAddresses(taskArgs.targetNetwork)["OmniCounter"]
     // get local contract instance
     const omniCounter = await ethers.getContract("OmniCounter")

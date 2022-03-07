@@ -1,0 +1,23 @@
+const ENDPOINT_IDS = require('../constants/endpointIds.json')
+const {getDeploymentAddresses} = require('../utils/readStatic')
+
+module.exports = async function (taskArgs, hre) {
+    const dstChainId = ENDPOINT_IDS[taskArgs.targetNetwork]
+    const dstAddr = getDeploymentAddresses(taskArgs.targetNetwork)["OmniCounter"]
+    // get local contract instance
+    const omniCounter = await ethers.getContract("OmniCounter")
+    console.log(`[source] omniCounter.address: ${omniCounter.address}`)
+
+    // setRemote() on the local contract, so it can receive message from the remote contract
+    try{
+        let tx = await (await omniCounter.setRemote(
+            dstChainId,
+            dstAddr
+        )).wait()
+        console.log(`✅ [${hre.network.name}] setRemote(${dstChainId}, ${dstAddr})`)
+        console.log(` tx: ${tx.transactionHash}`)
+    } catch(e){
+        if(e.error.message.includes("The remote address has already been set for the chainId")){ console.log('*remote already set*') }
+        else { console.log(e)}
+    }
+}

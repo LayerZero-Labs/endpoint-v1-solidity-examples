@@ -4,17 +4,18 @@ pragma solidity ^0.8.4;
 pragma abicoder v2;
 
 import "@openzeppelin/contracts/utils/math/SafeMath.sol";
-
+import "@openzeppelin/contracts/access/Ownable.sol";
 import "./interfaces/ILayerZeroReceiver.sol";
 import "./interfaces/ILayerZeroEndpoint.sol";
 import "./interfaces/ILayerZeroUserApplicationConfig.sol";
 
-contract OmniCounter is ILayerZeroReceiver, ILayerZeroUserApplicationConfig {
+contract OmniCounter is Ownable, ILayerZeroReceiver, ILayerZeroUserApplicationConfig {
     using SafeMath for uint;
     // keep track of how many messages have been received from other chains
     uint public messageCounter;
     // required: the LayerZero endpoint which is passed in the constructor
     ILayerZeroEndpoint public endpoint;
+    mapping(uint16 => bytes) public remotes;
 
     constructor(address _endpoint) {
         endpoint = ILayerZeroEndpoint(_endpoint);
@@ -24,15 +25,32 @@ contract OmniCounter is ILayerZeroReceiver, ILayerZeroUserApplicationConfig {
         return messageCounter;
     }
 
+    // _chainId - the chainId for the remote contract
+    // _remoteAddress - the contract address on the remote chainId
+    // the owner must set remote contract addresses.
+    // in lzReceive(), a require() ensures only messages
+    // from known contracts can be received.
+    function setRemote(uint16 _chainId, bytes calldata _remoteAddress) external onlyOwner {
+        require(remotes[_chainId].length == 0, "The remote address has already been set for the chainId!");
+        remotes[_chainId] = _remoteAddress;
+    }
+
     // overrides lzReceive function in ILayerZeroReceiver.
     // automatically invoked on the receiving chain after the source chain calls endpoint.send(...)
     function lzReceive(
-        uint16,
-        bytes memory, /*_fromAddress*/
+        uint16 _srcChainId,
+        bytes memory _srcAddress,
         uint64, /*_nonce*/
         bytes memory /*_payload*/
     ) external override {
+        // boilerplate: only allow this endpiont to be the caller of lzReceive!
         require(msg.sender == address(endpoint));
+        // owner must have setRemote() to allow its remote contracts to send to this contract
+        require(
+            _srcAddress.length == remotes[_srcChainId].length && keccak256(_srcAddress) == keccak256(remotes[_srcChainId]),
+            "Invalid remote sender address. owner should call setRemote() to enable remote contract"
+        );
+
         messageCounter += 1;
     }
 
