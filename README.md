@@ -42,17 +42,17 @@ npx hardhat --network fuji omniCounterPoll
 
 1. deploy two contracts
 ```angular2html
- npx hardhat --network rinkeby deploy
- npx hardhat --network bsc-testnet deploy
+ npx hardhat --network fuji deploy
+ npx hardhat --network mumbai deploy
 ```
 2. set the remotes, so each contract can receive messages
 ```angular2html
-npx hardhat --network rinkeby multiChainTokenSetRemote --target-network bsc-testnet
-npx hardhat --network bsc-testnet multiChainTokenSetRemote --target-network rinkeby
+npx hardhat --network fuji multiChainTokenSetRemote --target-network mumbai
+npx hardhat --network mumbai multiChainTokenSetRemote --target-network fuji
 ```
 3. send some tokens
 ```angular2html
-npx hardhat --network rinkeby multiChainTokenSend --target-network bsc-testnet --qty 250
+npx hardhat --network mumbai multiChainTokenSend --target-network fuji --qty 250
 ```
 
 #
