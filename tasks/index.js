@@ -83,7 +83,7 @@ task("multiChainTokenSetRemote", "setRemote() so the local contract can receive 
     require("./multiChainTokenSetRemote"))
     .addParam("targetNetwork", "the target network to let this instance receive messages from")
 
-task("multiChainTokenSend", "send tokens to a another chain (to your own address)",
-    require("./multiChainTokenSend"))
+task("startPings", "call ping() on a PingPong to start sending pings",
+    require("./startPings"))
     .addParam("targetNetwork", "the target network name, ie: fuji, or mumbai, etc (from hardhat.config.js)")
-    .addParam("qty", "quantity of tokens")
+
