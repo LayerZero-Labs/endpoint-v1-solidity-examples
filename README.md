@@ -29,7 +29,7 @@ npx hardhat --network fuji omniCounterSetRemote --target-network mumbai
 ```
 3. Send a cross chain message from `mumbai` to `fuji` !
 ```angular2html
-npx hardhat --network mumbai omniCounterIncrement --target-network fuji
+npx hardhat --network mumbai omniCounterIncrementCounter --target-network fuji
 ```
 
 Optionally use this command in a separate terminal to watch the counter increment in real-time.
@@ -37,8 +37,42 @@ Optionally use this command in a separate terminal to watch the counter incremen
 npx hardhat --network fuji omniCounterPoll    
 ```
 
+# Testing Multiple Cross Chain Messages
 
-# MultiChainToken - Send Tokens to another chain
+1. Deploy both OmniCounters:
+
+```
+npx hardhat --network mumbai deploy 
+npx hardhat --network fuji deploy
+npx hardhat --network bsc-testnet deploy 
+npx hardhat --network fantom-testnet deploy 
+````
+
+2. Set the remote addresses, so each contract can receive messages
+```angular2html
+npx hardhat --network mumbai omniCounterSetRemote --target-network fuji
+npx hardhat --network fuji omniCounterSetRemote --target-network mumbai
+
+npx hardhat --network mumbai omniCounterSetRemote --target-network bsc-testnet
+npx hardhat --network bsc-testnet omniCounterSetRemote --target-network mumbai
+
+npx hardhat --network mumbai omniCounterSetRemote --target-network fantom-testnet
+npx hardhat --network fantom-testnet omniCounterSetRemote --target-network mumbai
+```
+3. Send a cross chain message from `mumbai` to `fuji` !
+```angular2html
+npx hardhat --network mumbai omniCounterIncrementMultiCounter --target-networks fuji,bsc-testnet,fantom-testnet
+```
+
+Optionally use this command in a separate terminal to watch the counter increment in real-time.
+```
+npx hardhat --network fuji omniCounterPoll
+npx hardhat --network bsc-testnet omniCounterPoll
+npx hardhat --network fantom-testnet omniCounterPoll
+```
+
+
+# OmniChainToken - Send Tokens to another chain
 
 1. deploy two contracts
 ```angular2html
@@ -47,12 +81,12 @@ npx hardhat --network fuji omniCounterPoll
 ```
 2. set the remotes, so each contract can receive messages
 ```angular2html
-npx hardhat --network fuji multiChainTokenSetRemote --target-network mumbai
-npx hardhat --network mumbai multiChainTokenSetRemote --target-network fuji
+npx hardhat --network fuji omniChainTokenSetRemote --target-network mumbai
+npx hardhat --network mumbai omniChainTokenSetRemote --target-network fuji
 ```
 3. send some tokens
 ```angular2html
-npx hardhat --network mumbai multiChainTokenSend --target-network fuji --qty 250
+npx hardhat --network mumbai omniChainTokenSendTokens --target-network fuji --qty 250
 ```
 
 #

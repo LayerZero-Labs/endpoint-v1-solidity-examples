@@ -1,16 +1,16 @@
-const ENDPOINT_IDS = require('../constants/endpointIds.json')
+const CHAIN_ID = require('../constants/chainIds.json')
 const {getDeploymentAddresses} = require('../utils/readStatic')
 
 module.exports = async function (taskArgs, hre) {
-    const dstChainId = ENDPOINT_IDS[taskArgs.targetNetwork]
-    const dstAddr = getDeploymentAddresses(taskArgs.targetNetwork)["MultiChainToken"]
+    const dstChainId = CHAIN_ID[taskArgs.targetNetwork]
+    const dstAddr = getDeploymentAddresses(taskArgs.targetNetwork)["OmniChainToken"]
     // get local contract instance
-    const multiChainToken = await ethers.getContract("MultiChainToken")
-    console.log(`[source] multiChainToken.address: ${multiChainToken.address}`)
+    const omniChainToken = await ethers.getContract("OmniChainToken")
+    console.log(`[source] omniChainToken.address: ${omniChainToken.address}`)
 
     // setRemote() on the local contract, so it can receive message from the remote contract
     try {
-        let tx = await (await multiChainToken.setRemote(
+        let tx = await (await omniChainToken.setRemote(
             dstChainId,
             dstAddr
         )).wait()

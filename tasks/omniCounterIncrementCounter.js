@@ -1,8 +1,8 @@
-const ENDPOINT_IDS = require('../constants/endpointIds.json')
+const CHAIN_ID = require('../constants/chainIds.json')
 const {getDeploymentAddresses} = require('../utils/readStatic')
 
 module.exports = async function (taskArgs, hre) {
-    const dstChainId = ENDPOINT_IDS[taskArgs.targetNetwork]
+    const dstChainId = CHAIN_ID[taskArgs.targetNetwork]
     const dstAddr = getDeploymentAddresses(taskArgs.targetNetwork)["OmniCounter"]
     // get local contract instance
     const omniCounter = await ethers.getContract("OmniCounter")
@@ -21,6 +21,7 @@ module.exports = async function (taskArgs, hre) {
 
     console.log(``)
     console.log(`Note: to poll/wait for the message to arrive on the destination use the command:`)
+    console.log(`       (it may take a minute to arrive, be patient!)`)
     console.log('')
     console.log(`    $ npx hardhat --network ${taskArgs.targetNetwork} omniCounterPoll`)
 }

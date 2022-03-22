@@ -1,15 +1,15 @@
-const ENDPOINT_IDS = require('../constants/endpointIds.json')
+const CHAIN_ID = require('../constants/chainIds.json')
 const {getDeploymentAddresses} = require('../utils/readStatic')
 
 module.exports = async function (taskArgs, hre) {
     const targetNetworks = taskArgs.targetNetworks.split(',')
     const dstChainIdArray = [];
     const dstAddrArray = [];
-    // ENDPOINT_IDS[taskArgs.targetNetwork]
-    console.log("taskArgs.targetNetwork: " + taskArgs.targetNetwork)
+    // CHAIN_ID[taskArgs.targetNetwork]
+    console.log("taskArgs.targetNetwork: " + taskArgs.targetNetworks)
     for (const dst of targetNetworks) {
         console.log("dst: " + dst)
-        dstChainIdArray.push(ENDPOINT_IDS[dst])
+        dstChainIdArray.push(CHAIN_ID[dst])
         dstAddrArray.push(getDeploymentAddresses(dst)["OmniCounter"])
     }
     // get local contract instance
@@ -19,7 +19,7 @@ module.exports = async function (taskArgs, hre) {
     console.log({dstAddrArray})
 
     // set the config for this UA to use the specified Oracle
-    let tx = await (await omniCounter.incrementCounterMulti(
+    let tx = await (await omniCounter.incrementMultiCounter(
         dstChainIdArray,
         dstAddrArray,
         (await ethers.getSigners())[0].address,
@@ -28,7 +28,7 @@ module.exports = async function (taskArgs, hre) {
 
     let index = 0;
     for (const dst of targetNetworks) {
-        console.log(`✅ Message Sent [${hre.network.name}] incrementCounterMulti on destination OmniCounter @ [${dstChainIdArray[index]}] [${dstAddrArray[index]}]`)
+        console.log(`✅ Message Sent [${hre.network.name}] incrementMultiCounter on destination OmniCounter @ [${dstChainIdArray[index]}] [${dstAddrArray[index]}]`)
         index++;
     }
     console.log(`tx: ${tx.transactionHash}`)

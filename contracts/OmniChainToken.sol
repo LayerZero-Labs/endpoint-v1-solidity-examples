@@ -1,3 +1,5 @@
+// SPDX-License-Identifier: BUSL-1.1
+
 pragma solidity ^0.8.4;
 
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
@@ -9,10 +11,10 @@ import "./interfaces/ILayerZeroEndpoint.sol";
 // deploy this contract to 2+ chains for testing.
 //
 // sendTokens() function works like this:
-//  1. burn local tokens (logic in sendTokens)
-//  2. send a LayerZero message to the destination MultiChainToken address on another chain
-//  3. mint tokens on destination (logic in lzReceive)
-contract MultiChainToken is Ownable, ERC20, ILayerZeroReceiver {
+//  1. burn local tokens on the source chain
+//  2. send a LayerZero message to the destination OmniChainToken contract on another chain
+//  3. mint tokens on destination in lzReceive()
+contract OmniChainToken is Ownable, ERC20, ILayerZeroReceiver {
 
     ILayerZeroEndpoint public endpoint;
     mapping(uint16 => bytes) public remotes;
@@ -20,18 +22,18 @@ contract MultiChainToken is Ownable, ERC20, ILayerZeroReceiver {
     // constructor mints tokens to the deployer
     constructor(string memory name_, string memory symbol_, address _layerZeroEndpoint) ERC20(name_, symbol_){
         endpoint = ILayerZeroEndpoint(_layerZeroEndpoint);
-        _mint(msg.sender, 1_000_000 * 10**18); // mint the deployer 100 tokens.
+        _mint(msg.sender, 1_000_000 * 10**18); // mint the deployer some tokens.
     }
 
     // send tokens to another chain.
     // this function sends the tokens from your address to the same address on the destination.
     function sendTokens(
         uint16 _chainId,                            // send tokens to this chainId
-        bytes calldata _dstMultiChainTokenAddr,     // destination address of MultiChainToken
+        bytes calldata _dstOmniChainTokenAddr,      // destination address of OmniChainToken
         uint _qty                                   // how many tokens to send
     )
-    public
-    payable
+        public
+        payable
     {
         // burn the tokens locally.
         // tokens will be minted on the destination.
@@ -49,7 +51,7 @@ contract MultiChainToken is Ownable, ERC20, ILayerZeroReceiver {
         // send LayerZero message
         endpoint.send{value:msg.value}(
             _chainId,                       // destination chainId
-            _dstMultiChainTokenAddr,        // destination address of MultiChainToken
+            _dstOmniChainTokenAddr,         // destination address of OmniChainToken
             payload,                        // abi.encode()'ed bytes
             payable(msg.sender),            // refund address (LayerZero will refund any superflous gas back to caller of send()
             address(0x0),                   // 'zroPaymentAddress' unused for this mock/example
@@ -68,8 +70,8 @@ contract MultiChainToken is Ownable, ERC20, ILayerZeroReceiver {
     }
 
     // receive the bytes payload from the source chain via LayerZero
-    // _fromAddress is the source MultiChainToken address
-    function lzReceive(uint16 _srcChainId, bytes memory _srcAddress, uint64 _nonce, bytes memory _payload) override external{
+    // _fromAddress is the source OmniChainToken address
+    function lzReceive(uint16 _srcChainId, bytes memory _srcAddress, uint64, bytes memory _payload) override external{
         require(msg.sender == address(endpoint)); // boilerplate! lzReceive must be called by the endpoint for security
         // owner must have setRemote() to allow its remote contracts to send to this contract
         require(
@@ -83,5 +85,4 @@ contract MultiChainToken is Ownable, ERC20, ILayerZeroReceiver {
         // mint the tokens back into existence, to the toAddr from the message payload
         _mint(toAddr, qty);
     }
-
 }
