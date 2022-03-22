@@ -11,9 +11,9 @@ import "./interfaces/ILayerZeroEndpoint.sol";
 // deploy this contract to 2+ chains for testing.
 //
 // sendTokens() function works like this:
-//  1. burn local tokens (logic in sendTokens)
-//  2. send a LayerZero message to the destination OmniChainToken address on another chain
-//  3. mint tokens on destination (logic in lzReceive)
+//  1. burn local tokens on the source chain
+//  2. send a LayerZero message to the destination OmniChainToken contract on another chain
+//  3. mint tokens on destination in lzReceive()
 contract OmniChainToken is Ownable, ERC20, ILayerZeroReceiver {
 
     ILayerZeroEndpoint public endpoint;
@@ -22,14 +22,14 @@ contract OmniChainToken is Ownable, ERC20, ILayerZeroReceiver {
     // constructor mints tokens to the deployer
     constructor(string memory name_, string memory symbol_, address _layerZeroEndpoint) ERC20(name_, symbol_){
         endpoint = ILayerZeroEndpoint(_layerZeroEndpoint);
-        _mint(msg.sender, 1_000_000 * 10**18); // mint the deployer 100 tokens.
+        _mint(msg.sender, 1_000_000 * 10**18); // mint the deployer some tokens.
     }
 
     // send tokens to another chain.
     // this function sends the tokens from your address to the same address on the destination.
     function sendTokens(
         uint16 _chainId,                            // send tokens to this chainId
-        bytes calldata _dstOmniChainTokenAddr,     // destination address of OmniChainToken
+        bytes calldata _dstOmniChainTokenAddr,      // destination address of OmniChainToken
         uint _qty                                   // how many tokens to send
     )
         public
@@ -51,7 +51,7 @@ contract OmniChainToken is Ownable, ERC20, ILayerZeroReceiver {
         // send LayerZero message
         endpoint.send{value:msg.value}(
             _chainId,                       // destination chainId
-            _dstOmniChainTokenAddr,        // destination address of OmniChainToken
+            _dstOmniChainTokenAddr,         // destination address of OmniChainToken
             payload,                        // abi.encode()'ed bytes
             payable(msg.sender),            // refund address (LayerZero will refund any superflous gas back to caller of send()
             address(0x0),                   // 'zroPaymentAddress' unused for this mock/example

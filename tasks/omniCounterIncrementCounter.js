@@ -21,6 +21,7 @@ module.exports = async function (taskArgs, hre) {
 
     console.log(``)
     console.log(`Note: to poll/wait for the message to arrive on the destination use the command:`)
+    console.log(`       (it may take a minute to arrive, be patient!)`)
     console.log('')
     console.log(`    $ npx hardhat --network ${taskArgs.targetNetwork} omniCounterPoll`)
 }

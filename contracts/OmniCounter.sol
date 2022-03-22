@@ -51,26 +51,28 @@ contract OmniCounter is Ownable, ILayerZeroReceiver, ILayerZeroUserApplicationCo
     }
 
     // _adapterParams (v1)
+    // customize the gas amount to be used on the destination chain.
     function incrementCounterWithAdapterParamsV1(uint16 _dstChainId, bytes calldata _dstCounterMockAddress, uint gasAmountForDst) public payable {
         uint16 version = 1;
         // make look like this: 0x00010000000000000000000000000000000000000000000000000000000000030d40
-        bytes memory _relayerParams = abi.encodePacked(
+        bytes memory _adapterParams = abi.encodePacked(
             version,
             gasAmountForDst
         );
-        endpoint.send{value: msg.value}(_dstChainId, _dstCounterMockAddress, bytes(""), payable(msg.sender), address(0x0), _relayerParams);
+        endpoint.send{value: msg.value}(_dstChainId, _dstCounterMockAddress, bytes(""), payable(msg.sender), address(0x0), _adapterParams);
     }
 
     // _adapterParams (v2)
+    // specify a small amount of notive token you want to airdropped to your wallet on destination
     function incrementCounterWithAdapterParamsV2(uint16 _dstChainId, bytes calldata _dstCounterMockAddress, uint gasAmountForDst, uint airdropEthQty, address airdropAddr) public payable {
         uint16 version = 2;
-        bytes memory _relayerParams = abi.encodePacked(
+        bytes memory _adapterParams = abi.encodePacked(
             version,
             gasAmountForDst,
-            airdropEthQty,
-            airdropAddr
+            airdropEthQty,      // how must dust to receive on destination
+            airdropAddr         // the address to receive the dust
         );
-        endpoint.send{value: msg.value}(_dstChainId, _dstCounterMockAddress, bytes(""), payable(msg.sender), address(0x0), _relayerParams);
+        endpoint.send{value: msg.value}(_dstChainId, _dstCounterMockAddress, bytes(""), payable(msg.sender), address(0x0), _adapterParams);
     }
 
     // call send() to multiple destinations in the same transaction!
@@ -129,7 +131,7 @@ contract OmniCounter is Ownable, ILayerZeroReceiver, ILayerZeroUserApplicationCo
     }
 
     function forceResumeReceive(uint16 _srcChainId, bytes calldata _srcAddress) external override {
-        // do nth
+        //
     }
 
     // set the Oracle to be used by this UA for LayerZero messages

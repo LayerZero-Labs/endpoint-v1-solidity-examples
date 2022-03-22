@@ -95,7 +95,7 @@ task("omniCounterIncrementWithParamsV2", "increment the destination OmniCounter 
     .addParam("airDropEthQty", "the amount of eth to drop")
     .addParam("airDropAddr", "the air drop address")
 
-task("deleteAndRedeploy", "remove contracts from folder and redeploy", require("./deleteAndRedeploy"))
-    .addParam("e", "the environment ie: mainnet, testnet")
-    .addOptionalParam("contract", "the contract to delete and redeploy")
-    .addOptionalParam("ignore", "csv of network names to ignore", "", types.string)
+// task("deleteAndRedeploy", "remove contracts from folder and redeploy", require("./deleteAndRedeploy"))
+//     .addParam("e", "the environment ie: mainnet, testnet")
+//     .addOptionalParam("contract", "the contract to delete and redeploy")
+//     .addOptionalParam("ignore", "csv of network names to ignore", "", types.string)

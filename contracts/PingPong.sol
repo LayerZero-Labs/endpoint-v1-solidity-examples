@@ -43,9 +43,9 @@ contract PingPong is ILayerZeroReceiver, ILayerZeroUserApplicationConfig {
 
     // pings the destination chain, along with the current number of pings sent
     function ping(
-        uint16 _dstChainId, // send a ping to this destination chainId
-        address _dstPingPongAddr, // destination address of PingPong contract
-        uint pings // the uint to start at. use 0 as a default
+        uint16 _dstChainId,         // send a ping to this destination chainId
+        address _dstPingPongAddr,   // destination address of PingPong contract
+        uint pings                  // the uint to start at. use 0 as a default
     ) public {
         require(address(this).balance > 0, "the balance of this contract is 0. pls send gas for message fees");
         require(pingsEnabled, "pingsEnabled is false. messages stopped");
@@ -67,13 +67,13 @@ contract PingPong is ILayerZeroReceiver, ILayerZeroUserApplicationConfig {
         require(address(this).balance >= messageFee, "address(this).balance < messageFee. pls send gas for message fees");
 
         // send LayerZero message
-        endpoint.send{value: messageFee}( // {value: messageFee} will be paid out of this contract!
-            _dstChainId, // destination chainId
+        endpoint.send{value: messageFee}(       // {value: messageFee} will be paid out of this contract!
+            _dstChainId,                        // destination chainId
             abi.encodePacked(_dstPingPongAddr), // destination address of PingPong
-            payload, // abi.encode()'ed bytes
-            payable(this), // (msg.sender will be this contract) refund address (LayerZero will refund any extra gas back to caller of send()
-            address(0x0), // 'zroPaymentAddress' unused for this mock/example
-            adapterParams // 'adapterParams' unused for this mock/example
+            payload,                            // abi.encode()'ed bytes
+            payable(this),                      // (msg.sender will be this contract) refund address (LayerZero will refund any extra gas back to caller of send()
+            address(0x0),                       // 'zroPaymentAddress' unused for this mock/example
+            adapterParams                       // 'adapterParams' unused for this mock/example
         );
     }
 
