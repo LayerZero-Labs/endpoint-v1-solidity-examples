@@ -25,16 +25,6 @@ contract OmniCounter is Ownable, ILayerZeroReceiver, ILayerZeroUserApplicationCo
         return messageCounter;
     }
 
-    // _chainId - the chainId for the remote contract
-    // _remoteAddress - the contract address on the remote chainId
-    // the owner must set remote contract addresses.
-    // in lzReceive(), a require() ensures only messages
-    // from known contracts can be received.
-    function setRemote(uint16 _chainId, bytes calldata _remoteAddress) external onlyOwner {
-        require(remotes[_chainId].length == 0, "The remote address has already been set for the chainId!");
-        remotes[_chainId] = _remoteAddress;
-    }
-
     // overrides lzReceive function in ILayerZeroReceiver.
     // automatically invoked on the receiving chain after the source chain calls endpoint.send(...)
     function lzReceive(
@@ -84,7 +74,7 @@ contract OmniCounter is Ownable, ILayerZeroReceiver, ILayerZeroUserApplicationCo
     }
 
     // call send() to multiple destinations in the same transaction!
-    function incrementCounterMulti(uint16[] calldata _dstChainIds, bytes[] calldata _dstCounterMockAddresses, address payable _refundAddr) public payable {
+    function incrementMultiCounter(uint16[] calldata _dstChainIds, bytes[] calldata _dstCounterMockAddresses, address payable _refundAddr) public payable {
         require(_dstChainIds.length == _dstCounterMockAddresses.length, "_dstChainIds.length, _dstCounterMockAddresses.length not the same");
 
         uint numberOfChains = _dstChainIds.length;
@@ -105,11 +95,12 @@ contract OmniCounter is Ownable, ILayerZeroReceiver, ILayerZeroUserApplicationCo
     }
 
     function setConfig(
-        uint16, /*_dstChainId*/
+        uint16, /*_version*/
+        uint16 _chainId,
         uint _configType,
-        bytes memory _config
+        bytes calldata _config
     ) external override {
-        endpoint.setConfig(endpoint.getSendVersion(), _configType, _config);
+        endpoint.setConfig(endpoint.getSendVersion(address(this)), _chainId, _configType, _config);
     }
 
     function getConfig(
@@ -117,8 +108,8 @@ contract OmniCounter is Ownable, ILayerZeroReceiver, ILayerZeroUserApplicationCo
         uint16 _chainId,
         address,
         uint _configType
-    ) external view override returns (bytes memory) {
-        return endpoint.getConfig(endpoint.getSendVersion(), _chainId, address(this), _configType);
+    ) external view returns (bytes memory) {
+        return endpoint.getConfig(endpoint.getSendVersion(address(this)), _chainId, address(this), _configType);
     }
 
     function setSendVersion(uint16 version) external override {
@@ -129,12 +120,12 @@ contract OmniCounter is Ownable, ILayerZeroReceiver, ILayerZeroUserApplicationCo
         endpoint.setReceiveVersion(version);
     }
 
-    function getSendVersion() external view override returns (uint16) {
-        return endpoint.getSendVersion();
+    function getSendVersion() external view returns (uint16) {
+        return endpoint.getSendVersion(address(this));
     }
 
-    function getReceiveVersion() external view override returns (uint16) {
-        return endpoint.getReceiveVersion();
+    function getReceiveVersion() external view returns (uint16) {
+        return endpoint.getReceiveVersion(address(this));
     }
 
     function forceResumeReceive(uint16 _srcChainId, bytes calldata _srcAddress) external override {
@@ -146,32 +137,44 @@ contract OmniCounter is Ownable, ILayerZeroReceiver, ILayerZeroUserApplicationCo
         uint TYPE_ORACLE = 6; // from UltraLightNode
         // set the Oracle
         endpoint.setConfig(
-            endpoint.getSendVersion(),
+            endpoint.getSendVersion(address(this)),
+            dstChainId,
             TYPE_ORACLE,
-            abi.encode(dstChainId, oracle)
+            abi.encode(oracle)
         );
+    }
+
+    // _chainId - the chainId for the remote contract
+    // _remoteAddress - the contract address on the remote chainId
+    // the owner must set remote contract addresses.
+    // in lzReceive(), a require() ensures only messages
+    // from known contracts can be received.
+    function setRemote(uint16 _chainId, bytes calldata _remoteAddress) external onlyOwner {
+        require(remotes[_chainId].length == 0, "The remote address has already been set for the chainId!");
+        remotes[_chainId] = _remoteAddress;
     }
 
     // set the inbound block confirmations
     function setInboundConfirmations(uint16 remoteChainId, uint16 confirmations) external {
         endpoint.setConfig(
-            endpoint.getSendVersion(),
+            endpoint.getSendVersion(address(this)),
+            remoteChainId,
             2, // CONFIG_TYPE_INBOUND_BLOCK_CONFIRMATIONS
-            abi.encode(remoteChainId, confirmations)
+            abi.encode(confirmations)
         );
     }
 
     // set outbound block confirmations
     function setOutboundConfirmations(uint16 remoteChainId, uint16 confirmations) external {
         endpoint.setConfig(
-            endpoint.getSendVersion(),
+            endpoint.getSendVersion(address(this)),
+            remoteChainId,
             5, // CONFIG_TYPE_OUTBOUND_BLOCK_CONFIRMATIONS
-            abi.encode(remoteChainId, confirmations)
+            abi.encode(confirmations)
         );
     }
 
     // allow this contract to receive ether
     fallback() external payable {}
     receive() external payable {}
-
 }

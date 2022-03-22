@@ -1,12 +1,12 @@
 // for example purposes
-task("deployMultiChainToken", "deploys a MultiChainToken")
+task("deployOmniChainToken", "deploys a OmniChainToken")
     .addParam("name", "the string name of the token")
     .addParam("symbol", "the string symbol of the token")
     .addParam("lzendpoint", "the LayerZero endpoint on the chain you are deploying to")
     .setAction(async (taskArgs) => {
-            let MultiChainToken = await ethers.getContractFactory('MultiChainToken');
-            let multiChainToken = await MultiChainToken.deploy(taskArgs.name, taskArgs.symbol, taskArgs.lzendpoint);
-            console.log(`multiChainToken.address: ${multiChainToken.address}`);
+            let OmniChainToken = await ethers.getContractFactory('OmniChainToken');
+            let omniChainToken = await OmniChainToken.deploy(taskArgs.name, taskArgs.symbol, taskArgs.lzendpoint);
+            console.log(`omniChainToken.address: ${omniChainToken.address}`);
     });
 
 task("deployPingPong", "deploy an instance of PingPong.sol")
@@ -24,18 +24,18 @@ task("deployPingPong", "deploy an instance of PingPong.sol")
         console.log("pingPong.address:", pingPong.address);
     });
 
-task("incrementMultiChainCounter", "increment the counter of a destination MultiChainCounter.sol")
-    .addParam("src", "the source address of the local MultiChainToken")
+task("incrementOmniChainCounter", "increment the counter of a destination OmniChainCounter.sol")
+    .addParam("src", "the source address of the local OmniChainToken")
     .addParam("chainId", "the destination chainId")
-    .addParam("dst", "the dst address of the local MultiChainToken")
+    .addParam("dst", "the dst address of the local OmniChainToken")
     .setAction(async (taskArgs) => {
-        //--------------- MultiChainCounter -----------------------------------------------
-        const MultiChainCounter = await ethers.getContractFactory("MultiChainCounter");
-        const multiChainCounter = await MultiChainCounter.attach(taskArgs.src);
-        console.log("src multiChainCounter.address:", multiChainCounter.address);
+        //--------------- OmniChainCounter -----------------------------------------------
+        const OmniChainCounter = await ethers.getContractFactory("OmniChainCounter");
+        const omniChainCounter = await OmniChainCounter.attach(taskArgs.src);
+        console.log("src omniChainCounter.address:", omniChainCounter.address);
 
         // send the increment counter call to the destination contract
-        let tx = await(await multiChainCounter.incrementCounter(
+        let tx = await(await omniChainCounter.incrementCounter(
             taskArgs.chainId,
             taskArgs.dst,
             { value: ethers.utils.parseEther('0.1') }
@@ -55,14 +55,14 @@ task("omniCounterGetOracle", "get the Oracle address being used by the OmniCount
     .addParam("targetNetwork", "the target network name, ie: fuji, or mumbai, etc (from hardhat.config.js)")
 
 //
-task("omniCounterIncrement", "increment the destination OmniCounter",
-    require("./omniCounterIncrement"))
+task("omniCounterIncrementCounter", "increment the destination OmniCounter",
+    require("./omniCounterIncrementCounter"))
     .addParam("targetNetwork", "the target network name, ie: fuji, or mumbai, etc (from hardhat.config.js)")
     .addOptionalParam("n", "number of tx", 1, types.int)
 
 //
-task("omniCounterIncrementMulti", "increment the destination OmniCounter",
-    require("./omniCounterIncrementMulti"))
+task("omniCounterIncrementMultiCounter", "increment the destination OmniCounter",
+    require("./omniCounterIncrementMultiCounter"))
     .addParam("targetNetworks", "target network names, separated by comma (no spaces)")
 
 //
@@ -74,16 +74,28 @@ task("omniCounterSetRemote", "setRemote(chainId, remoteAddr) to allow the local 
 task("omniCounterPoll", "poll the counter of the OmniCounter",
     require("./omniCounterPoll"))
 
-task("gasIntenseLzReceiveRemoteDeploy", "deploy a large contract (an OmniCounter) on the destination",
-    require("./gasIntenseLzReceiveRemoteDeploy"))
-    .addParam("targetNetwork", "the target network name, ie: fuji, or mumbai, etc (from hardhat.config.js)")
-    .addParam("gas", "quantity of gas for the destination")
-
-task("multiChainTokenSetRemote", "setRemote() so the local contract can receive messages from the remote",
-    require("./multiChainTokenSetRemote"))
+task("omniChainTokenSetRemote", "setRemote() so the local contract can receive messages from the remote",
+    require("./omniChainTokenSetRemote"))
     .addParam("targetNetwork", "the target network to let this instance receive messages from")
 
-task("startPings", "call ping() on a PingPong to start sending pings",
-    require("./startPings"))
-    .addParam("targetNetwork", "the target network name, ie: fuji, or mumbai, etc (from hardhat.config.js)")
+task("omniChainTokenSendTokens", "omniChainTokenSendTokens() send tokens to another chain",
+    require("./omniChainTokenSendTokens"))
+    .addParam("qty", "qty of tokens to send")
+    .addParam("targetNetwork", "the target network to let this instance receive messages from")
 
+task("omniCounterIncrementWithParamsV1", "increment the destination OmniCounter with gas amount param",
+    require("./omniCounterIncrementWithParamsV1"))
+    .addParam("targetNetwork", "the target network name, ie: fuji, or mumbai, etc (from hardhat.config.js)")
+    .addParam("gasAmount", "the gas amount for the destination chain")
+
+task("omniCounterIncrementWithParamsV2", "increment the destination OmniCounter with gas amount param",
+    require("./omniCounterIncrementWithParamsV2"))
+    .addParam("targetNetwork", "the target network name, ie: fuji, or mumbai, etc (from hardhat.config.js)")
+    .addParam("gasAmount", "the gas amount for the destination chain")
+    .addParam("airDropEthQty", "the amount of eth to drop")
+    .addParam("airDropAddr", "the air drop address")
+
+task("deleteAndRedeploy", "remove contracts from folder and redeploy", require("./deleteAndRedeploy"))
+    .addParam("e", "the environment ie: mainnet, testnet")
+    .addOptionalParam("contract", "the contract to delete and redeploy")
+    .addOptionalParam("ignore", "csv of network names to ignore", "", types.string)

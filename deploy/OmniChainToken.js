@@ -1,4 +1,4 @@
-const ENDPOINTS = require('../constants/layerzeroEndpoints.json')
+const LZ_ENDPOINTS = require('../constants/layerzeroEndpoints.json')
 
 module.exports = async function ({ deployments, getNamedAccounts }) {
     const { deploy } = deployments
@@ -6,15 +6,15 @@ module.exports = async function ({ deployments, getNamedAccounts }) {
     console.log(`>>> your address: ${deployer}` )
 
     // get the Endpoint address
-    const endpointAddr = ENDPOINTS[hre.network.name]
+    const endpointAddr = LZ_ENDPOINTS[hre.network.name]
     console.log(`[${hre.network.name}] Endpoint address: ${endpointAddr}`)
 
-    await deploy("GasIntenseLzReceive", {
+    await deploy("OmniChainToken", {
         from: deployer,
-        args: [endpointAddr],
+        args: ["OmniChainToken", "MCT", endpointAddr],
         log: true,
         waitConfirmations: 1,
     })
 }
 
-module.exports.tags = ["GasIntenseLzReceive"]
+module.exports.tags = ["OmniChainToken"]

@@ -11,8 +11,8 @@ describe("PingPong", function () {
         this.chainId = 123;
 
         // create a LayerZero Endpoint mock for testing
-        const LayerZeroEndpointMock = await ethers.getContractFactory("LayerZeroEndpointMock");
-        this.layerZeroEndpointMock = await LayerZeroEndpointMock.deploy();
+        const LZEndpointMock = await ethers.getContractFactory("LZEndpointMock");
+        this.layerZeroEndpointMock = await LZEndpointMock.deploy(this.chainId);
         this.mockEstimatedNativeFee = ethers.utils.parseEther('0.001')
         this.mockEstimatedZroFee = ethers.utils.parseEther('0.00025')
         await this.layerZeroEndpointMock.setEstimatedFees(
