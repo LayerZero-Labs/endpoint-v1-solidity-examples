@@ -71,26 +71,6 @@ npx hardhat --network bsc-testnet omniCounterPoll
 npx hardhat --network fantom-testnet omniCounterPoll
 ```
 
-
-# OmniChainToken - Send Tokens to another chain
-
-1. deploy two contracts
-```angular2html
- npx hardhat --network fuji deploy
- npx hardhat --network mumbai deploy
-```
-2. set the remotes, so each contract can receive messages
-```angular2html
-npx hardhat --network fuji omniChainTokenSetRemote --target-network mumbai
-npx hardhat --network mumbai omniChainTokenSetRemote --target-network fuji
-```
-3. send some tokens
-```angular2html
-npx hardhat --network mumbai omniChainTokenSendTokens --target-network fuji --qty 250
-```
-
-#
-
 ### For further reading, and a list of endpoint ids and deployed LayerZero contract addresses please take a look at the Gitbook here: https://layerzero.gitbook.io/
 
 
