@@ -11,7 +11,7 @@ module.exports = async function ({ deployments, getNamedAccounts }) {
 
     await deploy("OmniChainToken", {
         from: deployer,
-        args: ["OmniChainToken", "MCT", endpointAddr],
+        args: ["OmniChainToken", "OCT", endpointAddr],
         log: true,
         waitConfirmations: 1,
     })
