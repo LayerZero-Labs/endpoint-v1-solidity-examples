@@ -162,7 +162,7 @@ contract LZEndpointMock is ILayerZeroEndpoint {
     }
 
     function forceResumeReceive(uint16 _srcChainId, bytes calldata _srcAddress) override external {
-        // do nth
+        // This mock does not implement the forceResumeReceive
     }
 
     function retryPayload(uint16 _srcChainId, bytes calldata _srcAddress, bytes calldata _payload) override pure external {}
