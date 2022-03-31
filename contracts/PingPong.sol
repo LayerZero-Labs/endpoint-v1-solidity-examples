@@ -19,7 +19,7 @@ import "hardhat/console.sol";
 
 contract PingPong is ILayerZeroReceiver, ILayerZeroUserApplicationConfig {
     // the LayerZero endpoint calls .send() to send a cross chain message
-    ILayerZeroEndpoint public endpoint;
+    ILayerZeroEndpoint public layerZeroEndpoint;
     // whether PingPong is ping-ponging
     bool public pingsEnabled;
     // event emitted every ping() to keep track of consecutive pings count
@@ -32,7 +32,7 @@ contract PingPong is ILayerZeroReceiver, ILayerZeroUserApplicationConfig {
     // constructor requires the LayerZero endpoint for this chain
     constructor(address _layerZeroEndpoint) {
         pingsEnabled = true;
-        endpoint = ILayerZeroEndpoint(_layerZeroEndpoint);
+        layerZeroEndpoint = ILayerZeroEndpoint(_layerZeroEndpoint);
         maxPings = 5;
     }
 
@@ -63,11 +63,11 @@ contract PingPong is ILayerZeroReceiver, ILayerZeroUserApplicationConfig {
 
         // get the fees we need to pay to LayerZero + Relayer to cover message delivery
         // see Communicator.sol's .estimateNativeFees() function for more details.
-        (uint messageFee, ) = endpoint.estimateFees(_dstChainId, address(this), payload, false, adapterParams);
+        (uint messageFee, ) = layerZeroEndpoint.estimateFees(_dstChainId, address(this), payload, false, adapterParams);
         require(address(this).balance >= messageFee, "address(this).balance < messageFee. pls send gas for message fees");
 
         // send LayerZero message
-        endpoint.send{value: messageFee}(       // {value: messageFee} will be paid out of this contract!
+        layerZeroEndpoint.send{value: messageFee}(       // {value: messageFee} will be paid out of this contract!
             _dstChainId,                        // destination chainId
             abi.encodePacked(_dstPingPongAddr), // destination address of PingPong
             payload,                            // abi.encode()'ed bytes
@@ -86,7 +86,7 @@ contract PingPong is ILayerZeroReceiver, ILayerZeroUserApplicationConfig {
         uint64, /*_nonce*/
         bytes memory _payload
     ) external override {
-        require(msg.sender == address(endpoint)); // boilerplate! lzReceive must be called by the endpoint for security
+        require(msg.sender == address(layerZeroEndpoint)); // boilerplate! lzReceive must be called by the endpoint for security
 
         // use assembly to extract the address from the bytes memory parameter
         address fromAddress;
@@ -110,7 +110,7 @@ contract PingPong is ILayerZeroReceiver, ILayerZeroUserApplicationConfig {
         uint _configType,
         bytes memory _config
     ) external override {
-        endpoint.setConfig(_dstChainId, endpoint.getSendVersion(address(this)), _configType, _config);
+        layerZeroEndpoint.setConfig(_dstChainId, layerZeroEndpoint.getSendVersion(address(this)), _configType, _config);
     }
 
     function getConfig(
@@ -119,27 +119,27 @@ contract PingPong is ILayerZeroReceiver, ILayerZeroUserApplicationConfig {
         address,
         uint _configType
     ) external view returns (bytes memory) {
-        return endpoint.getConfig(endpoint.getSendVersion(address(this)), _chainId, address(this), _configType);
+        return layerZeroEndpoint.getConfig(layerZeroEndpoint.getSendVersion(address(this)), _chainId, address(this), _configType);
     }
 
     function setSendVersion(uint16 version) external override {
-        endpoint.setSendVersion(version);
+        layerZeroEndpoint.setSendVersion(version);
     }
 
     function setReceiveVersion(uint16 version) external override {
-        endpoint.setReceiveVersion(version);
+        layerZeroEndpoint.setReceiveVersion(version);
     }
 
     function getSendVersion() external view returns (uint16) {
-        return endpoint.getSendVersion(address(this));
+        return layerZeroEndpoint.getSendVersion(address(this));
     }
 
     function getReceiveVersion() external view returns (uint16) {
-        return endpoint.getReceiveVersion(address(this));
+        return layerZeroEndpoint.getReceiveVersion(address(this));
     }
 
     function forceResumeReceive(uint16 _srcChainId, bytes calldata _srcAddress) external override {
-        // do nth
+        layerZeroEndpoint.forceResumeReceive(_srcChainId, _srcAddress);
     }
 
     // allow this contract to receive ether
