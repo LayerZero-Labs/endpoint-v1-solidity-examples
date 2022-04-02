@@ -2,6 +2,7 @@ const { expect } = require("chai");
 const { ethers } = require("hardhat");
 
 describe("OmniCounter", function () {
+
     beforeEach(async function(){
         // use this chainId
         this.chainId = 123;

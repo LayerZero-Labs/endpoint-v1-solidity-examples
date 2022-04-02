@@ -1,0 +1,11 @@
+{
+  "router":{
+    "rinkeby": "0x82A0F5F531F9ce0df1DF5619f74a0d3fA31FF561",
+    "bsc-testnet": "0xbB0f1be1E9CE9cB27EA5b0c3a85B7cc3381d8176",
+    "fuji": "0x13093E05Eb890dfA6DacecBdE51d24DabAb2Faa1",
+    "mumbai": "0x817436a076060D158204d955E5403b6Ed0A5fac0",
+    "arbitrum-rinkeby": "0x6701D9802aDF674E524053bd44AA83ef253efc41",
+    "optimism-kovan": "0xCC68641528B948642bDE1729805d6cf1DECB0B00",
+    "fantom-testnet": "0xa73b0a56B29aD790595763e71505FCa2c1abb77f"
+  }
+}
