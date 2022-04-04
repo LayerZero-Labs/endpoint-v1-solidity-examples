@@ -30,15 +30,6 @@ task("omniCounterSetRemote", "setRemote(chainId, remoteAddr) to allow the local 
 task("omniCounterPoll", "poll the counter of the OmniCounter",
     require("./omniCounterPoll"))
 
-task("omniChainTokenSetRemote", "setRemote() so the local contract can receive messages from the remote",
-    require("./omniChainTokenSetRemote"))
-    .addParam("targetNetwork", "the target network to let this instance receive messages from")
-
-task("omniChainTokenSendTokens", "omniChainTokenSendTokens() send tokens to another chain",
-    require("./omniChainTokenSendTokens"))
-    .addParam("qty", "qty of tokens to send")
-    .addParam("targetNetwork", "the target network to let this instance receive messages from")
-
 task("omniCounterIncrementWithParamsV1", "increment the destination OmniCounter with gas amount param",
     require("./omniCounterIncrementWithParamsV1"))
     .addParam("targetNetwork", "the target network name, ie: fuji, or mumbai, etc (from hardhat.config.js)")

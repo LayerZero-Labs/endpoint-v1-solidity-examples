@@ -14,11 +14,11 @@ contract OmniCounter is Ownable, ILayerZeroReceiver, ILayerZeroUserApplicationCo
     // keep track of how many messages have been received from other chains
     uint public messageCounter;
     // required: the LayerZero endpoint which is passed in the constructor
-    ILayerZeroEndpoint public endpoint;
+    ILayerZeroEndpoint public layerZeroEndpoint;
     mapping(uint16 => bytes) public remotes;
 
     constructor(address _endpoint) {
-        endpoint = ILayerZeroEndpoint(_endpoint);
+        layerZeroEndpoint = ILayerZeroEndpoint(_endpoint);
     }
 
     function getCounter() public view returns (uint) {
@@ -34,7 +34,7 @@ contract OmniCounter is Ownable, ILayerZeroReceiver, ILayerZeroUserApplicationCo
         bytes memory /*_payload*/
     ) external override {
         // boilerplate: only allow this endpiont to be the caller of lzReceive!
-        require(msg.sender == address(endpoint));
+        require(msg.sender == address(layerZeroEndpoint));
         // owner must have setRemote() to allow its remote contracts to send to this contract
         require(
             _srcAddress.length == remotes[_srcChainId].length && keccak256(_srcAddress) == keccak256(remotes[_srcChainId]),
@@ -47,7 +47,7 @@ contract OmniCounter is Ownable, ILayerZeroReceiver, ILayerZeroUserApplicationCo
     // custom function that wraps endpoint.send(...) which will
     // cause lzReceive() to be called on the destination chain!
     function incrementCounter(uint16 _dstChainId, bytes calldata _dstCounterMockAddress) public payable {
-        endpoint.send{value: msg.value}(_dstChainId, _dstCounterMockAddress, bytes(""), payable(msg.sender), address(0x0), bytes(""));
+        layerZeroEndpoint.send{value: msg.value}(_dstChainId, _dstCounterMockAddress, bytes(""), payable(msg.sender), address(0x0), bytes(""));
     }
 
     // _adapterParams (v1)
@@ -59,7 +59,7 @@ contract OmniCounter is Ownable, ILayerZeroReceiver, ILayerZeroUserApplicationCo
             version,
             gasAmountForDst
         );
-        endpoint.send{value: msg.value}(_dstChainId, _dstCounterMockAddress, bytes(""), payable(msg.sender), address(0x0), _adapterParams);
+        layerZeroEndpoint.send{value: msg.value}(_dstChainId, _dstCounterMockAddress, bytes(""), payable(msg.sender), address(0x0), _adapterParams);
     }
 
     // _adapterParams (v2)
@@ -72,7 +72,7 @@ contract OmniCounter is Ownable, ILayerZeroReceiver, ILayerZeroUserApplicationCo
             airdropEthQty,      // how must dust to receive on destination
             airdropAddr         // the address to receive the dust
         );
-        endpoint.send{value: msg.value}(_dstChainId, _dstCounterMockAddress, bytes(""), payable(msg.sender), address(0x0), _adapterParams);
+        layerZeroEndpoint.send{value: msg.value}(_dstChainId, _dstCounterMockAddress, bytes(""), payable(msg.sender), address(0x0), _adapterParams);
     }
 
     // call send() to multiple destinations in the same transaction!
@@ -88,7 +88,7 @@ contract OmniCounter is Ownable, ILayerZeroReceiver, ILayerZeroUserApplicationCo
         for (uint i = 0; i < numberOfChains; ++i) {
             // a Communicator.sol instance is the 'endpoint'
             // .send() each payload to the destination chainId + UA destination address
-            endpoint.send{value: valueToSend}(_dstChainIds[i], _dstCounterMockAddresses[i], bytes(""), _refundAddr, address(0x0), bytes(""));
+            layerZeroEndpoint.send{value: valueToSend}(_dstChainIds[i], _dstCounterMockAddresses[i], bytes(""), _refundAddr, address(0x0), bytes(""));
         }
 
         // refund eth if too much was sent into this contract call
@@ -102,7 +102,7 @@ contract OmniCounter is Ownable, ILayerZeroReceiver, ILayerZeroUserApplicationCo
         uint _configType,
         bytes calldata _config
     ) external override {
-        endpoint.setConfig(endpoint.getSendVersion(address(this)), _chainId, _configType, _config);
+        layerZeroEndpoint.setConfig(layerZeroEndpoint.getSendVersion(address(this)), _chainId, _configType, _config);
     }
 
     function getConfig(
@@ -111,35 +111,35 @@ contract OmniCounter is Ownable, ILayerZeroReceiver, ILayerZeroUserApplicationCo
         address,
         uint _configType
     ) external view returns (bytes memory) {
-        return endpoint.getConfig(endpoint.getSendVersion(address(this)), _chainId, address(this), _configType);
+        return layerZeroEndpoint.getConfig(layerZeroEndpoint.getSendVersion(address(this)), _chainId, address(this), _configType);
     }
 
     function setSendVersion(uint16 version) external override {
-        endpoint.setSendVersion(version);
+        layerZeroEndpoint.setSendVersion(version);
     }
 
     function setReceiveVersion(uint16 version) external override {
-        endpoint.setReceiveVersion(version);
+        layerZeroEndpoint.setReceiveVersion(version);
     }
 
     function getSendVersion() external view returns (uint16) {
-        return endpoint.getSendVersion(address(this));
+        return layerZeroEndpoint.getSendVersion(address(this));
     }
 
     function getReceiveVersion() external view returns (uint16) {
-        return endpoint.getReceiveVersion(address(this));
+        return layerZeroEndpoint.getReceiveVersion(address(this));
     }
 
     function forceResumeReceive(uint16 _srcChainId, bytes calldata _srcAddress) external override {
-        //
+        layerZeroEndpoint.forceResumeReceive(_srcChainId, _srcAddress);
     }
 
     // set the Oracle to be used by this UA for LayerZero messages
     function setOracle(uint16 dstChainId, address oracle) external {
         uint TYPE_ORACLE = 6; // from UltraLightNode
         // set the Oracle
-        endpoint.setConfig(
-            endpoint.getSendVersion(address(this)),
+        layerZeroEndpoint.setConfig(
+            layerZeroEndpoint.getSendVersion(address(this)),
             dstChainId,
             TYPE_ORACLE,
             abi.encode(oracle)
@@ -158,8 +158,8 @@ contract OmniCounter is Ownable, ILayerZeroReceiver, ILayerZeroUserApplicationCo
 
     // set the inbound block confirmations
     function setInboundConfirmations(uint16 remoteChainId, uint16 confirmations) external {
-        endpoint.setConfig(
-            endpoint.getSendVersion(address(this)),
+        layerZeroEndpoint.setConfig(
+            layerZeroEndpoint.getSendVersion(address(this)),
             remoteChainId,
             2, // CONFIG_TYPE_INBOUND_BLOCK_CONFIRMATIONS
             abi.encode(confirmations)
@@ -168,8 +168,8 @@ contract OmniCounter is Ownable, ILayerZeroReceiver, ILayerZeroUserApplicationCo
 
     // set outbound block confirmations
     function setOutboundConfirmations(uint16 remoteChainId, uint16 confirmations) external {
-        endpoint.setConfig(
-            endpoint.getSendVersion(address(this)),
+        layerZeroEndpoint.setConfig(
+            layerZeroEndpoint.getSendVersion(address(this)),
             remoteChainId,
             5, // CONFIG_TYPE_OUTBOUND_BLOCK_CONFIRMATIONS
             abi.encode(confirmations)
