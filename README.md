@@ -1,54 +1,49 @@
 # Simple LayerZero Omni Chain Contracts
 
-### Setup the project
+ ### Install & Run tests
 ```shell
 npm install
+npx hardhat test 
 ```
- 
- ### Run tests
-```shell
-npx hardhat test
-```
-
-### NOTE: You must add a .env with a MNEMONIC that is funded on testnets !
-configure an .env file to have the values of .env.example and test deploy! (Use a real LayerZero endpoint in place of 0x0000..) 
 
 # OmnichainFungibleToken - Send Tokens to another chain
 > WARNING: **THIS CONTRACT IS OF BUSINESS LICENSE. CONTACT US BEFORE YOU USED IN PRODUCTION.**
 >
-> LayerZero is pushing a new cross-chain token standard with permissive license soon
->
-> Stay tuned for maximum cross-chain compatability of your token
+> LayerZero Labs will publicize a new cross-chain token standard with permissive license soon
 
-The OmnichainFungibleToken standardized libraries will have a main chain and an all chain implementation for you to choose from. 
-In the all chain implementation you will burn and mint between all chains you include without a home base. 
-In this example we follow the main chain described in detail below. This is just an example to explain how this could be implemented.
+The OmnichainFungibleToken standardized libraries will have two varieties of deployments. Only one may be chosen:
+ 1. `Main chain & Child chain(s)` 
+ 2. `All Chain`  
 
-The OmnichainFungibleToken contract sets a main chain to mint the initial supply of OFT's.
-The default main chain in this example is set to ```rinkeby```.
+ In the `Main chain & Child Chain` variety, all tokens transferred out of the main chain will be locked (and minted on destination), and tokens transferred out of `child` chains will be burned (and minted on destination). This results in the `Main Chain` being like a home base. The initialy supply will only be minted entirely on the `Main Chain` on deployment.
+ 
+ In the `All Chain` implementation token transfers will always be burn & mint. The deployer may mint tokens in each deployment.
+
+In the example deployment below, he default main chain is ```rinkeby```.
 This setting is configured in ```constants/oftMainChain.json```.
-The OmnichainFungibleToken contract deployed on other chains will use this configuration to set there main chain.
-Using the Ethereum network ```(testnet: rinkeby)``` as the source of truth was a security decision.
+The OmnichainFungibleToken deployed on other chains will use this configuration to set their main chain.
+Using the Ethereum network ```(testnet: rinkeby)``` as a source of truth is a security decision.
 In the event a chain goes rogue, Ethereum will be the final source of truth for OFT tokens.
 When sending tokens to other chains this contract locks the tokens on the main chain and mints on the destination chain.
 When other non-main chains send OFT's to each other they will burn and mint accordingly. 
 When sending back to the main chain it will burn on the source chain and unlock on the main chain.
 
-1. deploy two contracts with one being the main, in this case it is ```rinkeby```
+# Go Omnichain: Be the Deployooooor
+1. Deploy two contracts:  ```rinkeby``` is the main chain
 ```angular2html
  npx hardhat --network rinkeby deploy --tags OmnichainFungibleToken
  npx hardhat --network fuji deploy --tags OmnichainFungibleToken
 ```
-2. set the destinations, so each contract can receive messages from one another
+2. Set the destinations, so each contract can receive messages from one another, and `only` one another.
 ```angular2html
 npx hardhat --network rinkeby omnichainFungibleTokenSetDestination --target-network fuji
 npx hardhat --network fuji omnichainFungibleTokenSetDestination --target-network rinkeby
 ```
-3. send some OFT tokens
+3. Send tokens across chains
 ```angular2html
 npx hardhat --network rinkeby omnichainFungibleTokenSendTokens --target-network fuji --qty 250
 ```
-
+#### Note: Remember to add a .env file with your MNEMONIC=""
 
 # Testing Cross Chain Messages
 
