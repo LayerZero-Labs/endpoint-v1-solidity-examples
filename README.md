@@ -22,7 +22,7 @@ configure an .env file to have the values of .env.example and test deploy! (Use 
 
 The OmnichainFungibleToken standardized libraries will have a main chain and an all chain implementation for you to choose from. 
 In the all chain implementation you will burn and mint between all chains you include without a home base. 
-In this example we follow the main chain described in detail below.
+In this example we follow the main chain described in detail below. This is just an example to explain how this could be implemented.
 
 The OmnichainFungibleToken contract sets a main chain to mint the initial supply of OFT's.
 The default main chain in this example is set to ```rinkeby```.
