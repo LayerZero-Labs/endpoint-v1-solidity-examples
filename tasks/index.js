@@ -22,19 +22,32 @@ task("omniCounterIncrementMultiCounter", "increment the destination OmniCounter"
     .addParam("targetNetworks", "target network names, separated by comma (no spaces)")
 
 //
-task("omniCounterSetRemote", "setRemote(chainId, remoteAddr) to allow the local contract to receive messages from known remote contracts",
-    require("./omniCounterSetRemote"))
+task("omniCounterSetDestination", "setDestination(chainId, remoteAddr) to allow the local contract to receive messages from known remote contracts",
+    require("./omniCounterSetDestination"))
+    .addParam("targetNetwork", "the target network to let this instance receive messages from")
+
+//
+task("omnichainFungibleTokenSetDestination", "setDestination(chainId, remoteAddr) to allow the local contract to receive messages from known remote contracts",
+    require("./omnichainFungibleTokenSetDestination"))
     .addParam("targetNetwork", "the target network to let this instance receive messages from")
 
 //
 task("omniCounterPoll", "poll the counter of the OmniCounter",
     require("./omniCounterPoll"))
 
+//
+task("omnichainFungibleTokenSendTokens", "omnichainFungibleTokenSendTokens() send tokens to another chain",
+    require("./omnichainFungibleTokenSendTokens"))
+    .addParam("qty", "qty of tokens to send")
+    .addParam("targetNetwork", "the target network to let this instance receive messages from")
+
+//
 task("omniCounterIncrementWithParamsV1", "increment the destination OmniCounter with gas amount param",
     require("./omniCounterIncrementWithParamsV1"))
     .addParam("targetNetwork", "the target network name, ie: fuji, or mumbai, etc (from hardhat.config.js)")
     .addParam("gasAmount", "the gas amount for the destination chain")
 
+//
 task("omniCounterIncrementWithParamsV2", "increment the destination OmniCounter with gas amount param",
     require("./omniCounterIncrementWithParamsV2"))
     .addParam("targetNetwork", "the target network name, ie: fuji, or mumbai, etc (from hardhat.config.js)")

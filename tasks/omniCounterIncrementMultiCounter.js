@@ -23,7 +23,7 @@ module.exports = async function (taskArgs, hre) {
         dstChainIdArray,
         dstAddrArray,
         (await ethers.getSigners())[0].address,
-        {value: ethers.utils.parseEther('2')} // estimate/guess
+        {value: ethers.utils.parseEther('1')} // estimate/guess
     )).wait()
 
     let index = 0;
