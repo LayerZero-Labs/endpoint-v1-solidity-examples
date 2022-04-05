@@ -19,9 +19,9 @@ import "./interfaces/ILayerZeroUserApplicationConfig.sol";
 //---------------------------------------------------------------------------
 contract OmnichainFungibleToken is ERC20, Ownable, ILayerZeroReceiver, ILayerZeroUserApplicationConfig {
     ILayerZeroEndpoint immutable public endpoint;
-    mapping(uint16 => bytes) public dstContractLookup; // a map of the connected contracts
-    bool public paused; // indicates cross chain transfers are paused
-    bool public isMain; // indicates this contract is on the main chain
+    mapping(uint16 => bytes) public dstContractLookup;  // a map of the connected contracts
+    bool public paused;                                 // indicates cross chain transfers are paused
+    bool public isMain;                                 // indicates this contract is on the main chain
 
     event Paused(bool isPaused);
     event SendToChain(uint16 srcChainId, bytes toAddress, uint256 qty, uint64 nonce);
@@ -57,32 +57,33 @@ contract OmnichainFungibleToken is ERC20, Ownable, ILayerZeroReceiver, ILayerZer
     }
 
     function sendTokens(
-        uint16 _dstChainId, // send tokens to this chainId
-        bytes calldata _to, // where to deliver the tokens on the destination chain
-        uint256 _qty, // how many tokens to send
-        address _zroPaymentAddress, // ZRO payment address
-        bytes calldata _adapterParam // txParameters
+        uint16 _dstChainId,             // send tokens to this LayerZero chainId
+        bytes calldata _to,             // address where tokens are delivered on destination chain
+        uint256 _qty,                   // quantity of tokens to send
+        address _zroPaymentAddress,     // ZRO payment address
+        bytes calldata _adapterParam    // adapterParameters (can configure dst gasAmoount or add airdrop, refer to LayerZero docs)
     ) public payable {
         require(!paused, "OFT: sendTokens() is currently paused");
 
-        // lock by transferring to this contract if leaving the main chain, otherwise burn
         if (isMain) {
+            // lock by transferring to this contract if leaving the main chain,
             _transfer(msg.sender, address(this), _qty);
         } else {
+            // burn if leaving non-main chain
             _burn(msg.sender, _qty);
         }
 
-        // abi.encode() the payload with the values to send
+        // abi.encode() the payload
         bytes memory payload = abi.encode(_to, _qty);
 
         // send LayerZero message
         endpoint.send{value: msg.value}(
-            _dstChainId, // destination chainId
+            _dstChainId,                    // destination chainId
             dstContractLookup[_dstChainId], // destination UA address
-            payload, // abi.encode()'ed bytes
-            payable(msg.sender), // refund address (LayerZero will refund any extra gas back to msg.sender
-            _zroPaymentAddress, // 'zroPaymentAddress'
-            _adapterParam // 'adapterParameters'
+            payload,                        // abi.encode()'ed bytes
+            payable(msg.sender),            // refund address (LayerZero will refund any extra gas back to msg.sender
+            _zroPaymentAddress,             // payment address if paying in token
+            _adapterParam                   // adapterParameters
         );
         uint64 nonce = endpoint.getOutboundNonce(_dstChainId, address(this));
         emit SendToChain(_dstChainId, _to, _qty, nonce);
