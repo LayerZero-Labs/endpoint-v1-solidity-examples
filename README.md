@@ -80,8 +80,8 @@ npx hardhat --network fuji omniCounterPoll
 
 ```
 npx hardhat --network bsc-testnet deploy --tags OmniCounter
-npx hardhat --network mumbai deploy --tags OmniCounter
 npx hardhat --network fuji deploy --tags OmniCounter
+npx hardhat --network mumbai deploy --tags OmniCounter
 npx hardhat --network fantom-testnet deploy --tags OmniCounter
 ````
 
@@ -110,10 +110,10 @@ npx hardhat --network fantom-testnet omniCounterPoll
 # Getting and Setting the Oracle
 
 ### Read the currently set Oracle
-```npx hardhat --network mumbai omniCounterGetOracle --target-network fantom-testnet```
+```npx hardhat --network bsc-testnet omniCounterGetOracle --target-network fantom-testnet```
 
 ### Set a custom Oracle for the deployed OmniCounter
-```npx hardhat --network mumbai omniCounterSetOracle --target-network mumbai --oracle 0xORACLE_ADDR```
+```npx hardhat --network bsc-testnet omniCounterSetOracle --target-network fantom-testnet --oracle 0x000000000000000000000000000000000000dEaD```
 #
 ### See some examples in `/contracts`  🙌
 
