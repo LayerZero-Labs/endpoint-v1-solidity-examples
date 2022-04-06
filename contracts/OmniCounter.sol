@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: BUSL-1.1
 
-pragma solidity ^0.8.4;
+pragma solidity 0.8.4;
 pragma abicoder v2;
 
 import "@openzeppelin/contracts/utils/math/SafeMath.sol";
@@ -35,10 +35,10 @@ contract OmniCounter is Ownable, ILayerZeroReceiver, ILayerZeroUserApplicationCo
     ) external override {
         // boilerplate: only allow this endpiont to be the caller of lzReceive!
         require(msg.sender == address(layerZeroEndpoint));
-        // owner must have setRemote() to allow its remote contracts to send to this contract
+        // owner must have setDestination() to allow its remote contracts to send to this contract
         require(
             _srcAddress.length == remotes[_srcChainId].length && keccak256(_srcAddress) == keccak256(remotes[_srcChainId]),
-            "Invalid remote sender address. owner should call setRemote() to enable remote contract"
+            "Invalid remote sender address. owner should call setDestination() to enable remote contract"
         );
 
         messageCounter += 1;
@@ -151,7 +151,7 @@ contract OmniCounter is Ownable, ILayerZeroReceiver, ILayerZeroUserApplicationCo
     // the owner must set remote contract addresses.
     // in lzReceive(), a require() ensures only messages
     // from known contracts can be received.
-    function setRemote(uint16 _chainId, bytes calldata _remoteAddress) external onlyOwner {
+    function setDestination(uint16 _chainId, bytes calldata _remoteAddress) external onlyOwner {
         require(remotes[_chainId].length == 0, "The remote address has already been set for the chainId!");
         remotes[_chainId] = _remoteAddress;
     }
