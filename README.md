@@ -48,7 +48,7 @@ npx hardhat --network rinkeby omnichainFungibleTokenSendTokens --target-network 
 # OmnichainNonFungibleToken - Send an ONFT to another chain
 > WARNING: **YOU NEED TO PERFORM THE SET TRUSTED SOURCES STEP.**
 
-In the `All Chain` implementation token transfers we deploy the contracts on the chains with a starting token id and max mint number. 
+In the `All Chain` implementation we deploy the contracts on the chains with a starting token id and max mint number. 
 The key is to separate the token ids so no same token id can be minted on different chains. 
 For our OmnichainNonFungibleToken example we deploy to two chains, `bsc-testnet` and `fuji`. 
 We set the starting token id on `bsc-testnet` to `0` and max mint to `50`. On `fuji` we set the starting token id to `50` and max mint to `100`.
