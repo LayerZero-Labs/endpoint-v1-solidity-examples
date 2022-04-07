@@ -106,7 +106,7 @@ contract OmnichainNonFungibleToken is ERC721, NonblockingReceiver {
         // encode adapterParams w/ extra gas for destination chain
         // This example uses 500,000 gas. Your implementation may need more.
         uint16 version = 1;
-        uint gas = 500000;
+        uint gas = 275000;
         bytes memory adapterParams = abi.encodePacked(version, gas);
 
         // use LayerZero estimateFees for cross chain delivery
