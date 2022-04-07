@@ -66,7 +66,7 @@ When a transfer occurs between chains the ONFT will be `burned` on the source ch
  npx hardhat --network bsc-testnet omnichainNonFungibleTokenSetTrustedSource --target-network fuji
  npx hardhat --network fuji omnichainNonFungibleTokenSetTrustedSource --target-network bsc-testnet
 ```
-3. Mint your tokens on each chain
+3. Mint your ONFT on each chain!
 ```angular2html
  npx hardhat --network bsc-testnet omnichainNonFungibleTokenMint
  npx hardhat --network fuji omnichainNonFungibleTokenMint
