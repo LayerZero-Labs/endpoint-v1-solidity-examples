@@ -22,24 +22,44 @@ task("omniCounterIncrementMultiCounter", "increment the destination OmniCounter"
     .addParam("targetNetworks", "target network names, separated by comma (no spaces)")
 
 //
-task("omniCounterSetDestination", "setDestination(chainId, remoteAddr) to allow the local contract to receive messages from known remote contracts",
-    require("./omniCounterSetDestination"))
+task("omniCounterSetDestination", "setTrustedSource(chainId, sourceAddr) to allow the local contract to receive messages from known source contracts",
+    require("./omniCounterSetTrustedSource"))
     .addParam("targetNetwork", "the target network to let this instance receive messages from")
 
 //
-task("omnichainFungibleTokenSetDestination", "setDestination(chainId, remoteAddr) to allow the local contract to receive messages from known remote contracts",
-    require("./omnichainFungibleTokenSetDestination"))
+task("omnichainFungibleTokenSetDestination", "setTrustedSource(chainId, sourceAddr) to allow the local contract to receive messages from known source contracts",
+    require("./omnichainFungibleTokenSetTrustedSource"))
     .addParam("targetNetwork", "the target network to let this instance receive messages from")
-
-//
-task("omniCounterPoll", "poll the counter of the OmniCounter",
-    require("./omniCounterPoll"))
 
 //
 task("omnichainFungibleTokenSendTokens", "omnichainFungibleTokenSendTokens() send tokens to another chain",
     require("./omnichainFungibleTokenSendTokens"))
     .addParam("qty", "qty of tokens to send")
     .addParam("targetNetwork", "the target network to let this instance receive messages from")
+
+//
+task("omnichainNonFungibleTokenSetTrustedSource", "setTrustedSource(chainId, sourceAddr) to allow the local contract to receive messages from known source contracts",
+    require("./omnichainNonFungibleTokenSetTrustedSource"))
+    .addParam("targetNetwork", "the target network to let this instance receive messages from")
+
+//
+task("omnichainNonFungibleTokenOwnerOf", "ownerOf(tokenId) to get the owner of a token",
+    require("./omnichainNonFungibleTokenOwnerOf"))
+    .addParam("tokenId", "the tokenId of ONFT")
+
+//
+task("omnichainNonFungibleTokenMint", "mint() mint ONFT",
+    require("./omnichainNonFungibleTokenMint"))
+
+//
+task("omnichainNonFungibleTokenTransfer", "transferOmnichainNFT(chainId, tokenId) transfer ONFT from one chain to another",
+    require("./omnichainNonFungibleTokenTransfer"))
+    .addParam("targetNetwork", "the chainId to transfer to")
+    .addParam("tokenId", "the tokenId of ONFT")
+
+//
+task("omniCounterPoll", "poll the counter of the OmniCounter",
+    require("./omniCounterPoll"))
 
 //
 task("omniCounterIncrementWithParamsV1", "increment the destination OmniCounter with gas amount param",

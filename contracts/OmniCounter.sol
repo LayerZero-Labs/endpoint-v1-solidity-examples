@@ -15,7 +15,7 @@ contract OmniCounter is Ownable, ILayerZeroReceiver, ILayerZeroUserApplicationCo
     uint public messageCounter;
     // required: the LayerZero endpoint which is passed in the constructor
     ILayerZeroEndpoint public layerZeroEndpoint;
-    mapping(uint16 => bytes) public remotes;
+    mapping(uint16 => bytes) public trustedSourceLookup;
 
     constructor(address _endpoint) {
         layerZeroEndpoint = ILayerZeroEndpoint(_endpoint);
@@ -35,10 +35,10 @@ contract OmniCounter is Ownable, ILayerZeroReceiver, ILayerZeroUserApplicationCo
     ) external override {
         // boilerplate: only allow this endpiont to be the caller of lzReceive!
         require(msg.sender == address(layerZeroEndpoint));
-        // owner must have setDestination() to allow its remote contracts to send to this contract
+        // owner must have setTrustedSource() to allow its source contracts to send to this contract
         require(
-            _srcAddress.length == remotes[_srcChainId].length && keccak256(_srcAddress) == keccak256(remotes[_srcChainId]),
-            "Invalid remote sender address. owner should call setDestination() to enable remote contract"
+            _srcAddress.length == trustedSourceLookup[_srcChainId].length && keccak256(_srcAddress) == keccak256(trustedSourceLookup[_srcChainId]),
+            "Invalid source sender address. owner should call setTrustedSource() to enable source contract"
         );
 
         messageCounter += 1;
@@ -146,31 +146,31 @@ contract OmniCounter is Ownable, ILayerZeroReceiver, ILayerZeroUserApplicationCo
         );
     }
 
-    // _chainId - the chainId for the remote contract
-    // _remoteAddress - the contract address on the remote chainId
-    // the owner must set remote contract addresses.
+    // _chainId - the chainId for the source contract
+    // _sourceAddress - the contract address on the source chainId
+    // the owner must set source contract addresses.
     // in lzReceive(), a require() ensures only messages
     // from known contracts can be received.
-    function setDestination(uint16 _chainId, bytes calldata _remoteAddress) external onlyOwner {
-        require(remotes[_chainId].length == 0, "The remote address has already been set for the chainId!");
-        remotes[_chainId] = _remoteAddress;
+    function setTrustedSource(uint16 _chainId, bytes calldata _sourceAddress) external onlyOwner {
+        require(trustedSourceLookup[_chainId].length == 0, "The source address has already been set for the chainId!");
+        trustedSourceLookup[_chainId] = _sourceAddress;
     }
 
     // set the inbound block confirmations
-    function setInboundConfirmations(uint16 remoteChainId, uint16 confirmations) external {
+    function setInboundConfirmations(uint16 sourceChainId, uint16 confirmations) external {
         layerZeroEndpoint.setConfig(
             layerZeroEndpoint.getSendVersion(address(this)),
-            remoteChainId,
+            sourceChainId,
             2, // CONFIG_TYPE_INBOUND_BLOCK_CONFIRMATIONS
             abi.encode(confirmations)
         );
     }
 
     // set outbound block confirmations
-    function setOutboundConfirmations(uint16 remoteChainId, uint16 confirmations) external {
+    function setOutboundConfirmations(uint16 sourceChainId, uint16 confirmations) external {
         layerZeroEndpoint.setConfig(
             layerZeroEndpoint.getSendVersion(address(this)),
-            remoteChainId,
+            sourceChainId,
             5, // CONFIG_TYPE_OUTBOUND_BLOCK_CONFIRMATIONS
             abi.encode(confirmations)
         );
