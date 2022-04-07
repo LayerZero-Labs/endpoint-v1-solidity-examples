@@ -52,7 +52,7 @@ import "./interfaces/ILayerZeroEndpoint.sol";
 /// @author sirarthurmoney
 /// @notice You can use this to mint ONFT and transfer across chain
 /// @dev All function calls are currently implemented without side effects
-contract OmnichainNonFungibleToken is ERC721, NonblockingReceiver {
+contract OmnichainNonFungibleToken is ERC721, NonblockingReceiver, ILayerZeroUserApplicationConfig {
 
     string public baseTokenURI;
     uint256 nextTokenId;
@@ -140,4 +140,29 @@ contract OmnichainNonFungibleToken is ERC721, NonblockingReceiver {
         (address _dstOmnichainNFTAddress, uint256 omnichainNFT_tokenId) = abi.decode(_payload, (address, uint256));
         _safeMint(_dstOmnichainNFTAddress, omnichainNFT_tokenId);
     }
+
+    //---------------------------DAO CALL----------------------------------------
+    // generic config for user Application
+    function setConfig(
+        uint16 _version,
+        uint16 _chainId,
+        uint256 _configType,
+        bytes calldata _config
+    ) external override onlyOwner {
+        endpoint.setConfig(_version, _chainId, _configType, _config);
+    }
+
+    function setSendVersion(uint16 _version) external override onlyOwner {
+        endpoint.setSendVersion(_version);
+    }
+
+    function setReceiveVersion(uint16 _version) external override onlyOwner {
+        endpoint.setReceiveVersion(_version);
+    }
+
+    function forceResumeReceive(uint16 _srcChainId, bytes calldata _srcAddress) external override onlyOwner {
+        endpoint.forceResumeReceive(_srcChainId, _srcAddress);
+    }
+
+    function renounceOwnership() public override onlyOwner {}
 }
