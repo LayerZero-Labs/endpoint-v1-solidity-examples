@@ -36,9 +36,9 @@ describe("OmnichainFungibleToken", function () {
         this.lzEndpointSrcMock.setDestLzEndpoint(this.OmnichainFungibleTokenDst.address, this.lzEndpointDstMock.address)
         this.lzEndpointDstMock.setDestLzEndpoint(this.OmnichainFungibleTokenSrc.address, this.lzEndpointSrcMock.address)
 
-        // set each contracts remote address so it can send to each other
-        await this.OmnichainFungibleTokenSrc.setDestination(this.chainIdDst, this.OmnichainFungibleTokenDst.address) // for A, set B
-        await this.OmnichainFungibleTokenDst.setDestination(this.chainIdSrc, this.OmnichainFungibleTokenSrc.address) // for B, set A
+        // set each contracts source address so it can send to each other
+        await this.OmnichainFungibleTokenSrc.setTrustedSource(this.chainIdDst, this.OmnichainFungibleTokenDst.address) // for A, set B
+        await this.OmnichainFungibleTokenDst.setTrustedSource(this.chainIdSrc, this.OmnichainFungibleTokenSrc.address) // for B, set A
 
         // retrieve the starting tokens
         this.startingTokens = await this.OmnichainFungibleTokenSrc.balanceOf(this.owner.address);

@@ -19,7 +19,7 @@ import "./interfaces/ILayerZeroUserApplicationConfig.sol";
 //---------------------------------------------------------------------------
 contract OmnichainFungibleToken is ERC20, Ownable, ILayerZeroReceiver, ILayerZeroUserApplicationConfig {
     ILayerZeroEndpoint immutable public endpoint;
-    mapping(uint16 => bytes) public dstContractLookup;  // a map of the connected contracts
+    mapping(uint16 => bytes) public trustedSourceLookup;// a map of the connected contracts
     bool public paused;                                 // indicates cross chain transfers are paused
     bool public isMain;                                 // indicates this contract is on the main chain
 
@@ -48,8 +48,9 @@ contract OmnichainFungibleToken is ERC20, Ownable, ILayerZeroReceiver, ILayerZer
         emit Paused(_pause);
     }
 
-    function setDestination(uint16 _dstChainId, bytes calldata _destinationContractAddress) public onlyOwner {
-        dstContractLookup[_dstChainId] = _destinationContractAddress;
+    function setTrustedSource(uint16 _chainId, bytes calldata _destinationContractAddress) public onlyOwner {
+        require(trustedSourceLookup[_chainId].length == 0, "The source address has already been set for the chainId!");
+        trustedSourceLookup[_chainId] = _destinationContractAddress;
     }
 
     function chainId() external view returns (uint16){
@@ -60,8 +61,8 @@ contract OmnichainFungibleToken is ERC20, Ownable, ILayerZeroReceiver, ILayerZer
         uint16 _dstChainId,             // send tokens to this LayerZero chainId
         bytes calldata _to,             // address where tokens are delivered on destination chain
         uint256 _qty,                   // quantity of tokens to send
-        address _zroPaymentAddress,     // ZRO payment address
-        bytes calldata _adapterParam    // adapterParameters (can configure dst gasAmoount or add airdrop, refer to LayerZero docs)
+        address _zroPaymentAddress,     // future parameter
+        bytes calldata _adapterParam    // adapterParameters
     ) public payable {
         require(!paused, "OFT: sendTokens() is currently paused");
 
@@ -78,12 +79,12 @@ contract OmnichainFungibleToken is ERC20, Ownable, ILayerZeroReceiver, ILayerZer
 
         // send LayerZero message
         endpoint.send{value: msg.value}(
-            _dstChainId,                    // destination chainId
-            dstContractLookup[_dstChainId], // destination UA address
-            payload,                        // abi.encode()'ed bytes
-            payable(msg.sender),            // refund address (LayerZero will refund any extra gas back to msg.sender
-            _zroPaymentAddress,             // payment address if paying in token
-            _adapterParam                   // adapterParameters
+            _dstChainId,                      // destination chainId
+            trustedSourceLookup[_dstChainId], // destination UA address
+            payload,                          // abi.encode()'ed bytes
+            payable(msg.sender),              // refund address
+            _zroPaymentAddress,               // future parameter
+            _adapterParam                     // adapterParameters
         );
         uint64 nonce = endpoint.getOutboundNonce(_dstChainId, address(this));
         emit SendToChain(_dstChainId, _to, _qty, nonce);
@@ -97,7 +98,7 @@ contract OmnichainFungibleToken is ERC20, Ownable, ILayerZeroReceiver, ILayerZer
     ) external override {
         require(msg.sender == address(endpoint)); // lzReceive must only be called by the endpoint
         require(
-            _fromAddress.length == dstContractLookup[_srcChainId].length && keccak256(_fromAddress) == keccak256(dstContractLookup[_srcChainId]),
+            _fromAddress.length == trustedSourceLookup[_srcChainId].length && keccak256(_fromAddress) == keccak256(trustedSourceLookup[_srcChainId]),
             "OFT: invalid source sending contract"
         );
 

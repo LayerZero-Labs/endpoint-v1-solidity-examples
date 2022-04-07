@@ -1,0 +1,10 @@
+{
+  "bsc-testnet": {
+    "startId": 0,
+    "maxSupply": 50
+  },
+  "fuji": {
+    "startId": 50,
+    "maxSupply": 100
+  }
+}

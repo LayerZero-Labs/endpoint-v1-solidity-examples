@@ -18,9 +18,9 @@ describe("OmniCounter", function () {
         this.lzEndpointMock.setDestLzEndpoint(this.omniCounterA.address, this.lzEndpointMock.address)
         this.lzEndpointMock.setDestLzEndpoint(this.omniCounterB.address, this.lzEndpointMock.address)
 
-        // set each contracts remote address so it can send to each other
-        this.omniCounterA.setDestination(this.chainId, this.omniCounterB.address)
-        this.omniCounterB.setDestination(this.chainId, this.omniCounterA.address)
+        // set each contracts source address so it can send to each other
+        this.omniCounterA.setTrustedSource(this.chainId, this.omniCounterB.address)
+        this.omniCounterB.setTrustedSource(this.chainId, this.omniCounterA.address)
     });
 
     it("increment the counter of the destination OmniCounter", async function () {
