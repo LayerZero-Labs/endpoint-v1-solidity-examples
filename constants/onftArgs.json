@@ -6,5 +6,9 @@
   "fuji": {
     "startId": 50,
     "maxSupply": 100
+  },
+  "arbitrum-rinkeby": {
+    "startId": 100,
+    "maxSupply": 150
   }
 }
