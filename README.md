@@ -105,7 +105,7 @@ npx hardhat --network fuji deploy --tags OmniCounter
 npx hardhat --network bsc-testnet omniCounterSetDestination --target-network fuji
 npx hardhat --network fuji omniCounterSetDestination --target-network bsc-testnet
 ```
-3. Send a cross chain message from `mumbai` to `fuji` !
+3. Send a cross chain message from `bsc-testnet` to `fuji` !
 ```angular2html
 npx hardhat --network bsc-testnet omniCounterIncrementCounter --target-network fuji
 ```
