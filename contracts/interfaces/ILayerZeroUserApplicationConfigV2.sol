@@ -31,12 +31,12 @@ interface ILayerZeroUserApplicationConfigV2 {
     // @notice whitelist (_srcChainId, _srcAddress)
     // @param _srcChainId - the chainId of the source chain
     // @param _srcAddress - the contract address of the source contract at the source chain
-    function setTrustedSource(uint16 _srcChainId, bytes calldata _srcAddress) external;
+    function setTrustedRemote(uint16 _srcChainId, bytes calldata _srcAddress) external;
 
     // @notice To query if the specified (_srcChainId, _srcAddress) is whitelisted properly.
     // @param _srcChainId - the chainId of the source chain
     // @param _srcAddress - the contract address of the source contract at the source chain
-    function isTrustedSource(uint16 _srcChainId, bytes calldata _srcAddress) external view returns (bool);
+    function isTrustedRemote(uint16 _srcChainId, bytes calldata _srcAddress) external view returns (bool);
 
-    event SetTrustedSource(uint16 _srcChainId, bytes _srcAddress);
+    event SetTrustedRemote(uint16 _srcChainId, bytes _srcAddress);
 }

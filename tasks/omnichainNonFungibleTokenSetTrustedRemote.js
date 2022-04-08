@@ -7,10 +7,10 @@ module.exports = async function (taskArgs, hre) {
     const omnichainNonFungibleToken = await ethers.getContract("OmnichainNonFungibleToken")
     console.log(`[source] omnichainNonFungibleToken.address: ${omnichainNonFungibleToken.address}`)
 
-    // setTrustedSource() on the local contract, so it can receive message from the source contract
+    // setTrustedRemote() on the local contract, so it can receive message from the source contract
     try {
-        let tx = await (await omnichainNonFungibleToken.setTrustedSource(dstChainId, dstAddr)).wait()
-        console.log(`✅ [${hre.network.name}] setTrustedSource(${dstChainId}, ${dstAddr})`)
+        let tx = await (await omnichainNonFungibleToken.setTrustedRemote(dstChainId, dstAddr)).wait()
+        console.log(`✅ [${hre.network.name}] setTrustedRemote(${dstChainId}, ${dstAddr})`)
         console.log(` tx: ${tx.transactionHash}`)
     } catch (e) {
         if (e.error.message.includes("The trusted source address has already been set for the chainId")) {

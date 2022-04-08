@@ -11,7 +11,7 @@ import "../interfaces/ILayerZeroEndpoint.sol";
 abstract contract LzReceiver is Ownable, ILayerZeroReceiver, ILayerZeroUserApplicationConfigV2 {
     ILayerZeroEndpoint public endpoint;
 
-    mapping(uint16 => bytes) public trustedSourceLookup;
+    mapping(uint16 => bytes) public trustedRemoteLookup;
 
     function lzReceive(
         uint16 _srcChainId,
@@ -23,8 +23,8 @@ abstract contract LzReceiver is Ownable, ILayerZeroReceiver, ILayerZeroUserAppli
         require(_msgSender() == address(endpoint));
         // if will still block the message pathway from (srcChainId, srcAddress). should not receive message from untrusted remote.
         require(
-            _srcAddress.length == trustedSourceLookup[_srcChainId].length &&
-                keccak256(_srcAddress) == keccak256(trustedSourceLookup[_srcChainId]),
+            _srcAddress.length == trustedRemoteLookup[_srcChainId].length &&
+                keccak256(_srcAddress) == keccak256(trustedRemoteLookup[_srcChainId]),
             "LzReceiver: invalid source sending contract"
         );
 
@@ -44,9 +44,9 @@ abstract contract LzReceiver is Ownable, ILayerZeroReceiver, ILayerZeroUserAppli
         bytes memory _payload,
         address payable _refundAddress,
         address _zroPaymentAddress,
-        bytes memory _txParam
+        bytes memory _adapterParam
     ) internal {
-        endpoint.send{value: msg.value}(_dstChainId, trustedSourceLookup[_dstChainId], _payload, _refundAddress, _zroPaymentAddress, _txParam);
+        endpoint.send{value: msg.value}(_dstChainId, trustedRemoteLookup[_dstChainId], _payload, _refundAddress, _zroPaymentAddress, _adapterParam);
     }
 
     //---------------------------DAO CALL----------------------------------------
@@ -118,13 +118,13 @@ abstract contract LzReceiver is Ownable, ILayerZeroReceiver, ILayerZeroUserAppli
     }
 
     // allow owner to set it multiple times.
-    function setTrustedSource(uint16 _srcChainId, bytes calldata _srcAddress) external override onlyOwner {
-        trustedSourceLookup[_srcChainId] = _srcAddress;
-        emit SetTrustedSource(_srcChainId, _srcAddress);
+    function setTrustedRemote(uint16 _srcChainId, bytes calldata _srcAddress) external override onlyOwner {
+        trustedRemoteLookup[_srcChainId] = _srcAddress;
+        emit SetTrustedRemote(_srcChainId, _srcAddress);
     }
 
-    function isTrustedSource(uint16 _srcChainId, bytes calldata _srcAddress) external view override returns (bool) {
-        bytes memory trustedSource = trustedSourceLookup[_srcChainId];
+    function isTrustedRemote(uint16 _srcChainId, bytes calldata _srcAddress) external view override returns (bool) {
+        bytes memory trustedSource = trustedRemoteLookup[_srcChainId];
         return keccak256(trustedSource) == keccak256(_srcAddress);
     }
 }

@@ -85,7 +85,7 @@ contract OmnichainNonFungibleToken is ERC721, NonblockingLzReceiver {
     /// @param omniChainNFT_tokenId the id of the ONFT you want to transfer
     function transferOmnichainNFT(uint16 _chainId, uint256 omniChainNFT_tokenId) public payable {
         require(msg.sender == ownerOf(omniChainNFT_tokenId), "Message sender must own the OmnichainNFT.");
-        require(trustedSourceLookup[_chainId].length != 0, "This chain is not a trusted source source.");
+        require(trustedRemoteLookup[_chainId].length != 0, "This chain is not a trusted source source.");
 
         // burn ONFT on source chain
         _burn(omniChainNFT_tokenId);
@@ -106,7 +106,7 @@ contract OmnichainNonFungibleToken is ERC721, NonblockingLzReceiver {
 
         endpoint.send{value: msg.value}(
             _chainId, // destination chainId
-            trustedSourceLookup[_chainId], // destination address of OmnichainNFT
+            trustedRemoteLookup[_chainId], // destination address of OmnichainNFT
             payload, // abi.encode()'ed bytes
             payable(msg.sender), // refund address
             address(0x0), // future parameter
