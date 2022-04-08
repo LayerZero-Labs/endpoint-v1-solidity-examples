@@ -45,8 +45,8 @@ pragma solidity 0.8.4;
 
 import "@openzeppelin/contracts/token/ERC721/ERC721.sol";
 
-import "./interfaces/ILayerZeroEndpoint.sol";
-import "./receiver/NonBlockingLzReceiver.sol";
+import "../interfaces/ILayerZeroEndpoint.sol";
+import "../receiver/NonBlockingLzReceiver.sol";
 
 /// @title A LayerZero OmnichainNonFungibleToken example
 /// @author sirarthurmoney

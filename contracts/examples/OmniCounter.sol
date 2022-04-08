@@ -5,9 +5,9 @@ pragma abicoder v2;
 
 import "@openzeppelin/contracts/utils/math/SafeMath.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
-import "./interfaces/ILayerZeroReceiver.sol";
-import "./interfaces/ILayerZeroEndpoint.sol";
-import "./interfaces/ILayerZeroUserApplicationConfig.sol";
+import "../interfaces/ILayerZeroReceiver.sol";
+import "../interfaces/ILayerZeroEndpoint.sol";
+import "../interfaces/ILayerZeroUserApplicationConfig.sol";
 
 contract OmniCounter is Ownable, ILayerZeroReceiver, ILayerZeroUserApplicationConfig {
     using SafeMath for uint256;

@@ -12,9 +12,9 @@
 
 pragma solidity 0.8.4;
 pragma abicoder v2;
-import "./interfaces/ILayerZeroReceiver.sol";
-import "./interfaces/ILayerZeroEndpoint.sol";
-import "./interfaces/ILayerZeroUserApplicationConfig.sol";
+import "../interfaces/ILayerZeroReceiver.sol";
+import "../interfaces/ILayerZeroEndpoint.sol";
+import "../interfaces/ILayerZeroUserApplicationConfig.sol";
 import "hardhat/console.sol";
 
 contract PingPong is ILayerZeroReceiver, ILayerZeroUserApplicationConfig {

@@ -6,6 +6,8 @@ npm install
 npx hardhat test 
 ```
 
+The examples in the `example` folder are meant for demonstrating LayerZero messaging behaviours. Audit your code before going into production.
+
 # OmnichainFungibleToken - Send Tokens to another chain
 > WARNING: **YOU NEED TO PERFORM THE SET TRUSTED SOURCES STEP.** Don't forget, nah you won't forget.
 >
