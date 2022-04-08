@@ -33,8 +33,8 @@ describe("OmnichainNonFungibleToken", function () {
         this.lzEndpointDstMock.setDestLzEndpoint(this.OmnichainNonFungibleTokenSrc.address, this.lzEndpointSrcMock.address)
 
         // set each contracts source address so it can send to each other
-        await this.OmnichainNonFungibleTokenSrc.setTrustedSource(this.chainIdDst, this.OmnichainNonFungibleTokenDst.address) // for A, set B
-        await this.OmnichainNonFungibleTokenDst.setTrustedSource(this.chainIdSrc, this.OmnichainNonFungibleTokenSrc.address) // for B, set A
+        await this.OmnichainNonFungibleTokenSrc.setTrustedRemote(this.chainIdDst, this.OmnichainNonFungibleTokenDst.address) // for A, set B
+        await this.OmnichainNonFungibleTokenDst.setTrustedRemote(this.chainIdSrc, this.OmnichainNonFungibleTokenSrc.address) // for B, set A
     })
 
     it("mint on the source chain and send ONFT to the destination chain", async function () {

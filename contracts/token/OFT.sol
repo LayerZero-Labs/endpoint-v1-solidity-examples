@@ -1,3 +1,5 @@
+// SPDX-License-Identifier: MIT
+
 pragma solidity ^0.8.0;
 
 import "./IOFT.sol";
@@ -46,6 +48,7 @@ contract OFT is NonblockingLzReceiver, IOFT, ERC20 {
         _sendTokens(_msgSender(), _dstChainId, _toAddress, _amount, _zroPaymentAddress, _adapterParam);
     }
 
+    // todo: refund address
     function sendTokensFrom(
         address _from,
         uint16 _dstChainId,
@@ -69,23 +72,16 @@ contract OFT is NonblockingLzReceiver, IOFT, ERC20 {
     ) internal {
         if (isMain) {
             // lock by transferring to this contract if leaving the main chain,
-            _transfer(msg.sender, address(this), _amount);
+            _transfer(_from, address(this), _amount);
         } else {
             // burn if leaving non-main chain
-            _burn(msg.sender, _amount);
+            _burn(_from, _amount);
         }
 
         bytes memory payload = abi.encode(_toAddress, _amount);
 
+        _lzSend(_dstChainId, payload, payable(_from), _zroPaymentAddress, _adapterParam);
         // send LayerZero message
-        endpoint.send{value: msg.value}(
-            _dstChainId,
-            trustedSourceLookup[_dstChainId],
-            payload,
-            payable(_from),
-            _zroPaymentAddress,
-            _adapterParam
-        );
         uint64 nonce = endpoint.getOutboundNonce(_dstChainId, address(this));
 
         emit SendToChain(_from, _dstChainId, _toAddress, _amount, nonce);

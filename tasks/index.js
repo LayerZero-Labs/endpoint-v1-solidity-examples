@@ -27,15 +27,15 @@ task("omniCounterIncrementMultiCounter", "increment the destination OmniCounter"
 //
 task(
     "omniCounterSetDestination",
-    "setTrustedSource(chainId, sourceAddr) to allow the local contract to receive messages from known source contracts",
-    require("./omniCounterSetTrustedSource")
+    "setTrustedRemote(chainId, sourceAddr) to allow the local contract to receive messages from known source contracts",
+    require("./omniCounterSetTrustedRemote")
 ).addParam("targetNetwork", "the target network to let this instance receive messages from")
 
 //
 task(
     "omnichainFungibleTokenSetDestination",
-    "setTrustedSource(chainId, sourceAddr) to allow the local contract to receive messages from known source contracts",
-    require("./omnichainFungibleTokenSetTrustedSource")
+    "setTrustedRemote(chainId, sourceAddr) to allow the local contract to receive messages from known source contracts",
+    require("./omnichainFungibleTokensetTrustedRemote")
 ).addParam("targetNetwork", "the target network to let this instance receive messages from")
 
 //
@@ -49,9 +49,9 @@ task(
 
 //
 task(
-    "omnichainNonFungibleTokenSetTrustedSource",
-    "setTrustedSource(chainId, sourceAddr) to allow the local contract to receive messages from known source contracts",
-    require("./omnichainNonFungibleTokenSetTrustedSource")
+    "omnichainNonFungibleTokensetTrustedRemote",
+    "setTrustedRemote(chainId, sourceAddr) to allow the local contract to receive messages from known source contracts",
+    require("./omnichainNonFungibleTokensetTrustedRemote")
 ).addParam("targetNetwork", "the target network to let this instance receive messages from")
 
 //

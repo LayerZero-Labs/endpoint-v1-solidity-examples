@@ -8,10 +8,10 @@ module.exports = async function (taskArgs, hre) {
     const omniCounter = await ethers.getContract("OmniCounter")
     console.log(`[source] omniCounter.address: ${omniCounter.address}`)
 
-    // setTrustedSource() on the local contract, so it can receive message from the source contract
+    // setTrustedRemote() on the local contract, so it can receive message from the source contract
     try {
-        let tx = await (await omniCounter.setTrustedSource(dstChainId, dstAddr)).wait()
-        console.log(`✅ [${hre.network.name}] setTrustedSource(${dstChainId}, ${dstAddr})`)
+        let tx = await (await omniCounter.setTrustedRemote(dstChainId, dstAddr)).wait()
+        console.log(`✅ [${hre.network.name}] setTrustedRemote(${dstChainId}, ${dstAddr})`)
         console.log(` tx: ${tx.transactionHash}`)
     } catch (e) {
         if (e.error?.message.includes("The source address has already been set for the chainId")) {
