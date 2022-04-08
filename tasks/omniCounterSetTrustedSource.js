@@ -1,5 +1,5 @@
-const CHAIN_ID = require('../constants/chainIds.json')
-const {getDeploymentAddresses} = require('../utils/readStatic')
+const CHAIN_ID = require("../constants/chainIds.json")
+const { getDeploymentAddresses } = require("../utils/readStatic")
 
 module.exports = async function (taskArgs, hre) {
     const dstChainId = CHAIN_ID[taskArgs.targetNetwork]
@@ -9,15 +9,15 @@ module.exports = async function (taskArgs, hre) {
     console.log(`[source] omniCounter.address: ${omniCounter.address}`)
 
     // setTrustedSource() on the local contract, so it can receive message from the source contract
-    try{
-        let tx = await (await omniCounter.setTrustedSource(
-            dstChainId,
-            dstAddr
-        )).wait()
+    try {
+        let tx = await (await omniCounter.setTrustedSource(dstChainId, dstAddr)).wait()
         console.log(`✅ [${hre.network.name}] setTrustedSource(${dstChainId}, ${dstAddr})`)
         console.log(` tx: ${tx.transactionHash}`)
-    } catch(e){
-        if(e.error?.message.includes("The source address has already been set for the chainId")){ console.log('*source already set*') }
-        else { console.log(e)}
+    } catch (e) {
+        if (e.error?.message.includes("The source address has already been set for the chainId")) {
+            console.log("*source already set*")
+        } else {
+            console.log(e)
+        }
     }
 }

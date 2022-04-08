@@ -10,9 +10,9 @@ import "./interfaces/ILayerZeroEndpoint.sol";
 import "./interfaces/ILayerZeroUserApplicationConfig.sol";
 
 contract OmniCounter is Ownable, ILayerZeroReceiver, ILayerZeroUserApplicationConfig {
-    using SafeMath for uint;
+    using SafeMath for uint256;
     // keep track of how many messages have been received from other chains
-    uint public messageCounter;
+    uint256 public messageCounter;
     // required: the LayerZero endpoint which is passed in the constructor
     ILayerZeroEndpoint public layerZeroEndpoint;
     mapping(uint16 => bytes) public trustedSourceLookup;
@@ -21,7 +21,7 @@ contract OmniCounter is Ownable, ILayerZeroReceiver, ILayerZeroUserApplicationCo
         layerZeroEndpoint = ILayerZeroEndpoint(_endpoint);
     }
 
-    function getCounter() public view returns (uint) {
+    function getCounter() public view returns (uint256) {
         return messageCounter;
     }
 
@@ -37,7 +37,8 @@ contract OmniCounter is Ownable, ILayerZeroReceiver, ILayerZeroUserApplicationCo
         require(msg.sender == address(layerZeroEndpoint));
         // owner must have setTrustedSource() to allow its source contracts to send to this contract
         require(
-            _srcAddress.length == trustedSourceLookup[_srcChainId].length && keccak256(_srcAddress) == keccak256(trustedSourceLookup[_srcChainId]),
+            _srcAddress.length == trustedSourceLookup[_srcChainId].length &&
+                keccak256(_srcAddress) == keccak256(trustedSourceLookup[_srcChainId]),
             "Invalid source sender address. owner should call setTrustedSource() to enable source contract"
         );
 
@@ -52,54 +53,86 @@ contract OmniCounter is Ownable, ILayerZeroReceiver, ILayerZeroUserApplicationCo
 
     // _adapterParams (v1)
     // customize the gas amount to be used on the destination chain.
-    function incrementCounterWithAdapterParamsV1(uint16 _dstChainId, bytes calldata _dstCounterMockAddress, uint gasAmountForDst) public payable {
+    function incrementCounterWithAdapterParamsV1(
+        uint16 _dstChainId,
+        bytes calldata _dstCounterMockAddress,
+        uint256 gasAmountForDst
+    ) public payable {
         uint16 version = 1;
         // make look like this: 0x00010000000000000000000000000000000000000000000000000000000000030d40
-        bytes memory _adapterParams = abi.encodePacked(
-            version,
-            gasAmountForDst
+        bytes memory _adapterParams = abi.encodePacked(version, gasAmountForDst);
+        layerZeroEndpoint.send{value: msg.value}(
+            _dstChainId,
+            _dstCounterMockAddress,
+            bytes(""),
+            payable(msg.sender),
+            address(0x0),
+            _adapterParams
         );
-        layerZeroEndpoint.send{value: msg.value}(_dstChainId, _dstCounterMockAddress, bytes(""), payable(msg.sender), address(0x0), _adapterParams);
     }
 
     // _adapterParams (v2)
     // specify a small amount of notive token you want to airdropped to your wallet on destination
-    function incrementCounterWithAdapterParamsV2(uint16 _dstChainId, bytes calldata _dstCounterMockAddress, uint gasAmountForDst, uint airdropEthQty, address airdropAddr) public payable {
+    function incrementCounterWithAdapterParamsV2(
+        uint16 _dstChainId,
+        bytes calldata _dstCounterMockAddress,
+        uint256 gasAmountForDst,
+        uint256 airdropEthQty,
+        address airdropAddr
+    ) public payable {
         uint16 version = 2;
         bytes memory _adapterParams = abi.encodePacked(
             version,
             gasAmountForDst,
-            airdropEthQty,      // how must dust to receive on destination
-            airdropAddr         // the address to receive the dust
+            airdropEthQty, // how must dust to receive on destination
+            airdropAddr // the address to receive the dust
         );
-        layerZeroEndpoint.send{value: msg.value}(_dstChainId, _dstCounterMockAddress, bytes(""), payable(msg.sender), address(0x0), _adapterParams);
+        layerZeroEndpoint.send{value: msg.value}(
+            _dstChainId,
+            _dstCounterMockAddress,
+            bytes(""),
+            payable(msg.sender),
+            address(0x0),
+            _adapterParams
+        );
     }
 
     // call send() to multiple destinations in the same transaction!
-    function incrementMultiCounter(uint16[] calldata _dstChainIds, bytes[] calldata _dstCounterMockAddresses, address payable _refundAddr) public payable {
+    function incrementMultiCounter(
+        uint16[] calldata _dstChainIds,
+        bytes[] calldata _dstCounterMockAddresses,
+        address payable _refundAddr
+    ) public payable {
         require(_dstChainIds.length == _dstCounterMockAddresses.length, "_dstChainIds.length, _dstCounterMockAddresses.length not the same");
 
-        uint numberOfChains = _dstChainIds.length;
+        uint256 numberOfChains = _dstChainIds.length;
 
         // note: could result in a few wei of dust left in contract
-        uint valueToSend = msg.value.div(numberOfChains);
+        uint256 valueToSend = msg.value.div(numberOfChains);
 
         // send() each chainId + dst address pair
-        for (uint i = 0; i < numberOfChains; ++i) {
+        for (uint256 i = 0; i < numberOfChains; ++i) {
             // a Communicator.sol instance is the 'endpoint'
             // .send() each payload to the destination chainId + UA destination address
-            layerZeroEndpoint.send{value: valueToSend}(_dstChainIds[i], _dstCounterMockAddresses[i], bytes(""), _refundAddr, address(0x0), bytes(""));
+            layerZeroEndpoint.send{value: valueToSend}(
+                _dstChainIds[i],
+                _dstCounterMockAddresses[i],
+                bytes(""),
+                _refundAddr,
+                address(0x0),
+                bytes("")
+            );
         }
 
         // refund eth if too much was sent into this contract call
-        uint refund = msg.value.sub(valueToSend.mul(numberOfChains));
+        uint256 refund = msg.value.sub(valueToSend.mul(numberOfChains));
         _refundAddr.transfer(refund);
     }
 
     function setConfig(
         uint16, /*_version*/
         uint16 _chainId,
-        uint _configType,
+        uint256 _configType,
         bytes calldata _config
     ) external override {
         layerZeroEndpoint.setConfig(layerZeroEndpoint.getSendVersion(address(this)), _chainId, _configType, _config);
@@ -109,7 +142,7 @@ contract OmniCounter is Ownable, ILayerZeroReceiver, ILayerZeroUserApplicationCo
         uint16, /*_dstChainId*/
         uint16 _chainId,
         address,
-        uint _configType
+        uint256 _configType
     ) external view returns (bytes memory) {
         return layerZeroEndpoint.getConfig(layerZeroEndpoint.getSendVersion(address(this)), _chainId, address(this), _configType);
     }
@@ -136,14 +169,9 @@ contract OmniCounter is Ownable, ILayerZeroReceiver, ILayerZeroUserApplicationCo
 
     // set the Oracle to be used by this UA for LayerZero messages
     function setOracle(uint16 dstChainId, address oracle) external {
-        uint TYPE_ORACLE = 6; // from UltraLightNode
+        uint256 TYPE_ORACLE = 6; // from UltraLightNode
         // set the Oracle
-        layerZeroEndpoint.setConfig(
-            layerZeroEndpoint.getSendVersion(address(this)),
-            dstChainId,
-            TYPE_ORACLE,
-            abi.encode(oracle)
-        );
+        layerZeroEndpoint.setConfig(layerZeroEndpoint.getSendVersion(address(this)), dstChainId, TYPE_ORACLE, abi.encode(oracle));
     }
 
     // _chainId - the chainId for the source contract
@@ -178,5 +206,6 @@ contract OmniCounter is Ownable, ILayerZeroReceiver, ILayerZeroUserApplicationCo
 
     // allow this contract to receive ether
     fallback() external payable {}
+
     receive() external payable {}
 }

@@ -9,7 +9,6 @@ import "./interfaces/ILayerZeroEndpoint.sol";
 import "./interfaces/ILayerZeroReceiver.sol";
 import "./interfaces/ILayerZeroUserApplicationConfig.sol";
 
-
 //---------------------------------------------------------------------------
 // THIS CONTRACT IS OF BUSINESS LICENSE. CONTACT US BEFORE YOU USE IT.
 //
@@ -18,10 +17,10 @@ import "./interfaces/ILayerZeroUserApplicationConfig.sol";
 // Stay tuned for maximum cross-chain compatability of your token
 //---------------------------------------------------------------------------
 contract OmnichainFungibleToken is ERC20, Ownable, ILayerZeroReceiver, ILayerZeroUserApplicationConfig {
-    ILayerZeroEndpoint immutable public endpoint;
-    mapping(uint16 => bytes) public trustedSourceLookup;// a map of the connected contracts
-    bool public paused;                                 // indicates cross chain transfers are paused
-    bool public isMain;                                 // indicates this contract is on the main chain
+    ILayerZeroEndpoint public immutable endpoint;
+    mapping(uint16 => bytes) public trustedSourceLookup; // a map of the connected contracts
+    bool public paused; // indicates cross chain transfers are paused
+    bool public isMain; // indicates this contract is on the main chain
 
     event Paused(bool isPaused);
     event SendToChain(uint16 srcChainId, bytes toAddress, uint256 qty, uint64 nonce);
@@ -53,16 +52,16 @@ contract OmnichainFungibleToken is ERC20, Ownable, ILayerZeroReceiver, ILayerZer
         trustedSourceLookup[_chainId] = _destinationContractAddress;
     }
 
-    function chainId() external view returns (uint16){
+    function chainId() external view returns (uint16) {
         return endpoint.getChainId();
     }
 
     function sendTokens(
-        uint16 _dstChainId,             // send tokens to this LayerZero chainId
-        bytes calldata _to,             // address where tokens are delivered on destination chain
-        uint256 _qty,                   // quantity of tokens to send
-        address _zroPaymentAddress,     // future parameter
-        bytes calldata _adapterParam    // adapterParameters
+        uint16 _dstChainId, // send tokens to this LayerZero chainId
+        bytes calldata _to, // address where tokens are delivered on destination chain
+        uint256 _qty, // quantity of tokens to send
+        address _zroPaymentAddress, // future parameter
+        bytes calldata _adapterParam // adapterParameters
     ) public payable {
         require(!paused, "OFT: sendTokens() is currently paused");
 
@@ -79,12 +78,12 @@ contract OmnichainFungibleToken is ERC20, Ownable, ILayerZeroReceiver, ILayerZer
 
         // send LayerZero message
         endpoint.send{value: msg.value}(
-            _dstChainId,                      // destination chainId
+            _dstChainId, // destination chainId
             trustedSourceLookup[_dstChainId], // destination UA address
-            payload,                          // abi.encode()'ed bytes
-            payable(msg.sender),              // refund address
-            _zroPaymentAddress,               // future parameter
-            _adapterParam                     // adapterParameters
+            payload, // abi.encode()'ed bytes
+            payable(msg.sender), // refund address
+            _zroPaymentAddress, // future parameter
+            _adapterParam // adapterParameters
         );
         uint64 nonce = endpoint.getOutboundNonce(_dstChainId, address(this));
         emit SendToChain(_dstChainId, _to, _qty, nonce);
@@ -98,14 +97,17 @@ contract OmnichainFungibleToken is ERC20, Ownable, ILayerZeroReceiver, ILayerZer
     ) external override {
         require(msg.sender == address(endpoint)); // lzReceive must only be called by the endpoint
         require(
-            _fromAddress.length == trustedSourceLookup[_srcChainId].length && keccak256(_fromAddress) == keccak256(trustedSourceLookup[_srcChainId]),
+            _fromAddress.length == trustedSourceLookup[_srcChainId].length &&
+                keccak256(_fromAddress) == keccak256(trustedSourceLookup[_srcChainId]),
             "OFT: invalid source sending contract"
         );
 
         // decode and load the toAddress
         (bytes memory _to, uint256 _qty) = abi.decode(_payload, (bytes, uint256));
         address toAddress;
-        assembly { toAddress := mload(add(_to, 20)) }
+        assembly {
+            toAddress := mload(add(_to, 20))
+        }
 
         // if the toAddress is 0x0, burn it
         if (toAddress == address(0x0)) toAddress == address(0xdEaD);
@@ -120,7 +122,12 @@ contract OmnichainFungibleToken is ERC20, Ownable, ILayerZeroReceiver, ILayerZer
         emit ReceiveFromChain(_srcChainId, toAddress, _qty, _nonce);
     }
 
-    function estimateSendTokensFee(uint16 _dstChainId, bytes calldata _toAddress, bool _useZro, bytes calldata _txParameters) external view returns (uint256 nativeFee, uint256 zroFee) {
+    function estimateSendTokensFee(
+        uint16 _dstChainId,
+        bytes calldata _toAddress,
+        bool _useZro,
+        bytes calldata _txParameters
+    ) external view returns (uint256 nativeFee, uint256 zroFee) {
         // mock the payload for sendTokens()
         bytes memory payload = abi.encode(_toAddress, 1);
         return endpoint.estimateFees(_dstChainId, address(this), payload, _useZro, _txParameters);

@@ -23,11 +23,11 @@ contract PingPong is ILayerZeroReceiver, ILayerZeroUserApplicationConfig {
     // whether PingPong is ping-ponging
     bool public pingsEnabled;
     // event emitted every ping() to keep track of consecutive pings count
-    event Ping(uint pings);
+    event Ping(uint256 pings);
     // the maxPings before ending the loop
-    uint public maxPings;
+    uint256 public maxPings;
     // keep track of the totalPings sent
-    uint public numPings;
+    uint256 public numPings;
 
     // constructor requires the LayerZero endpoint for this chain
     constructor(address _layerZeroEndpoint) {
@@ -43,9 +43,9 @@ contract PingPong is ILayerZeroReceiver, ILayerZeroUserApplicationConfig {
 
     // pings the destination chain, along with the current number of pings sent
     function ping(
-        uint16 _dstChainId,         // send a ping to this destination chainId
-        address _dstPingPongAddr,   // destination address of PingPong contract
-        uint pings                  // the uint to start at. use 0 as a default
+        uint16 _dstChainId, // send a ping to this destination chainId
+        address _dstPingPongAddr, // destination address of PingPong contract
+        uint256 pings // the uint to start at. use 0 as a default
     ) public {
         require(address(this).balance > 0, "the balance of this contract is 0. pls send gas for message fees");
         require(pingsEnabled, "pingsEnabled is false. messages stopped");
@@ -58,22 +58,22 @@ contract PingPong is ILayerZeroReceiver, ILayerZeroUserApplicationConfig {
 
         // encode adapterParams to specify more gas for the destination
         uint16 version = 1;
-        uint gasForDestinationLzReceive = 350000;
+        uint256 gasForDestinationLzReceive = 350000;
         bytes memory adapterParams = abi.encodePacked(version, gasForDestinationLzReceive);
 
         // get the fees we need to pay to LayerZero + Relayer to cover message delivery
         // see Communicator.sol's .estimateNativeFees() function for more details.
-        (uint messageFee, ) = layerZeroEndpoint.estimateFees(_dstChainId, address(this), payload, false, adapterParams);
+        (uint256 messageFee, ) = layerZeroEndpoint.estimateFees(_dstChainId, address(this), payload, false, adapterParams);
         require(address(this).balance >= messageFee, "address(this).balance < messageFee. pls send gas for message fees");
 
         // send LayerZero message
-        layerZeroEndpoint.send{value: messageFee}(       // {value: messageFee} will be paid out of this contract!
-            _dstChainId,                        // destination chainId
+        layerZeroEndpoint.send{value: messageFee}( // {value: messageFee} will be paid out of this contract!
+            _dstChainId, // destination chainId
             abi.encodePacked(_dstPingPongAddr), // destination address of PingPong
-            payload,                            // abi.encode()'ed bytes
-            payable(this),                      // (msg.sender will be this contract) refund address (LayerZero will refund any extra gas back to caller of send()
-            address(0x0),                       // 'zroPaymentAddress' unused for this mock/example
-            adapterParams                       // 'adapterParams' unused for this mock/example
+            payload, // abi.encode()'ed bytes
+            payable(this), // (msg.sender will be this contract) refund address (LayerZero will refund any extra gas back to caller of send()
+            address(0x0), // 'zroPaymentAddress' unused for this mock/example
+            adapterParams // 'adapterParams' unused for this mock/example
         );
     }
 
@@ -95,7 +95,7 @@ contract PingPong is ILayerZeroReceiver, ILayerZeroUserApplicationConfig {
         }
 
         // decode the number of pings sent thus far
-        uint pings = abi.decode(_payload, (uint));
+        uint256 pings = abi.decode(_payload, (uint256));
 
         // "recursively" call ping in order to *pong*     (and increment pings)
         ++pings;
@@ -107,7 +107,7 @@ contract PingPong is ILayerZeroReceiver, ILayerZeroUserApplicationConfig {
     function setConfig(
         uint16, /*_version*/
         uint16 _dstChainId,
-        uint _configType,
+        uint256 _configType,
         bytes memory _config
     ) external override {
         layerZeroEndpoint.setConfig(_dstChainId, layerZeroEndpoint.getSendVersion(address(this)), _configType, _config);
@@ -117,7 +117,7 @@ contract PingPong is ILayerZeroReceiver, ILayerZeroUserApplicationConfig {
         uint16, /*_dstChainId*/
         uint16 _chainId,
         address,
-        uint _configType
+        uint256 _configType
     ) external view returns (bytes memory) {
         return layerZeroEndpoint.getConfig(layerZeroEndpoint.getSendVersion(address(this)), _chainId, address(this), _configType);
     }

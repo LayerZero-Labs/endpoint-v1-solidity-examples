@@ -53,7 +53,6 @@ import "./receiver/NonBlockingLzReceiver.sol";
 /// @notice You can use this to mint ONFT and transfer across chain
 /// @dev All function calls are currently implemented without side effects
 contract OmnichainNonFungibleToken is ERC721, NonblockingLzReceiver {
-
     string public baseTokenURI;
     uint256 nextTokenId;
     uint256 maxMint;
@@ -68,8 +67,7 @@ contract OmnichainNonFungibleToken is ERC721, NonblockingLzReceiver {
         address _layerZeroEndpoint,
         uint256 _startToken,
         uint256 _maxMint
-    )
-    ERC721("OmnichainNonFungibleToken", "ONFT"){
+    ) ERC721("OmnichainNonFungibleToken", "ONFT") {
         setBaseURI(_baseTokenURI);
         endpoint = ILayerZeroEndpoint(_layerZeroEndpoint);
         nextTokenId = _startToken;
@@ -85,15 +83,12 @@ contract OmnichainNonFungibleToken is ERC721, NonblockingLzReceiver {
     /// @notice Burn OmniChainNFT_tokenId on source chain and mint on destination chain
     /// @param _chainId the destination chain id you want to transfer too
     /// @param omniChainNFT_tokenId the id of the ONFT you want to transfer
-    function transferOmnichainNFT(
-        uint16 _chainId,
-        uint256 omniChainNFT_tokenId
-    ) public payable {
+    function transferOmnichainNFT(uint16 _chainId, uint256 omniChainNFT_tokenId) public payable {
         require(msg.sender == ownerOf(omniChainNFT_tokenId), "Message sender must own the OmnichainNFT.");
         require(trustedSourceLookup[_chainId].length != 0, "This chain is not a trusted source source.");
 
         // burn ONFT on source chain
-         _burn(omniChainNFT_tokenId);
+        _burn(omniChainNFT_tokenId);
 
         // encode payload w/ sender address and ONFT token id
         bytes memory payload = abi.encode(msg.sender, omniChainNFT_tokenId);
@@ -101,21 +96,21 @@ contract OmnichainNonFungibleToken is ERC721, NonblockingLzReceiver {
         // encode adapterParams w/ extra gas for destination chain
         // This example uses 500,000 gas. Your implementation may need more.
         uint16 version = 1;
-        uint gas = 225000;
+        uint256 gas = 225000;
         bytes memory adapterParams = abi.encodePacked(version, gas);
 
         // use LayerZero estimateFees for cross chain delivery
-        (uint quotedLayerZeroFee, ) = endpoint.estimateFees(_chainId, address(this), payload, false, adapterParams);
+        (uint256 quotedLayerZeroFee, ) = endpoint.estimateFees(_chainId, address(this), payload, false, adapterParams);
 
         require(msg.value >= quotedLayerZeroFee, "Not enough gas to cover cross chain transfer.");
 
-        endpoint.send{value:msg.value}(
-            _chainId,                      // destination chainId
+        endpoint.send{value: msg.value}(
+            _chainId, // destination chainId
             trustedSourceLookup[_chainId], // destination address of OmnichainNFT
-            payload,                       // abi.encode()'ed bytes
-            payable(msg.sender),           // refund address
-            address(0x0),                  // future parameter
-            adapterParams                  // adapterParams
+            payload, // abi.encode()'ed bytes
+            payable(msg.sender), // refund address
+            address(0x0), // future parameter
+            adapterParams // adapterParams
         );
     }
 
@@ -126,7 +121,7 @@ contract OmnichainNonFungibleToken is ERC721, NonblockingLzReceiver {
     }
 
     /// @notice Get the base URI
-    function _baseURI() override internal view returns (string memory) {
+    function _baseURI() internal view override returns (string memory) {
         return baseTokenURI;
     }
 
@@ -136,7 +131,12 @@ contract OmnichainNonFungibleToken is ERC721, NonblockingLzReceiver {
     // @param _nonce - the ordered message nonce
     // @param _payload - the signed payload is the UA bytes has encoded to be sent
     /// @dev safe mints the ONFT on your destination chain
-    function _nonblockingLzReceive(uint16 _srcChainId, bytes memory _srcAddress, uint64 _nonce, bytes memory _payload) internal override  {
+    function _nonblockingLzReceive(
+        uint16 _srcChainId,
+        bytes memory _srcAddress,
+        uint64 _nonce,
+        bytes memory _payload
+    ) internal override {
         (address _dstOmnichainNFTAddress, uint256 omnichainNFT_tokenId) = abi.decode(_payload, (address, uint256));
         _safeMint(_dstOmnichainNFTAddress, omnichainNFT_tokenId);
     }

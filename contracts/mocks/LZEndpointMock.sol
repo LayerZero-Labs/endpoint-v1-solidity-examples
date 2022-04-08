@@ -23,8 +23,8 @@ contract LZEndpointMock is ILayerZeroEndpoint {
     uint16 public mockLibraryVersion;
     uint256 public mockStaticNativeFee;
     uint16 public mockLayerZeroVersion;
-    uint public nativeFee;
-    uint public zroFee;
+    uint256 public nativeFee;
+    uint256 public zroFee;
 
     // inboundNonce = [srcChainId][srcAddress].
     mapping(uint16 => mapping(bytes => uint64)) public inboundNonce;
@@ -38,7 +38,7 @@ contract LZEndpointMock is ILayerZeroEndpoint {
     }
 
     // mock helper to set the value returned by `estimateNativeFees`
-    function setEstimatedFees(uint _nativeFee, uint _zroFee) public {
+    function setEstimatedFees(uint256 _nativeFee, uint256 _zroFee) public {
         nativeFee = _nativeFee;
         zroFee = _zroFee;
     }
@@ -112,7 +112,7 @@ contract LZEndpointMock is ILayerZeroEndpoint {
         bytes memory,
         bool,
         bytes memory
-    ) external override view returns (uint _nativeFee, uint _zroFee){
+    ) external view override returns (uint256 _nativeFee, uint256 _zroFee) {
         _nativeFee = nativeFee;
         _zroFee = zroFee;
     }
@@ -134,56 +134,86 @@ contract LZEndpointMock is ILayerZeroEndpoint {
         return data;
     }
 
-    function setConfig(uint16 /*_version*/, uint16 /*_chainId*/, uint /*_configType*/, bytes memory /*_config*/) override external  {
-    }
-    function getConfig(uint16 /*_version*/, uint16 /*_chainId*/, address /*_ua*/, uint /*_configType*/) override pure external returns(bytes memory) {
+    function setConfig(
+        uint16, /*_version*/
+        uint16, /*_chainId*/
+        uint256, /*_configType*/
+        bytes memory /*_config*/
+    ) external override {}
+
+    function getConfig(
+        uint16, /*_version*/
+        uint16, /*_chainId*/
+        address, /*_ua*/
+        uint256 /*_configType*/
+    ) external pure override returns (bytes memory) {
         return "";
     }
 
-    function receivePayload(uint16 _srcChainId, bytes calldata _srcAddress, address _dstAddress, uint64 _nonce, uint _gasLimit, bytes calldata _payload) external override {}
+    function receivePayload(
+        uint16 _srcChainId,
+        bytes calldata _srcAddress,
+        address _dstAddress,
+        uint64 _nonce,
+        uint256 _gasLimit,
+        bytes calldata _payload
+    ) external override {}
 
-    function setSendVersion(uint16 /*version*/) override  external {
-    }
-    function setReceiveVersion(uint16 /*version*/) override  external {
-    }
-    function getSendVersion(address /*_userApplication*/) override  external pure returns (uint16) {
+    function setSendVersion(
+        uint16 /*version*/
+    ) external override {}
+
+    function setReceiveVersion(
+        uint16 /*version*/
+    ) external override {}
+
+    function getSendVersion(
+        address /*_userApplication*/
+    ) external pure override returns (uint16) {
         return 1;
     }
-    function getReceiveVersion(address /*_userApplication*/) override  external pure returns (uint16){
+
+    function getReceiveVersion(
+        address /*_userApplication*/
+    ) external pure override returns (uint16) {
         return 1;
     }
 
-    function getInboundNonce(uint16 _chainID, bytes calldata _srcAddress) override external view returns (uint64) {
+    function getInboundNonce(uint16 _chainID, bytes calldata _srcAddress) external view override returns (uint64) {
         return inboundNonce[_chainID][_srcAddress];
     }
 
-    function getOutboundNonce(uint16 _chainID, address _srcAddress) override external view returns (uint64) {
+    function getOutboundNonce(uint16 _chainID, address _srcAddress) external view override returns (uint64) {
         return outboundNonce[_chainID][_srcAddress];
     }
 
-    function forceResumeReceive(uint16 _srcChainId, bytes calldata _srcAddress) override external {
+    function forceResumeReceive(uint16 _srcChainId, bytes calldata _srcAddress) external override {
         // This mock does not implement the forceResumeReceive
     }
 
-    function retryPayload(uint16 _srcChainId, bytes calldata _srcAddress, bytes calldata _payload) override pure external {}
+    function retryPayload(
+        uint16 _srcChainId,
+        bytes calldata _srcAddress,
+        bytes calldata _payload
+    ) external pure override {}
 
-    function hasStoredPayload(uint16, bytes memory) external pure override returns(bool) {
+    function hasStoredPayload(uint16, bytes memory) external pure override returns (bool) {
         return true;
     }
 
-    function isSendingPayload() external override pure returns (bool) {
+    function isSendingPayload() external pure override returns (bool) {
         return false;
     }
 
-    function isReceivingPayload() external override pure  returns (bool) {
+    function isReceivingPayload() external pure override returns (bool) {
         return false;
     }
 
-    function getSendLibraryAddress(address) external override view returns (address) {
+    function getSendLibraryAddress(address) external view override returns (address) {
         return address(this);
     }
 
-    function getReceiveLibraryAddress(address) external override view  returns (address) {
+    function getReceiveLibraryAddress(address) external view override returns (address) {
         return address(this);
     }
 }
