@@ -44,15 +44,15 @@ pragma solidity 0.8.4;
 //@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
 
 import "@openzeppelin/contracts/token/ERC721/ERC721.sol";
-import "./NonBlockingReceiver.sol";
 
 import "./interfaces/ILayerZeroEndpoint.sol";
+import "./receiver/NonBlockingLzReceiver.sol";
 
 /// @title A LayerZero OmnichainNonFungibleToken example
 /// @author sirarthurmoney
 /// @notice You can use this to mint ONFT and transfer across chain
 /// @dev All function calls are currently implemented without side effects
-contract OmnichainNonFungibleToken is ERC721, NonblockingReceiver, ILayerZeroUserApplicationConfig {
+contract OmnichainNonFungibleToken is ERC721, NonblockingLzReceiver {
 
     string public baseTokenURI;
     uint256 nextTokenId;
@@ -136,32 +136,9 @@ contract OmnichainNonFungibleToken is ERC721, NonblockingReceiver, ILayerZeroUse
     // @param _nonce - the ordered message nonce
     // @param _payload - the signed payload is the UA bytes has encoded to be sent
     /// @dev safe mints the ONFT on your destination chain
-    function _LzReceive(uint16 _srcChainId, bytes memory _srcAddress, uint64 _nonce, bytes memory _payload) internal override  {
+    function _nonblockingLzReceive(uint16 _srcChainId, bytes memory _srcAddress, uint64 _nonce, bytes memory _payload) internal override  {
         (address _dstOmnichainNFTAddress, uint256 omnichainNFT_tokenId) = abi.decode(_payload, (address, uint256));
         _safeMint(_dstOmnichainNFTAddress, omnichainNFT_tokenId);
-    }
-
-    //---------------------------DAO CALL----------------------------------------
-    // generic config for user Application
-    function setConfig(
-        uint16 _version,
-        uint16 _chainId,
-        uint256 _configType,
-        bytes calldata _config
-    ) external override onlyOwner {
-        endpoint.setConfig(_version, _chainId, _configType, _config);
-    }
-
-    function setSendVersion(uint16 _version) external override onlyOwner {
-        endpoint.setSendVersion(_version);
-    }
-
-    function setReceiveVersion(uint16 _version) external override onlyOwner {
-        endpoint.setReceiveVersion(_version);
-    }
-
-    function forceResumeReceive(uint16 _srcChainId, bytes calldata _srcAddress) external override onlyOwner {
-        endpoint.forceResumeReceive(_srcChainId, _srcAddress);
     }
 
     function renounceOwnership() public override onlyOwner {}
