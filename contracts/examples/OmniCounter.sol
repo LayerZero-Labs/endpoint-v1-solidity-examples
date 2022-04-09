@@ -81,6 +81,8 @@ contract OmniCounter is NonblockingLzReceiver {
     }
 
     // call send() to multiple destinations in the same transaction!
+    // using a naive way to compute the the avg msg.value for each chain.
+    // but some path might cost much more.
     function incrementMultiCounter(
         uint16[] calldata _dstChainIds,
         bytes[] calldata _dstCounterMockAddresses,

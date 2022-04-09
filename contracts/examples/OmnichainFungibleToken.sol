@@ -17,7 +17,7 @@ import "../interfaces/ILayerZeroUserApplicationConfig.sol";
 // Stay tuned for maximum cross-chain compatability of your token
 //---------------------------------------------------------------------------
 contract OmnichainFungibleToken is ERC20, Ownable, ILayerZeroReceiver, ILayerZeroUserApplicationConfig {
-    ILayerZeroEndpoint public immutable endpoint;
+    ILayerZeroEndpoint public endpoint;
     mapping(uint16 => bytes) public trustedSourceLookup; // a map of the connected contracts
     bool public paused; // indicates cross chain transfers are paused
     bool public isMain; // indicates this contract is on the main chain

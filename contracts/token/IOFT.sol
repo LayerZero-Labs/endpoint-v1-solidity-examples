@@ -27,6 +27,7 @@ interface IOFT is IERC20 {
         uint16 _dstChainId,
         bytes calldata _toAddress,
         uint256 _amount,
+        address payable _refundAddress,
         address _zroPaymentAddress,
         bytes calldata _adapterParam
     ) external payable;
@@ -36,5 +37,9 @@ interface IOFT is IERC20 {
      * `_nonce` is the outbound nonce from
      */
     event SendToChain(address indexed _sender, uint16 indexed _dstChainId, bytes indexed _toAddress, uint256 _amount, uint64 _nonce);
-    event ReceiveFromChain(uint16 srcChainId, address toAddress, uint256 qty, uint64 nonce);
+
+    /**
+     * @dev Emitted when `_amount` tokens are sent from `_srcChainId` to the `_toAddress` at this chain. `_nonce` is the inbound nonce.
+     */
+    event ReceiveFromChain(uint16 _srcChainId, address _toAddress, uint256 _amount, uint64 _nonce);
 }

@@ -34,10 +34,26 @@ contract OFT is NonblockingLzReceiver, IOFT, ERC20 {
         uint64 _nonce,
         bytes memory _payload
     ) internal override {
-        //        (address _dstOmnichainNFTAddress, uint256 omnichainNFT_tokenId) = abi.decode(_payload, (address, uint256));
-        //        _safeMint(_dstOmnichainNFTAddress, omnichainNFT_tokenId);
+        // decode and load the toAddress
+        (bytes memory toAddress, uint256 amount) = abi.decode(_payload, (bytes, uint256));
+        address localToAddress;
+        assembly {
+            toAddress := mload(add(toAddress, 20))
+        }
+        // if the toAddress is 0x0, burn it or it will get cached
+        if (localToAddress == address(0x0)) localToAddress == address(0xdEaD);
+
+        // on the main chain unlock via transfer, otherwise _mint
+        if (isMain) {
+            _transfer(address(this), localToAddress, amount);
+        } else {
+            _mint(localToAddress, amount);
+        }
+
+        emit ReceiveFromChain(_srcChainId, localToAddress, amount, _nonce);
     }
 
+    // todo: should we default the msg.sender to the refund address
     function sendTokens(
         uint16 _dstChainId,
         bytes calldata _toAddress,
@@ -45,21 +61,21 @@ contract OFT is NonblockingLzReceiver, IOFT, ERC20 {
         address _zroPaymentAddress,
         bytes calldata _adapterParam
     ) external payable override {
-        _sendTokens(_msgSender(), _dstChainId, _toAddress, _amount, _zroPaymentAddress, _adapterParam);
+        _sendTokens(_msgSender(), _dstChainId, _toAddress, _amount, payable(msg.sender), _zroPaymentAddress, _adapterParam);
     }
 
-    // todo: refund address
     function sendTokensFrom(
         address _from,
         uint16 _dstChainId,
         bytes calldata _toAddress,
         uint256 _amount,
+        address payable _refundAddress,
         address _zroPaymentAddress,
         bytes calldata _adapterParam
     ) external payable override {
         address spender = _msgSender();
         _spendAllowance(_from, spender, _amount);
-        _sendTokens(_from, _dstChainId, _toAddress, _amount, _zroPaymentAddress, _adapterParam);
+        _sendTokens(_from, _dstChainId, _toAddress, _amount, _refundAddress, _zroPaymentAddress, _adapterParam);
     }
 
     function _sendTokens(
@@ -67,6 +83,7 @@ contract OFT is NonblockingLzReceiver, IOFT, ERC20 {
         uint16 _dstChainId,
         bytes calldata _toAddress,
         uint256 _amount,
+        address payable _refundAddress,
         address _zroPaymentAddress,
         bytes calldata _adapterParam
     ) internal {
@@ -80,7 +97,7 @@ contract OFT is NonblockingLzReceiver, IOFT, ERC20 {
 
         bytes memory payload = abi.encode(_toAddress, _amount);
 
-        _lzSend(_dstChainId, payload, payable(_from), _zroPaymentAddress, _adapterParam);
+        _lzSend(_dstChainId, payload, _refundAddress, _zroPaymentAddress, _adapterParam);
         // send LayerZero message
         uint64 nonce = endpoint.getOutboundNonce(_dstChainId, address(this));
 
