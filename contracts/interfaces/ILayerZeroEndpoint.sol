@@ -23,7 +23,7 @@ interface ILayerZeroEndpoint is ILayerZeroUserApplicationConfig {
     // @param _payload - verified payload to send to the destination contract
     function receivePayload(uint16 _srcChainId, bytes calldata _srcAddress, address _dstAddress, uint64 _nonce, uint _gasLimit, bytes calldata _payload) external;
 
-    // @notice get the inboundNonce of a receiver from a source chain which could be EVM or non-EVM chain
+    // @notice get the inboundNonce of a lzApp from a source chain which could be EVM or non-EVM chain
     // @param _srcChainId - the source chain identifier
     // @param _srcAddress - the source chain contract address
     function getInboundNonce(uint16 _srcChainId, bytes calldata _srcAddress) external view returns (uint64);

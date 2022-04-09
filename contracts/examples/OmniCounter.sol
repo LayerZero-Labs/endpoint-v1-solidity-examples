@@ -3,15 +3,13 @@
 pragma solidity 0.8.4;
 pragma abicoder v2;
 
-import "../receiver/NonBlockingLzReceiver.sol";
+import "../lzApp/NonblockingLzApp.sol";
 
-contract OmniCounter is NonblockingLzReceiver {
+contract OmniCounter is NonblockingLzApp {
     // keep track of how many messages have been received from other chains
     uint256 public messageCounter;
 
-    constructor(address _endpoint) {
-        endpoint = ILayerZeroEndpoint(_endpoint);
-    }
+    constructor(address _lzEndpoint) NonblockingLzApp(_lzEndpoint) {}
 
     function getCounter() public view returns (uint256) {
         return messageCounter;
@@ -44,7 +42,7 @@ contract OmniCounter is NonblockingLzReceiver {
         uint16 version = 1;
         // make look like this: 0x00010000000000000000000000000000000000000000000000000000000000030d40
         bytes memory _adapterParams = abi.encodePacked(version, gasAmountForDst);
-        endpoint.send{value: msg.value}(
+        lzEndpoint.send{value: msg.value}(
             _dstChainId,
             _dstCounterMockAddress,
             bytes(""),
@@ -70,7 +68,7 @@ contract OmniCounter is NonblockingLzReceiver {
             airdropEthQty, // how must dust to receive on destination
             airdropAddr // the address to receive the dust
         );
-        endpoint.send{value: msg.value}(
+        lzEndpoint.send{value: msg.value}(
             _dstChainId,
             _dstCounterMockAddress,
             bytes(""),
@@ -99,7 +97,7 @@ contract OmniCounter is NonblockingLzReceiver {
         for (uint256 i = 0; i < numberOfChains; ++i) {
             // a Communicator.sol instance is the 'endpoint'
             // .send() each payload to the destination chainId + UA destination address
-            endpoint.send{value: valueToSend}(
+            lzEndpoint.send{value: valueToSend}(
                 _dstChainIds[i],
                 _dstCounterMockAddresses[i],
                 bytes(""),

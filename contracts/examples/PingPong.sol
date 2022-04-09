@@ -15,16 +15,16 @@ pragma solidity 0.8.4;
 pragma abicoder v2;
 
 import "@openzeppelin/contracts/security/Pausable.sol";
-import "../receiver/NonBlockingLzReceiver.sol";
+import "../lzApp/NonblockingLzApp.sol";
 
-contract PingPong is NonblockingLzReceiver, Pausable {
+contract PingPong is NonblockingLzApp, Pausable {
 
     // event emitted every ping() to keep track of consecutive pings count
     event Ping(uint256 pings);
 
     // constructor requires the LayerZero endpoint for this chain
-    constructor(address _layerZeroEndpoint) {
-        endpoint = ILayerZeroEndpoint(_layerZeroEndpoint);
+    constructor(address _endpoint) NonblockingLzApp(_endpoint){
+//        endpoint = ILayerZeroEndpoint(_layerZeroEndpoint);
     }
 
     // disable ping-ponging
@@ -56,11 +56,11 @@ contract PingPong is NonblockingLzReceiver, Pausable {
         bytes memory adapterParams = abi.encodePacked(version, gasForDestinationLzReceive);
 
         // get the fees we need to pay to LayerZero for message delivery
-        (uint256 messageFee, ) = endpoint.estimateFees(_dstChainId, address(this), payload, false, adapterParams);
+        (uint256 messageFee, ) = this.estimateLzFees(_dstChainId, payload, false, adapterParams);
         require(address(this).balance >= messageFee, "address(this).balance < messageFee. fund this contract with more ether");
 
         // send LayerZero message
-        endpoint.send{value: messageFee}(           // {value: messageFee} will be paid out of this contract!
+        lzEndpoint.send{value: messageFee}(           // {value: messageFee} will be paid out of this contract!
             _dstChainId,                            // destination chainId
             abi.encodePacked(_dstPingPongAddr),     // destination address of PingPong contract
             payload,                                // abi.encode()'ed bytes

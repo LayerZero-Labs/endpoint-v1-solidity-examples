@@ -46,13 +46,13 @@ pragma solidity 0.8.4;
 import "@openzeppelin/contracts/token/ERC721/ERC721.sol";
 
 import "../interfaces/ILayerZeroEndpoint.sol";
-import "../receiver/NonBlockingLzReceiver.sol";
+import "../lzApp/NonblockingLzApp.sol";
 
 /// @title A LayerZero OmnichainNonFungibleToken example
 /// @author sirarthurmoney
 /// @notice You can use this to mint ONFT and transfer across chain
 /// @dev All function calls are currently implemented without side effects
-contract OmnichainNonFungibleToken is ERC721, NonblockingLzReceiver {
+contract OmnichainNonFungibleToken is ERC721, NonblockingLzApp {
     string public baseTokenURI;
     uint256 nextTokenId;
     uint256 maxMint;
@@ -67,9 +67,9 @@ contract OmnichainNonFungibleToken is ERC721, NonblockingLzReceiver {
         address _layerZeroEndpoint,
         uint256 _startToken,
         uint256 _maxMint
-    ) ERC721("OmnichainNonFungibleToken", "ONFT") {
+    ) ERC721("OmnichainNonFungibleToken", "ONFT") NonblockingLzApp(_layerZeroEndpoint) {
         setBaseURI(_baseTokenURI);
-        endpoint = ILayerZeroEndpoint(_layerZeroEndpoint);
+//        endpoint = ILayerZeroEndpoint(_layerZeroEndpoint);
         nextTokenId = _startToken;
         maxMint = _maxMint;
     }
@@ -100,11 +100,11 @@ contract OmnichainNonFungibleToken is ERC721, NonblockingLzReceiver {
         bytes memory adapterParams = abi.encodePacked(version, gas);
 
         // use LayerZero estimateFees for cross chain delivery
-        (uint256 quotedLayerZeroFee, ) = endpoint.estimateFees(_chainId, address(this), payload, false, adapterParams);
+        (uint256 quotedLayerZeroFee, ) = lzEndpoint.estimateFees(_chainId, address(this), payload, false, adapterParams);
 
         require(msg.value >= quotedLayerZeroFee, "Not enough gas to cover cross chain transfer.");
 
-        endpoint.send{value: msg.value}(
+        lzEndpoint.send{value: msg.value}(
             _chainId, // destination chainId
             trustedRemoteLookup[_chainId], // destination address of OmnichainNFT
             payload, // abi.encode()'ed bytes

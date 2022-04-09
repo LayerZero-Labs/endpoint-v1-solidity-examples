@@ -1,13 +1,15 @@
 pragma solidity 0.8.4;
 
-import "./LzReceiver.sol";
+import "./LzApp.sol";
 
 /*
  * the default LayerZero messaging behaviour is blocking, i.e. any failed message will block the channel
  * this abstract class try-catch all fail messages and store locally for future retry. hence, non-blocking
  * NOTE: if the srcAddress is not configured properly, it will still block the message pathway from (srcChainId, srcAddress)
  */
-abstract contract NonblockingLzReceiver is LzReceiver {
+abstract contract NonblockingLzApp is LzApp {
+    constructor(address _endpoint) LzApp(_endpoint) {}
+
     mapping(uint16 => mapping(bytes => mapping(uint256 => bytes32))) public failedMessages;
 
     event MessageFailed(uint16 _srcChainId, bytes _srcAddress, uint64 _nonce, bytes _payload);

@@ -5,27 +5,27 @@ pragma solidity ^0.8.0;
 import "./IOFT.sol";
 import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 import "../interfaces/ILayerZeroEndpoint.sol";
-import "../receiver/NonBlockingLzReceiver.sol";
+import "../lzApp/NonblockingLzApp.sol";
 
 /*
  * the default OFT implementation has a main chain where the total token supply is the source to total supply among all chains
  */
-contract OFT is NonblockingLzReceiver, IOFT, ERC20 {
+contract OFT is NonblockingLzApp, IOFT, ERC20 {
     bool public isMain;
 
     constructor(
         string memory _name,
         string memory _symbol,
-        address _endpoint,
+        address _lzEndpoint,
         uint16 _mainChainId,
         uint256 _initialSupplyOnMainEndpoint
-    ) ERC20(_name, _symbol) {
+    ) ERC20(_name, _symbol) NonblockingLzApp(_lzEndpoint){
         // only mint the total supply on the main chain
-        if (ILayerZeroEndpoint(_endpoint).getChainId() == _mainChainId) {
+        if (ILayerZeroEndpoint(_lzEndpoint).getChainId() == _mainChainId) {
             _mint(_msgSender(), _initialSupplyOnMainEndpoint);
             isMain = true;
         }
-        endpoint = ILayerZeroEndpoint(_endpoint);
+//        endpoint = ILayerZeroEndpoint(_endpoint);
     }
 
     function _nonblockingLzReceive(
@@ -99,7 +99,7 @@ contract OFT is NonblockingLzReceiver, IOFT, ERC20 {
 
         _lzSend(_dstChainId, payload, _refundAddress, _zroPaymentAddress, _adapterParam);
         // send LayerZero message
-        uint64 nonce = endpoint.getOutboundNonce(_dstChainId, address(this));
+        uint64 nonce = lzEndpoint.getOutboundNonce(_dstChainId, address(this));
 
         emit SendToChain(_from, _dstChainId, _toAddress, _amount, nonce);
     }
