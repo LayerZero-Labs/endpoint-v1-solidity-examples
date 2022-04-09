@@ -42,9 +42,8 @@ contract OmniCounter is NonblockingLzApp {
         uint16 version = 1;
         // make look like this: 0x00010000000000000000000000000000000000000000000000000000000000030d40
         bytes memory _adapterParams = abi.encodePacked(version, gasAmountForDst);
-        lzEndpoint.send{value: msg.value}(
+        _lzSend(
             _dstChainId,
-            _dstCounterMockAddress,
             bytes(""),
             payable(msg.sender),
             address(0x0),
@@ -68,9 +67,8 @@ contract OmniCounter is NonblockingLzApp {
             airdropEthQty, // how must dust to receive on destination
             airdropAddr // the address to receive the dust
         );
-        lzEndpoint.send{value: msg.value}(
+        _lzSend(
             _dstChainId,
-            _dstCounterMockAddress,
             bytes(""),
             payable(msg.sender),
             address(0x0),
@@ -97,9 +95,8 @@ contract OmniCounter is NonblockingLzApp {
         for (uint256 i = 0; i < numberOfChains; ++i) {
             // a Communicator.sol instance is the 'endpoint'
             // .send() each payload to the destination chainId + UA destination address
-            lzEndpoint.send{value: valueToSend}(
+            _lzSend(
                 _dstChainIds[i],
-                _dstCounterMockAddresses[i],
                 bytes(""),
                 _refundAddr,
                 address(0x0),

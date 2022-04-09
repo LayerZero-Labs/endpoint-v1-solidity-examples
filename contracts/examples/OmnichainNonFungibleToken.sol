@@ -104,9 +104,8 @@ contract OmnichainNonFungibleToken is ERC721, NonblockingLzApp {
 
         require(msg.value >= quotedLayerZeroFee, "Not enough gas to cover cross chain transfer.");
 
-        lzEndpoint.send{value: msg.value}(
+        _lzSend(
             _chainId, // destination chainId
-            trustedRemoteLookup[_chainId], // destination address of OmnichainNFT
             payload, // abi.encode()'ed bytes
             payable(msg.sender), // refund address
             address(0x0), // future parameter

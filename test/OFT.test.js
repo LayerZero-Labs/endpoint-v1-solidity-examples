@@ -25,7 +25,7 @@ describe("OmnichainFungibleToken", function () {
             this.chainIdSrc,
             this.initialSupplyOnEndpoint
         )
-        this.OmnichainFungibleTokenDst = await OmnichainFungibleToken.deploy("NAME2", "SYM2", this.lzEndpointDstMock.address, this.chainIdSrc, 0)
+        this.OmnichainFungibleTokenDst = await OmnichainFungibleToken.deploy("NAME1", "SYM1", this.lzEndpointDstMock.address, this.chainIdSrc, 0)
 
         this.lzEndpointSrcMock.setDestLzEndpoint(this.OmnichainFungibleTokenDst.address, this.lzEndpointDstMock.address)
         this.lzEndpointDstMock.setDestLzEndpoint(this.OmnichainFungibleTokenSrc.address, this.lzEndpointSrcMock.address)
