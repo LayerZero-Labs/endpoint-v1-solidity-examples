@@ -99,3 +99,9 @@ task(
 //     .addParam("e", "the environment ie: mainnet, testnet")
 //     .addOptionalParam("contract", "the contract to delete and redeploy")
 //     .addOptionalParam("ignore", "csv of network names to ignore", "", types.string)
+
+task("pingPongSetTrustedRemote", "set the trusted remote", require('./pingPongSetTrustedRemote'))
+    .addParam("targetNetwork", "the targetNetwork to set as trusted")
+
+task("ping", "call ping to start the pingPong with the target network", require('./ping'))
+    .addParam("targetNetwork", "the targetNetwork to commence pingponging with")

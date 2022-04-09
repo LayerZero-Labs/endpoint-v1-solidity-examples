@@ -42,6 +42,7 @@ contract PingPong is NonblockingLzReceiver, Pausable {
         address _dstPingPongAddr,   // destination address of PingPong contract
         uint256 pings               // the number of pings
     ) public whenNotPaused {
+        require(this.isTrustedRemote(_dstChainId, abi.encodePacked(_dstPingPongAddr)), "you must allow inbound messages to ALL contracts with setTrustedRemote()");
         require(address(this).balance > 0, "the balance of this contract is 0. pls send gas for message fees");
 
         emit Ping(++pings);

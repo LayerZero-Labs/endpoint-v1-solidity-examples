@@ -17,7 +17,7 @@ module.exports = async function ({ deployments, getNamedAccounts }) {
         waitConfirmations: 1,
     })
 
-    let eth = "0.66"
+    let eth = "0.99"
     let tx = await (
         await owner.sendTransaction({
             to: pingPong.address,
