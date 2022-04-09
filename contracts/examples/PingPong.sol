@@ -56,7 +56,7 @@ contract PingPong is NonblockingLzApp, Pausable {
         bytes memory adapterParams = abi.encodePacked(version, gasForDestinationLzReceive);
 
         // get the fees we need to pay to LayerZero for message delivery
-        (uint256 messageFee, ) = this.estimateLzFees(_dstChainId, payload, false, adapterParams);
+        (uint256 messageFee, ) = lzEndpoint.estimateFees(_dstChainId, address(this), payload, false, adapterParams);
         require(address(this).balance >= messageFee, "address(this).balance < messageFee. fund this contract with more ether");
 
         // send LayerZero message

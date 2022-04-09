@@ -128,10 +128,6 @@ abstract contract LzApp is Ownable, ILayerZeroReceiver, ILayerZeroUserApplicatio
     //--------------------------- VIEW FUNCTION ----------------------------------------
     // the app might use locally
 
-    function estimateLzFees(uint16 _dstChainId, bytes calldata _payload, bool _payInZRO, bytes calldata _adapterParams) public view returns (uint nativeFee, uint zroFee) {
-        return lzEndpoint.estimateFees(_dstChainId, address(this), _payload, _payInZRO, _adapterParams);
-    }
-
     function hasStoredPayload(uint16 _srcChainId) public view returns(bool) {
         return lzEndpoint.hasStoredPayload(_srcChainId, trustedRemoteLookup[_srcChainId]);
     }
