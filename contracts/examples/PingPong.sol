@@ -3,7 +3,8 @@
 //
 // Note: you will need to fund each deployed contract with gas
 //
-// PingPong sends a LayerZero message back and forth between chains until stopped!
+// PingPong sends a LayerZero message back and forth between chains
+// until it is paused or runs out of gas!
 //
 // Demonstrates:
 //  1. a recursive feature of calling send() from inside lzReceive()
@@ -12,138 +13,82 @@
 
 pragma solidity 0.8.4;
 pragma abicoder v2;
-import "../interfaces/ILayerZeroReceiver.sol";
-import "../interfaces/ILayerZeroEndpoint.sol";
-import "../interfaces/ILayerZeroUserApplicationConfig.sol";
-import "hardhat/console.sol";
 
-contract PingPong is ILayerZeroReceiver, ILayerZeroUserApplicationConfig {
-    // the LayerZero endpoint calls .send() to send a cross chain message
-    ILayerZeroEndpoint public layerZeroEndpoint;
-    // whether PingPong is ping-ponging
-    bool public pingsEnabled;
+import "@openzeppelin/contracts/security/Pausable.sol";
+import "../receiver/NonBlockingLzReceiver.sol";
+
+contract PingPong is NonblockingLzReceiver, Pausable {
+
     // event emitted every ping() to keep track of consecutive pings count
     event Ping(uint256 pings);
-    // the maxPings before ending the loop
-    uint256 public maxPings;
-    // keep track of the totalPings sent
-    uint256 public numPings;
 
     // constructor requires the LayerZero endpoint for this chain
     constructor(address _layerZeroEndpoint) {
-        pingsEnabled = true;
-        layerZeroEndpoint = ILayerZeroEndpoint(_layerZeroEndpoint);
-        maxPings = 5;
+        endpoint = ILayerZeroEndpoint(_layerZeroEndpoint);
     }
 
     // disable ping-ponging
-    function disable() external {
-        pingsEnabled = false;
+    function enable(bool en) external {
+        if(en){
+            _unpause();
+        } else {
+            _pause();
+        }
     }
 
     // pings the destination chain, along with the current number of pings sent
     function ping(
-        uint16 _dstChainId, // send a ping to this destination chainId
-        address _dstPingPongAddr, // destination address of PingPong contract
-        uint256 pings // the uint to start at. use 0 as a default
-    ) public {
+        uint16 _dstChainId,         // send a ping to this destination chainId
+        address _dstPingPongAddr,   // destination address of PingPong contract
+        uint256 pings               // the number of pings
+    ) public whenNotPaused {
         require(address(this).balance > 0, "the balance of this contract is 0. pls send gas for message fees");
-        require(pingsEnabled, "pingsEnabled is false. messages stopped");
-        require(maxPings > pings, "maxPings has been reached, no more looping");
 
-        emit Ping(pings);
+        emit Ping(++pings);
 
-        // abi.encode() the payload with the number of pings sent
+        // encode the payload with the number of pings
         bytes memory payload = abi.encode(pings);
 
-        // encode adapterParams to specify more gas for the destination
+        // use adapterParams v1 to specify more gas for the destination
         uint16 version = 1;
         uint256 gasForDestinationLzReceive = 350000;
         bytes memory adapterParams = abi.encodePacked(version, gasForDestinationLzReceive);
 
-        // get the fees we need to pay to LayerZero + Relayer to cover message delivery
-        // see Communicator.sol's .estimateNativeFees() function for more details.
-        (uint256 messageFee, ) = layerZeroEndpoint.estimateFees(_dstChainId, address(this), payload, false, adapterParams);
-        require(address(this).balance >= messageFee, "address(this).balance < messageFee. pls send gas for message fees");
+        // get the fees we need to pay to LayerZero for message delivery
+        (uint256 messageFee, ) = endpoint.estimateFees(_dstChainId, address(this), payload, false, adapterParams);
+        require(address(this).balance >= messageFee, "address(this).balance < messageFee. fund this contract with more ether");
 
         // send LayerZero message
-        layerZeroEndpoint.send{value: messageFee}( // {value: messageFee} will be paid out of this contract!
-            _dstChainId, // destination chainId
-            abi.encodePacked(_dstPingPongAddr), // destination address of PingPong
-            payload, // abi.encode()'ed bytes
-            payable(this), // (msg.sender will be this contract) refund address (LayerZero will refund any extra gas back to caller of send()
-            address(0x0), // 'zroPaymentAddress' unused for this mock/example
-            adapterParams // 'adapterParams' unused for this mock/example
+        endpoint.send{value: messageFee}(           // {value: messageFee} will be paid out of this contract!
+            _dstChainId,                            // destination chainId
+            abi.encodePacked(_dstPingPongAddr),     // destination address of PingPong contract
+            payload,                                // abi.encode()'ed bytes
+            payable(this),                          // (msg.sender will be this contract) refund address (LayerZero will refund any extra gas back to caller of send()
+            address(0x0),                           // future param, unused for this example
+            adapterParams                           // v1 adapterParams, specify custom destination gas qty
         );
     }
 
-    // receive the bytes payload from the source chain via LayerZero
-    // _srcChainId: the chainId that we are receiving the message from.
-    // _fromAddress: the source PingPong address
-    function lzReceive(
+    function _nonblockingLzReceive(
         uint16 _srcChainId,
-        bytes memory _fromAddress,
-        uint64, /*_nonce*/
+        bytes memory _srcAddress,
+        uint64 _nonce,
         bytes memory _payload
-    ) external override {
-        require(msg.sender == address(layerZeroEndpoint)); // boilerplate! lzReceive must be called by the endpoint for security
-
+    ) internal override {
         // use assembly to extract the address from the bytes memory parameter
-        address fromAddress;
+        address sendBackToAddress;
         assembly {
-            fromAddress := mload(add(_fromAddress, 20))
+            sendBackToAddress := mload(add(_srcAddress, 20))
         }
 
         // decode the number of pings sent thus far
         uint256 pings = abi.decode(_payload, (uint256));
 
-        // "recursively" call ping in order to *pong*     (and increment pings)
-        ++pings;
-        numPings = pings;
-
-        ping(_srcChainId, fromAddress, pings);
-    }
-
-    function setConfig(
-        uint16, /*_version*/
-        uint16 _dstChainId,
-        uint256 _configType,
-        bytes memory _config
-    ) external override {
-        layerZeroEndpoint.setConfig(_dstChainId, layerZeroEndpoint.getSendVersion(address(this)), _configType, _config);
-    }
-
-    function getConfig(
-        uint16, /*_dstChainId*/
-        uint16 _chainId,
-        address,
-        uint256 _configType
-    ) external view returns (bytes memory) {
-        return layerZeroEndpoint.getConfig(layerZeroEndpoint.getSendVersion(address(this)), _chainId, address(this), _configType);
-    }
-
-    function setSendVersion(uint16 version) external override {
-        layerZeroEndpoint.setSendVersion(version);
-    }
-
-    function setReceiveVersion(uint16 version) external override {
-        layerZeroEndpoint.setReceiveVersion(version);
-    }
-
-    function getSendVersion() external view returns (uint16) {
-        return layerZeroEndpoint.getSendVersion(address(this));
-    }
-
-    function getReceiveVersion() external view returns (uint16) {
-        return layerZeroEndpoint.getReceiveVersion(address(this));
-    }
-
-    function forceResumeReceive(uint16 _srcChainId, bytes calldata _srcAddress) external override {
-        layerZeroEndpoint.forceResumeReceive(_srcChainId, _srcAddress);
+        // *pong* back to the other side
+        ping(_srcChainId, sendBackToAddress, pings);
     }
 
     // allow this contract to receive ether
     fallback() external payable {}
-
     receive() external payable {}
 }
