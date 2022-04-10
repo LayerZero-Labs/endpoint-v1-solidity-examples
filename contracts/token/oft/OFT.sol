@@ -6,7 +6,9 @@ import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 import "../../lzApp/NonblockingLzApp.sol";
 import "./IOFT.sol";
 
+// override decimal function is needed
 contract OFT is NonblockingLzApp, IOFT, ERC20 {
+
     constructor(
         string memory _name,
         string memory _symbol,
@@ -38,6 +40,18 @@ contract OFT is NonblockingLzApp, IOFT, ERC20 {
         emit ReceiveFromChain(_srcChainId, localToAddress, amount, _nonce);
     }
 
+    function estimateSendTokensFee(
+        uint16 _dstChainId,
+        bytes calldata _toAddress,
+        bool _useZro,
+        bytes calldata _txParameters
+    ) external view returns (uint256 nativeFee, uint256 zroFee) {
+        // mock the payload for sendTokens()
+        bytes memory payload = abi.encode(_toAddress, 1);
+        return lzEndpoint.estimateFees(_dstChainId, address(this), payload, _useZro, _txParameters);
+    }
+
+
     // todo: should we default the msg.sender to the refund address
     function sendTokens(
         uint16 _dstChainId,
@@ -58,8 +72,7 @@ contract OFT is NonblockingLzApp, IOFT, ERC20 {
         address _zroPaymentAddress,
         bytes calldata _adapterParam
     ) external payable virtual override {
-        address spender = _msgSender();
-        _spendAllowance(_from, spender, _amount);
+        _spendAllowance(_from, _msgSender(), _amount);
         _sendTokens(_from, _dstChainId, _toAddress, _amount, _refundAddress, _zroPaymentAddress, _adapterParam);
     }
 
@@ -77,6 +90,8 @@ contract OFT is NonblockingLzApp, IOFT, ERC20 {
         bytes memory payload = abi.encode(_toAddress, _amount);
         _lzSend(_dstChainId, payload, _refundAddress, _zroPaymentAddress, _adapterParam);
 
+        uint64 nonce = lzEndpoint.getOutboundNonce(_dstChainId, address(this));
+        emit SendToChain(_from, _dstChainId, _toAddress, _amount, nonce);
         _afterSendTokens(_from, _dstChainId, _toAddress, _amount);
     }
 
@@ -94,10 +109,7 @@ contract OFT is NonblockingLzApp, IOFT, ERC20 {
         uint16 _dstChainId,
         bytes memory _toAddress,
         uint256 _amount
-    ) internal virtual {
-        uint64 nonce = lzEndpoint.getOutboundNonce(_dstChainId, address(this));
-        emit SendToChain(_from, _dstChainId, _toAddress, _amount, nonce);
-    }
+    ) internal virtual {}
 
     function _beforeReceiveTokens(
         uint16 _dstChainId,
