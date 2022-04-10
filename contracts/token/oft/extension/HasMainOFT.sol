@@ -34,7 +34,7 @@ contract HasMainOFT is OFT{
     }
 
     function _afterReceiveTokens(
-        uint16 _dstChainId,
+        uint16 _srcChainId,
         address _toAddress,
         uint256 _amount
     ) internal override {

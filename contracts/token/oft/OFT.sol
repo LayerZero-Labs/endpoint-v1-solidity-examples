@@ -112,13 +112,13 @@ contract OFT is NonblockingLzApp, IOFT, ERC20 {
     ) internal virtual {}
 
     function _beforeReceiveTokens(
-        uint16 _dstChainId,
+        uint16 _srcChainId,
         bytes memory _srcAddress,
         bytes memory _payload
     ) internal virtual {}
 
     function _afterReceiveTokens(
-        uint16 _dstChainId,
+        uint16 _srcChainId,
         address _toAddress,
         uint256 _amount
     ) internal virtual {
