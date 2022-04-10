@@ -44,13 +44,13 @@ contract OFT is NonblockingLzApp, IOFT, ERC20 {
         uint16 _dstChainId,
         bytes calldata _toAddress,
         bool _useZro,
+        uint _amount,
         bytes calldata _txParameters
     ) external view returns (uint256 nativeFee, uint256 zroFee) {
         // mock the payload for sendTokens()
-        bytes memory payload = abi.encode(_toAddress, 1);
+        bytes memory payload = abi.encode(_toAddress, _amount);
         return lzEndpoint.estimateFees(_dstChainId, address(this), payload, _useZro, _txParameters);
     }
-
 
     // todo: should we default the msg.sender to the refund address
     function sendTokens(
