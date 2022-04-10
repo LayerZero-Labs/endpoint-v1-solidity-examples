@@ -18,6 +18,7 @@ interface IONFT is IERC721{
         uint16 _dstChainId,
         bytes calldata _toAddress,
         uint256 _tokenId,
+        address payable _refundAddress,
         address _zroPaymentAddress,
         bytes calldata _adapterParam
     ) external payable;

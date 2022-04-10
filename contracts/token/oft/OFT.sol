@@ -52,15 +52,15 @@ contract OFT is NonblockingLzApp, IOFT, ERC20 {
         return lzEndpoint.estimateFees(_dstChainId, address(this), payload, _useZro, _txParameters);
     }
 
-    // todo: should we default the msg.sender to the refund address
     function sendTokens(
         uint16 _dstChainId,
         bytes calldata _toAddress,
         uint256 _amount,
+        address payable _refundAddress,
         address _zroPaymentAddress,
         bytes calldata _adapterParam
     ) external payable override {
-        _sendTokens(_msgSender(), _dstChainId, _toAddress, _amount, payable(msg.sender), _zroPaymentAddress, _adapterParam);
+        _sendTokens(_msgSender(), _dstChainId, _toAddress, _amount, _refundAddress, _zroPaymentAddress, _adapterParam);
     }
 
     function sendTokensFrom(

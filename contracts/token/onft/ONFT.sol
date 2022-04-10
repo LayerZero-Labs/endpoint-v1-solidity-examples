@@ -32,10 +32,11 @@ abstract contract ONFT is IONFT, NonblockingLzApp, ERC721 {
         uint16 _dstChainId,
         bytes calldata _toAddress,
         uint256 _tokenId,
+        address payable _refundAddress,
         address _zroPaymentAddress,
         bytes calldata _adapterParam
     ) external payable virtual override {
-        _sendToken(_msgSender(), _dstChainId, _toAddress, _tokenId, payable(_msgSender()), _zroPaymentAddress, _adapterParam);
+        _sendToken(_msgSender(), _dstChainId, _toAddress, _tokenId, _refundAddress, _zroPaymentAddress, _adapterParam);
     }
 
     function _sendToken(

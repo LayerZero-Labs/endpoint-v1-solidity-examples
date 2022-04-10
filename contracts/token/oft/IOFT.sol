@@ -18,6 +18,7 @@ interface IOFT is IERC20 {
         uint16 _dstChainId,
         bytes calldata _toAddress,
         uint256 _amount,
+        address payable _refundAddress,
         address _zroPaymentAddress,
         bytes calldata _adapterParam
     ) external payable;
