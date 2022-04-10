@@ -3,7 +3,7 @@
 pragma solidity 0.8.4;
 pragma abicoder v2;
 
-import "../lzApp/NonblockingLzApp.sol";
+import "./lzApp/NonblockingLzApp.sol";
 
 contract OmniCounter is NonblockingLzApp {
     // keep track of how many messages have been received from other chains
@@ -42,13 +42,7 @@ contract OmniCounter is NonblockingLzApp {
         uint16 version = 1;
         // make look like this: 0x00010000000000000000000000000000000000000000000000000000000000030d40
         bytes memory _adapterParams = abi.encodePacked(version, gasAmountForDst);
-        _lzSend(
-            _dstChainId,
-            bytes(""),
-            payable(msg.sender),
-            address(0x0),
-            _adapterParams
-        );
+        _lzSend(_dstChainId, bytes(""), payable(msg.sender), address(0x0), _adapterParams);
     }
 
     // _adapterParams (v2)
@@ -67,13 +61,7 @@ contract OmniCounter is NonblockingLzApp {
             airdropEthQty, // how must dust to receive on destination
             airdropAddr // the address to receive the dust
         );
-        _lzSend(
-            _dstChainId,
-            bytes(""),
-            payable(msg.sender),
-            address(0x0),
-            _adapterParams
-        );
+        _lzSend(_dstChainId, bytes(""), payable(msg.sender), address(0x0), _adapterParams);
     }
 
     // call send() to multiple destinations in the same transaction!
@@ -95,13 +83,7 @@ contract OmniCounter is NonblockingLzApp {
         for (uint256 i = 0; i < numberOfChains; ++i) {
             // a Communicator.sol instance is the 'endpoint'
             // .send() each payload to the destination chainId + UA destination address
-            _lzSend(
-                _dstChainIds[i],
-                bytes(""),
-                _refundAddr,
-                address(0x0),
-                bytes("")
-            );
+            _lzSend(_dstChainIds[i], bytes(""), _refundAddr, address(0x0), bytes(""));
         }
 
         // refund eth if too much was sent into this contract call

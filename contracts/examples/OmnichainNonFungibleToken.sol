@@ -69,7 +69,7 @@ contract OmnichainNonFungibleToken is ERC721, NonblockingLzApp {
         uint256 _maxMint
     ) ERC721("OmnichainNonFungibleToken", "ONFT") NonblockingLzApp(_layerZeroEndpoint) {
         setBaseURI(_baseTokenURI);
-//        endpoint = ILayerZeroEndpoint(_layerZeroEndpoint);
+        //        endpoint = ILayerZeroEndpoint(_layerZeroEndpoint);
         nextTokenId = _startToken;
         maxMint = _maxMint;
     }

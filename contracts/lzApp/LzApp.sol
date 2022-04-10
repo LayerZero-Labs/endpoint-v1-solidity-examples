@@ -9,7 +9,7 @@ import "../interfaces/ILayerZeroEndpoint.sol";
  * a generic LzReceiver implementation
  */
 abstract contract LzApp is Ownable, ILayerZeroReceiver, ILayerZeroUserApplicationConfig {
-    ILayerZeroEndpoint immutable internal lzEndpoint;
+    ILayerZeroEndpoint internal immutable lzEndpoint;
 
     mapping(uint16 => bytes) internal trustedRemoteLookup;
 
@@ -30,7 +30,7 @@ abstract contract LzApp is Ownable, ILayerZeroReceiver, ILayerZeroUserApplicatio
         // if will still block the message pathway from (srcChainId, srcAddress). should not receive message from untrusted remote.
         require(
             _srcAddress.length == trustedRemoteLookup[_srcChainId].length &&
-            keccak256(_srcAddress) == keccak256(trustedRemoteLookup[_srcChainId]),
+                keccak256(_srcAddress) == keccak256(trustedRemoteLookup[_srcChainId]),
             "LzReceiver: invalid source sending contract"
         );
 
@@ -52,7 +52,14 @@ abstract contract LzApp is Ownable, ILayerZeroReceiver, ILayerZeroUserApplicatio
         address _zroPaymentAddress,
         bytes memory _adapterParam
     ) internal {
-        lzEndpoint.send{value: msg.value}(_dstChainId, trustedRemoteLookup[_dstChainId], _payload, _refundAddress, _zroPaymentAddress, _adapterParam);
+        lzEndpoint.send{value: msg.value}(
+            _dstChainId,
+            trustedRemoteLookup[_dstChainId],
+            _payload,
+            _refundAddress,
+            _zroPaymentAddress,
+            _adapterParam
+        );
     }
 
     //---------------------------DAO CALL----------------------------------------
@@ -119,11 +126,11 @@ abstract contract LzApp is Ownable, ILayerZeroReceiver, ILayerZeroUserApplicatio
     //--------------------------- VIEW FUNCTION ----------------------------------------
     // interacting with the LayerZero Endpoint and remote contracts
 
-    function getTrustedRemote(uint16 _chainId) external view returns(bytes memory) {
+    function getTrustedRemote(uint16 _chainId) external view returns (bytes memory) {
         return trustedRemoteLookup[_chainId];
     }
 
-    function getLzEndpoint() external view returns(address) {
+    function getLzEndpoint() external view returns (address) {
         return address(lzEndpoint);
     }
 }

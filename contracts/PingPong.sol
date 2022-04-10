@@ -15,21 +15,20 @@ pragma solidity 0.8.4;
 pragma abicoder v2;
 
 import "@openzeppelin/contracts/security/Pausable.sol";
-import "../lzApp/NonblockingLzApp.sol";
+import "./lzApp/NonblockingLzApp.sol";
 
 contract PingPong is NonblockingLzApp, Pausable {
-
     // event emitted every ping() to keep track of consecutive pings count
     event Ping(uint256 pings);
 
     // constructor requires the LayerZero endpoint for this chain
-    constructor(address _endpoint) NonblockingLzApp(_endpoint){
-//        endpoint = ILayerZeroEndpoint(_layerZeroEndpoint);
+    constructor(address _endpoint) NonblockingLzApp(_endpoint) {
+        //        endpoint = ILayerZeroEndpoint(_layerZeroEndpoint);
     }
 
     // disable ping-ponging
     function enable(bool en) external {
-        if(en){
+        if (en) {
             _unpause();
         } else {
             _pause();
@@ -38,11 +37,14 @@ contract PingPong is NonblockingLzApp, Pausable {
 
     // pings the destination chain, along with the current number of pings sent
     function ping(
-        uint16 _dstChainId,         // send a ping to this destination chainId
-        address _dstPingPongAddr,   // destination address of PingPong contract
-        uint256 pings               // the number of pings
+        uint16 _dstChainId, // send a ping to this destination chainId
+        address _dstPingPongAddr, // destination address of PingPong contract
+        uint256 pings // the number of pings
     ) public whenNotPaused {
-        require(this.isTrustedRemote(_dstChainId, abi.encodePacked(_dstPingPongAddr)), "you must allow inbound messages to ALL contracts with setTrustedRemote()");
+        require(
+            this.isTrustedRemote(_dstChainId, abi.encodePacked(_dstPingPongAddr)),
+            "you must allow inbound messages to ALL contracts with setTrustedRemote()"
+        );
         require(address(this).balance > 0, "the balance of this contract is 0. pls send gas for message fees");
 
         emit Ping(++pings);
@@ -60,13 +62,13 @@ contract PingPong is NonblockingLzApp, Pausable {
         require(address(this).balance >= messageFee, "address(this).balance < messageFee. fund this contract with more ether");
 
         // send LayerZero message
-        lzEndpoint.send{value: messageFee}(           // {value: messageFee} will be paid out of this contract!
-            _dstChainId,                            // destination chainId
-            abi.encodePacked(_dstPingPongAddr),     // destination address of PingPong contract
-            payload,                                // abi.encode()'ed bytes
-            payable(this),                          // (msg.sender will be this contract) refund address (LayerZero will refund any extra gas back to caller of send()
-            address(0x0),                           // future param, unused for this example
-            adapterParams                           // v1 adapterParams, specify custom destination gas qty
+        lzEndpoint.send{value: messageFee}( // {value: messageFee} will be paid out of this contract!
+            _dstChainId, // destination chainId
+            abi.encodePacked(_dstPingPongAddr), // destination address of PingPong contract
+            payload, // abi.encode()'ed bytes
+            payable(this), // (msg.sender will be this contract) refund address (LayerZero will refund any extra gas back to caller of send()
+            address(0x0), // future param, unused for this example
+            adapterParams // v1 adapterParams, specify custom destination gas qty
         );
     }
 
@@ -91,5 +93,6 @@ contract PingPong is NonblockingLzApp, Pausable {
 
     // allow this contract to receive ether
     fallback() external payable {}
+
     receive() external payable {}
 }

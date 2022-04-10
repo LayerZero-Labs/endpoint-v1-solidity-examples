@@ -6,24 +6,14 @@ import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 import "../../lzApp/NonblockingLzApp.sol";
 import "./IOFT.sol";
 
-/*
- * the default OFT implementation has a main chain where the total token supply is the source to total supply among all chains
- */
 contract OFT is NonblockingLzApp, IOFT, ERC20 {
-    bool public isMain;
-
     constructor(
         string memory _name,
         string memory _symbol,
         address _lzEndpoint,
-        uint16 _mainChainId,
-        uint256 _initialSupplyOnMainEndpoint
-    ) ERC20(_name, _symbol) NonblockingLzApp(_lzEndpoint){
-        // only mint the total supply on the main chain
-        if (ILayerZeroEndpoint(_lzEndpoint).getChainId() == _mainChainId) {
-            _mint(_msgSender(), _initialSupplyOnMainEndpoint);
-            isMain = true;
-        }
+        uint256 _initialSupply
+    ) ERC20(_name, _symbol) NonblockingLzApp(_lzEndpoint) {
+        _mint(_msgSender(), _initialSupply);
     }
 
     function _nonblockingLzReceive(
@@ -31,7 +21,9 @@ contract OFT is NonblockingLzApp, IOFT, ERC20 {
         bytes memory _srcAddress,
         uint64 _nonce,
         bytes memory _payload
-    ) internal override {
+    ) internal virtual override {
+        _beforeReceiveTokens(_srcChainId, _srcAddress, _payload);
+
         // decode and load the toAddress
         (bytes memory toAddress, uint256 amount) = abi.decode(_payload, (bytes, uint256));
         address localToAddress;
@@ -41,12 +33,7 @@ contract OFT is NonblockingLzApp, IOFT, ERC20 {
         // if the toAddress is 0x0, burn it or it will get cached
         if (localToAddress == address(0x0)) localToAddress == address(0xdEaD);
 
-        // on the main chain unlock via transfer, otherwise _mint
-        if (isMain) {
-            _transfer(address(this), localToAddress, amount);
-        } else {
-            _mint(localToAddress, amount);
-        }
+        _afterReceiveTokens(_srcChainId, localToAddress, amount);
 
         emit ReceiveFromChain(_srcChainId, localToAddress, amount, _nonce);
     }
@@ -85,38 +72,44 @@ contract OFT is NonblockingLzApp, IOFT, ERC20 {
         address _zroPaymentAddress,
         bytes calldata _adapterParam
     ) internal virtual {
-        _beforeSendingTokens(_from, _dstChainId, _toAddress, _amount);
-
-        if (isMain) {
-            // lock by transferring to this contract if leaving the main chain,
-            _transfer(_from, address(this), _amount);
-        } else {
-            // burn if leaving non-main chain
-            _burn(_from, _amount);
-        }
+        _beforeSendTokens(_from, _dstChainId, _toAddress, _amount);
 
         bytes memory payload = abi.encode(_toAddress, _amount);
-
         _lzSend(_dstChainId, payload, _refundAddress, _zroPaymentAddress, _adapterParam);
-        // send LayerZero message
+
+        _afterSendTokens(_from, _dstChainId, _toAddress, _amount);
+    }
+
+    function _beforeSendTokens(
+        address _from,
+        uint16 _dstChainId,
+        bytes memory _toAddress,
+        uint256 _amount
+    ) internal virtual {
+        _burn(_from, _amount);
+    }
+
+    function _afterSendTokens(
+        address _from,
+        uint16 _dstChainId,
+        bytes memory _toAddress,
+        uint256 _amount
+    ) internal virtual {
         uint64 nonce = lzEndpoint.getOutboundNonce(_dstChainId, address(this));
-
-        _beforeSendingTokens(_from, _dstChainId, _toAddress, _amount);
-
         emit SendToChain(_from, _dstChainId, _toAddress, _amount, nonce);
     }
 
-    function _beforeSendingTokens(
-        address _from,
+    function _beforeReceiveTokens(
         uint16 _dstChainId,
-        bytes memory _toAddress,
-        uint256 _amount
+        bytes memory _srcAddress,
+        bytes memory _payload
     ) internal virtual {}
 
-    function _afterSendingTokens(
-        address _from,
+    function _afterReceiveTokens(
         uint16 _dstChainId,
-        bytes memory _toAddress,
+        address _toAddress,
         uint256 _amount
-    ) internal virtual {}
+    ) internal virtual {
+        _mint(_toAddress, _amount);
+    }
 }

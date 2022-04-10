@@ -5,7 +5,7 @@
   "main": "index.js",
   "scripts": {
     "test": "npx hardhat test",
-    "prettier": "prettier --write test/**/*.js && prettier --write test/*.js && prettier --write deploy/*.js && prettier --write tasks/*.js && prettier --write contracts/*.sol && prettier --write contracts/**/*.sol",
+    "prettier": "prettier --write test/**/*.js && prettier --write test/*.js && prettier --write deploy/*.js && prettier --write tasks/*.js && prettier --write contracts/*.sol && prettier --write contracts/**/*.sol && prettier --write contracts/**/**/*.sol",
     "lint": "yarn prettier && solhint 'contracts/**/*.sol'"
   },
   "dependencies": {
