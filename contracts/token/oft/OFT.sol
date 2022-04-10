@@ -2,10 +2,9 @@
 
 pragma solidity ^0.8.0;
 
-import "./IOFT.sol";
 import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
-import "../interfaces/ILayerZeroEndpoint.sol";
-import "../lzApp/NonblockingLzApp.sol";
+import "../../lzApp/NonblockingLzApp.sol";
+import "./IOFT.sol";
 
 /*
  * the default OFT implementation has a main chain where the total token supply is the source to total supply among all chains
@@ -25,7 +24,6 @@ contract OFT is NonblockingLzApp, IOFT, ERC20 {
             _mint(_msgSender(), _initialSupplyOnMainEndpoint);
             isMain = true;
         }
-//        endpoint = ILayerZeroEndpoint(_endpoint);
     }
 
     function _nonblockingLzReceive(
@@ -72,7 +70,7 @@ contract OFT is NonblockingLzApp, IOFT, ERC20 {
         address payable _refundAddress,
         address _zroPaymentAddress,
         bytes calldata _adapterParam
-    ) external payable override {
+    ) external payable virtual override {
         address spender = _msgSender();
         _spendAllowance(_from, spender, _amount);
         _sendTokens(_from, _dstChainId, _toAddress, _amount, _refundAddress, _zroPaymentAddress, _adapterParam);
@@ -81,12 +79,14 @@ contract OFT is NonblockingLzApp, IOFT, ERC20 {
     function _sendTokens(
         address _from,
         uint16 _dstChainId,
-        bytes calldata _toAddress,
+        bytes memory _toAddress,
         uint256 _amount,
         address payable _refundAddress,
         address _zroPaymentAddress,
         bytes calldata _adapterParam
-    ) internal {
+    ) internal virtual {
+        _beforeSendingTokens(_from, _dstChainId, _toAddress, _amount);
+
         if (isMain) {
             // lock by transferring to this contract if leaving the main chain,
             _transfer(_from, address(this), _amount);
@@ -101,6 +101,22 @@ contract OFT is NonblockingLzApp, IOFT, ERC20 {
         // send LayerZero message
         uint64 nonce = lzEndpoint.getOutboundNonce(_dstChainId, address(this));
 
+        _beforeSendingTokens(_from, _dstChainId, _toAddress, _amount);
+
         emit SendToChain(_from, _dstChainId, _toAddress, _amount, nonce);
     }
+
+    function _beforeSendingTokens(
+        address _from,
+        uint16 _dstChainId,
+        bytes memory _toAddress,
+        uint256 _amount
+    ) internal virtual {}
+
+    function _afterSendingTokens(
+        address _from,
+        uint16 _dstChainId,
+        bytes memory _toAddress,
+        uint256 _amount
+    ) internal virtual {}
 }

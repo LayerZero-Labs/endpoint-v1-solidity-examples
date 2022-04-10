@@ -2,16 +2,18 @@ pragma solidity 0.8.4;
 
 import "@openzeppelin/contracts/access/Ownable.sol";
 import "../interfaces/ILayerZeroReceiver.sol";
-import "../interfaces/ILayerZeroUserApplicationConfigV2.sol";
+import "../interfaces/ILayerZeroUserApplicationConfig.sol";
 import "../interfaces/ILayerZeroEndpoint.sol";
 
 /*
  * a generic LzReceiver implementation
  */
-abstract contract LzApp is Ownable, ILayerZeroReceiver, ILayerZeroUserApplicationConfigV2 {
+abstract contract LzApp is Ownable, ILayerZeroReceiver, ILayerZeroUserApplicationConfig {
     ILayerZeroEndpoint immutable internal lzEndpoint;
 
     mapping(uint16 => bytes) internal trustedRemoteLookup;
+
+    event SetTrustedRemote(uint16 _srcChainId, bytes _srcAddress);
 
     constructor(address _endpoint) {
         lzEndpoint = ILayerZeroEndpoint(_endpoint);
@@ -104,12 +106,12 @@ abstract contract LzApp is Ownable, ILayerZeroReceiver, ILayerZeroUserApplicatio
     }
 
     // allow owner to set it multiple times.
-    function setTrustedRemote(uint16 _srcChainId, bytes calldata _srcAddress) external override onlyOwner {
+    function setTrustedRemote(uint16 _srcChainId, bytes calldata _srcAddress) external onlyOwner {
         trustedRemoteLookup[_srcChainId] = _srcAddress;
         emit SetTrustedRemote(_srcChainId, _srcAddress);
     }
 
-    function isTrustedRemote(uint16 _srcChainId, bytes calldata _srcAddress) external view override returns (bool) {
+    function isTrustedRemote(uint16 _srcChainId, bytes calldata _srcAddress) external view returns (bool) {
         bytes memory trustedSource = trustedRemoteLookup[_srcChainId];
         return keccak256(trustedSource) == keccak256(_srcAddress);
     }
@@ -123,12 +125,5 @@ abstract contract LzApp is Ownable, ILayerZeroReceiver, ILayerZeroUserApplicatio
 
     function getLzEndpoint() external view returns(address) {
         return address(lzEndpoint);
-    }
-
-    //--------------------------- VIEW FUNCTION ----------------------------------------
-    // the app might use locally
-
-    function hasStoredPayload(uint16 _srcChainId) public view returns(bool) {
-        return lzEndpoint.hasStoredPayload(_srcChainId, trustedRemoteLookup[_srcChainId]);
     }
 }
