@@ -29,7 +29,7 @@ module.exports = async function (taskArgs, hre) {
             { value: ethers.utils.parseEther("1") } // estimate/guess 1 eth will cover
         )
     ).wait()
-    console.log(`✅ Message Sent [${hre.network.name}] sendTokens() to OmnichainFungibleToken @ [${dstChainId}] token:[${dstAddr}]`)
+    console.log(`✅ Message Sent [${hre.network.name}] sendTokens() to BasedOFT @ [${dstChainId}] token:[${dstAddr}]`)
     console.log(` tx: ${tx.transactionHash}`)
     console.log(`* check your address [${owner.address}] on the destination chain, in the ERC20 transaction tab !"`)
 }
