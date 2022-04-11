@@ -7,13 +7,9 @@ import "./lzApp/NonblockingLzApp.sol";
 
 contract OmniCounter is NonblockingLzApp {
     // count of messages have been received
-    uint256 public ctr;
+    uint256 public counter;
 
     constructor(address _lzEndpoint) NonblockingLzApp(_lzEndpoint) {}
-
-    function getCounter() public view returns (uint256) {
-        return messageCounter;
-    }
 
     // implementation of the LayerZero message receiver.
     // on receive, increment a counter
@@ -23,12 +19,18 @@ contract OmniCounter is NonblockingLzApp {
         uint64, /*_nonce*/
         bytes memory /*_payload*/
     ) internal override {
-        ctr += 1;
+        counter += 1;
     }
 
     // send a message to the chainId, incrementing the counter on the destination
     function incrementCounter(uint16 _dstChainId) public payable {
-        _lzSend(_dstChainId, bytes(""), payable(msg.sender), address(0x0), bytes(""));
+        _lzSend(
+            _dstChainId,                // detsination LayerZero chainId
+            bytes(""),                  // empty payload
+            payable(msg.sender),        // refundAddress
+            address(0x0),               // future parameter
+            bytes("")                   // use default adapterParameters
+        );
     }
 
 }
