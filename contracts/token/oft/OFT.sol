@@ -18,6 +18,7 @@ contract OFT is NonblockingLzApp, IOFT, ERC20 {
         _mint(_msgSender(), _initialSupply);
     }
 
+
     function _nonblockingLzReceive(
         uint16 _srcChainId,
         bytes memory _srcAddress,
