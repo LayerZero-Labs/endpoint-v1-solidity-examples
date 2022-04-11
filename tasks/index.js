@@ -33,16 +33,17 @@ task(
 
 //
 task(
-    "omnichainFungibleTokenSetDestination",
-    "setTrustedRemote(chainId, sourceAddr) to allow the local contract to receive messages from known source contracts",
-    require("./omnichainFungibleTokensetTrustedRemote")
-).addParam("targetNetwork", "the target network to let this instance receive messages from")
+    "oftSetTrustedRemote",
+    "setTrustedRemote(chainId, sourceAddr) to enable inbound/outbound messages with your other contracts",
+    require("./oftSetTrustedRemote")
+)
+    .addParam("targetNetwork", "the target network to set as a trusted remote")
 
 //
 task(
-    "omnichainFungibleTokenSendTokens",
-    "omnichainFungibleTokenSendTokens() send tokens to another chain",
-    require("./omnichainFungibleTokenSendTokens")
+    "oftSend",
+    "basedOFT.send()  tokens to another chain",
+    require("./oftSend")
 )
     .addParam("qty", "qty of tokens to send")
     .addParam("targetNetwork", "the target network to let this instance receive messages from")

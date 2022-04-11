@@ -1,4 +1,4 @@
-# Simple LayerZero Omni Chain Contracts
+# LayerZero Omnichain Contracts
 
  ### Install & Run tests
 ```shell
@@ -6,44 +6,41 @@ npm install
 npx hardhat test 
 ```
 
-The examples in the `example` folder are meant for demonstrating LayerZero messaging behaviours. Audit your code before going into production.
+* The examples in the `example` folder are meant for demonstrating LayerZero messaging behaviours. 
+* Always audit your own code and test extensively on `testnet` before going to mainnet 🙏
 
-# OmnichainFungibleToken - Send Tokens to another chain
-> WARNING: **YOU NEED TO PERFORM THE SET TRUSTED SOURCES STEP.** Don't forget, nah you won't forget.
->
-> LayerZero Labs will publicize a new cross-chain token standard with permissive license soon
 
-The `OmnichainFungibleToken` and `OmnichainNonFungibleToken` standardized libraries will have two varieties of deployments. Only one may be chosen:
- 1. `Main chain & Child chain(s)` 
- 2. `All Chain`  
 
- In the `Main chain & Child Chain` variety, all tokens transferred out of the main chain will be locked (and minted on destination), and tokens transferred out of `child` chains will be burned (and minted on destination). This results in the `Main Chain` being like a home base. The initialy supply will only be minted entirely on the `Main Chain` on deployment. Our `OmnichainFungibleToken` example will follow the `Main chain & Child Chain` standardization.
+> WARNING: For all examples that follow: You *must* perform the `setTrustedRemote` on each of your deployed contracts to allow inbound/outboud messages for all remote contracs.
+
+# OmnichainFungibleToken
+
+The `OmnichainFungibleToken` has two varieties of deployments:
+ 1. `BasedOFT.sol` - The token supply is minted at deploy time on the `base` chain. Other chains deploy with 0 supply initially. 
+ 2. `OFT.sol` - At deploy time, any token supply can be minted on the local chain.    
+
+ For the `BasedOFT` variety, all tokens transferred out of the `base` chain will be locked in the base contract (and minted on destination), and tokens transferred out of `other` chains will be burned on that chain (and minted on destination). This results in the `Base chain` being like the home base. The initial supply will be minted entirely on the `Base Chain` on deployment.
  
- In the `All Chain` implementation token transfers will always be burn & mint. The deployer may mint tokens in each deployment. Our `OmnichainNonFungibleToken` example will follow the `All Chains` standardization.
-
-In the example deployment below, the default main chain is ```rinkeby```.
-This setting is configured in ```constants/oftMainChain.json```.
-The `OmnichainFungibleToken` deployed on other chains will use this configuration to set their main chain.
-Using the Ethereum network ```(testnet: rinkeby)``` as a source of truth is a security decision.
+In the example deployment below we use `BasedOFT` and the `base` chain is ```rinkeby```.
+This setting is configured in ```constants/oftBaseChain.json```.
+The `OmnichainFungibleToken` deployed on other chains will use this configuration to set their `base` chain.
+Using the Ethereum network ```(testnet: rinkeby)``` as a `base` (really its like the source of truth) is a security decision.
 In the event a chain goes rogue, Ethereum will be the final source of truth for OFT tokens.
-When sending tokens to other chains this contract locks the tokens on the main chain and mints on the destination chain.
-When other non-main chains send OFT's to each other they will burn and mint accordingly. 
-When sending back to the main chain it will burn on the source chain and unlock on the main chain.
 
-# Are you down with OFT?
-1. Deploy two contracts:  ```rinkeby``` is the main chain
+# Are you down [to deploy] with OFT?
+1. Deploy two contracts:  ```rinkeby``` is the `base` chain
 ```angular2html
- npx hardhat --network rinkeby deploy --tags OmnichainFungibleToken
- npx hardhat --network fuji deploy --tags OmnichainFungibleToken
+ npx hardhat --network rinkeby deploy --tags BasedOFT
+ npx hardhat --network fuji deploy --tags BasedOFT
 ```
-2. Set the trusted sources, so each contract can receive messages from one another, and `only` one another.
+2. Set the "trusted remotes" (ie: your contracts) so each of them can receive messages from one another, and `only` one another.
 ```angular2html
-npx hardhat --network rinkeby omnichainFungibleTokenSetDestination --target-network fuji
-npx hardhat --network fuji omnichainFungibleTokenSetDestination --target-network rinkeby
+npx hardhat --network rinkeby oftSetTrustedRemote --target-network fuji
+npx hardhat --network fuji oftSetTrustedRemote --target-network rinkeby
 ```
-3. Send tokens across chains
+3. Send tokens from rinkeby to fuji
 ```angular2html
-npx hardhat --network rinkeby omnichainFungibleTokenSendTokens --target-network fuji --qty 250
+npx hardhat --network rinkeby oftSendTokens --target-network fuji --qty 250
 ```
 #### Note: Remember to add a .env file with your MNEMONIC=""
 

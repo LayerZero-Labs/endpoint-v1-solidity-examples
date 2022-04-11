@@ -3,18 +3,18 @@ const { getDeploymentAddresses } = require("../utils/readStatic")
 
 module.exports = async function (taskArgs, hre) {
     const dstChainId = CHAIN_ID[taskArgs.targetNetwork]
-    const dstAddr = getDeploymentAddresses(taskArgs.targetNetwork)["OmnichainFungibleToken"]
+    const dstAddr = getDeploymentAddresses(taskArgs.targetNetwork)["BasedOFT"]
     // get local contract instance
-    const omnichainFungibleToken = await ethers.getContract("OmnichainFungibleToken")
-    console.log(`[source] omnichainFungibleToken.address: ${omnichainFungibleToken.address}`)
+    const basedOFT = await ethers.getContract("BasedOFT")
+    console.log(`[source] basedOFT.address: ${basedOFT.address}`)
 
     // setTrustedRemote() on the local contract, so it can receive message from the source contract
     try {
-        let tx = await (await omnichainFungibleToken.setTrustedRemote(dstChainId, dstAddr)).wait()
+        let tx = await (await basedOFT.setTrustedRemote(dstChainId, dstAddr)).wait()
         console.log(`✅ [${hre.network.name}] setTrustedRemote(${dstChainId}, ${dstAddr})`)
         console.log(` tx: ${tx.transactionHash}`)
     } catch (e) {
-        if (e.error.message.includes("The source address has already been set for the chainId")) {
+        if (e.error.message.includes("The chainId + address is already trusted")) {
             console.log("*source already set*")
         } else {
             console.log(e)
