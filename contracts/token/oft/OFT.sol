@@ -55,11 +55,11 @@ contract OFT is NonblockingLzApp, IOFT, ERC20 {
         bytes calldata _toAddress,
         bool _useZro,
         uint256 _amount,
-        bytes calldata _txParameters
+        bytes calldata _adapterParams
     ) public view virtual returns (uint256 nativeFee, uint256 zroFee) {
         // mock the payload for send()
         bytes memory payload = abi.encode(_toAddress, _amount);
-        return lzEndpoint.estimateFees(_dstChainId, address(this), payload, _useZro, _txParameters);
+        return lzEndpoint.estimateFees(_dstChainId, address(this), payload, _useZro, _adapterParams);
     }
 
     function _nonblockingLzReceive(

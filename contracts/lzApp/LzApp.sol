@@ -54,6 +54,7 @@ abstract contract LzApp is Ownable, ILayerZeroReceiver, ILayerZeroUserApplicatio
         address _zroPaymentAddress,
         bytes memory _adapterParam
     ) internal {
+        require(trustedRemoteLookup[_dstChainId].length != 0, "LzSend: destination chain is not a trusted source.");
         lzEndpoint.send{value: msg.value}(
             _dstChainId,
             trustedRemoteLookup[_dstChainId],

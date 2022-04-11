@@ -13,7 +13,7 @@ module.exports = async function ({ deployments, getNamedAccounts }) {
 
     await deploy("OmnichainNonFungibleToken", {
         from: deployer,
-        args: ["https://layerzero.network", lzEndpointAddress, onftArgs.startId, onftArgs.maxSupply],
+        args: [lzEndpointAddress, onftArgs.startMintIndex, onftArgs.maxMint],
         log: true,
         waitConfirmations: 1,
     })
