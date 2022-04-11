@@ -8,7 +8,6 @@ import "./IOFT.sol";
 
 // override decimal() function is needed
 contract OFT is NonblockingLzApp, IOFT, ERC20 {
-
     constructor(
         string memory _name,
         string memory _symbol,
@@ -17,7 +16,6 @@ contract OFT is NonblockingLzApp, IOFT, ERC20 {
     ) ERC20(_name, _symbol) NonblockingLzApp(_lzEndpoint) {
         _mint(_msgSender(), _initialSupply);
     }
-
 
     function _nonblockingLzReceive(
         uint16 _srcChainId,
@@ -41,7 +39,7 @@ contract OFT is NonblockingLzApp, IOFT, ERC20 {
         uint16 _dstChainId,
         bytes calldata _toAddress,
         bool _useZro,
-        uint _amount,
+        uint256 _amount,
         bytes calldata _txParameters
     ) external view returns (uint256 nativeFee, uint256 zroFee) {
         // mock the payload for send()

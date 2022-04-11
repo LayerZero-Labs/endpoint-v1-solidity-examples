@@ -5,7 +5,7 @@ import "../OFT.sol";
 
 contract BasedOFT is OFT {
     // true indicates this is the base chain for this token
-    bool public isBase;
+    bool public immutable isBase;
 
     constructor(
         string memory _name,
@@ -13,7 +13,7 @@ contract BasedOFT is OFT {
         address _lzEndpoint,
         uint256 _initialSupply,
         uint16 _baseChainId
-    ) OFT(_name, _symbol, _lzEndpoint, 0){
+    ) OFT(_name, _symbol, _lzEndpoint, 0) {
         // only mint the total supply on the main chain
         if (ILayerZeroEndpoint(_lzEndpoint).getChainId() == _baseChainId) {
             _mint(_msgSender(), _initialSupply);

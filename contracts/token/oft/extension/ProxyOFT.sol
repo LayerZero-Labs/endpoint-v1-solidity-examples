@@ -8,16 +8,17 @@ import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 
 // this is a OFT proxy to interact with other OFT contracts
 // all other OFT contracts MUST initiate with 0 supply
-contract ProxyOFT is OFT{
+contract ProxyOFT is OFT {
     using SafeERC20 for IERC20;
 
-    IERC20 immutable public token;
+    IERC20 public immutable token;
 
-    constructor (
+    constructor(
         string memory _name,
         string memory _symbol,
         address _lzEndpoint,
-        address _proxyToken) OFT(_name, _symbol, _lzEndpoint, 0){
+        address _proxyToken
+    ) OFT(_name, _symbol, _lzEndpoint, 0) {
         token = IERC20(_proxyToken);
     }
 
