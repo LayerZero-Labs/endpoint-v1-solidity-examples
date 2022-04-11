@@ -18,10 +18,10 @@ contract OmniCounter is NonblockingLzApp {
     // overrides lzReceive function in ILayerZeroReceiver.
     // automatically invoked on the receiving chain after the source chain calls endpoint.send(...)
     function _nonblockingLzReceive(
-        uint16 _srcChainId,
-        bytes memory _srcAddress,
-        uint64, /*_nonce*/
-        bytes memory /*_payload*/
+        uint16, // _srcChainId
+        bytes memory, // _srcAddress
+        uint64, // _nonce
+        bytes memory // _payload
     ) internal override {
         messageCounter += 1;
     }
@@ -34,11 +34,7 @@ contract OmniCounter is NonblockingLzApp {
 
     // _adapterParams (v1)
     // customize the gas amount to be used on the destination chain.
-    function incrementCounterWithAdapterParamsV1(
-        uint16 _dstChainId,
-        bytes calldata _dstCounterMockAddress,
-        uint256 gasAmountForDst
-    ) public payable {
+    function incrementCounterWithAdapterParamsV1(uint16 _dstChainId, uint256 gasAmountForDst) public payable {
         uint16 version = 1;
         // make look like this: 0x00010000000000000000000000000000000000000000000000000000000000030d40
         bytes memory _adapterParams = abi.encodePacked(version, gasAmountForDst);
@@ -49,7 +45,6 @@ contract OmniCounter is NonblockingLzApp {
     // specify a small amount of notive token you want to airdropped to your wallet on destination
     function incrementCounterWithAdapterParamsV2(
         uint16 _dstChainId,
-        bytes calldata _dstCounterMockAddress,
         uint256 gasAmountForDst,
         uint256 airdropEthQty,
         address airdropAddr

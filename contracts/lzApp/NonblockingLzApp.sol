@@ -1,4 +1,6 @@
-pragma solidity 0.8.4;
+// SPDX-License-Identifier: MIT
+
+pragma solidity ^0.8.0;
 
 import "./LzApp.sol";
 
@@ -20,7 +22,7 @@ abstract contract NonblockingLzApp is LzApp {
         bytes memory _srcAddress,
         uint64 _nonce,
         bytes memory _payload
-    ) internal override {
+    ) internal virtual override {
         // try-catch all errors/exceptions
         try this.nonblockingLzReceive(_srcChainId, _srcAddress, _nonce, _payload) {
             // do nothing
@@ -36,7 +38,7 @@ abstract contract NonblockingLzApp is LzApp {
         bytes memory _srcAddress,
         uint64 _nonce,
         bytes memory _payload
-    ) public {
+    ) public virtual {
         // only internal transaction
         require(_msgSender() == address(this), "LzReceiver: caller must be Bridge.");
         _nonblockingLzReceive(_srcChainId, _srcAddress, _nonce, _payload);
@@ -55,7 +57,7 @@ abstract contract NonblockingLzApp is LzApp {
         bytes memory _srcAddress,
         uint64 _nonce,
         bytes calldata _payload
-    ) external payable {
+    ) external payable virtual {
         // assert there is message to retry
         bytes32 payloadHash = failedMessages[_srcChainId][_srcAddress][_nonce];
         require(payloadHash != bytes32(0), "LzReceiver: no stored message");

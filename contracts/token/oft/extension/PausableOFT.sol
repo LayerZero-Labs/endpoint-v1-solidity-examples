@@ -16,8 +16,8 @@ contract PausableOFT is OFT, Pausable {
 
     function _debitFrom(
         address _from,
-        uint16 _dstChainId,
-        bytes memory _toAddress,
+        uint16, // _dstChainId
+        bytes memory, // _toAddress
         uint256 _amount
     ) internal override whenNotPaused {
         _burn(_from, _amount);
