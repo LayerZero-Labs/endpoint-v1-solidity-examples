@@ -83,29 +83,29 @@ abstract contract ONFT is IONFT, NonblockingLzApp, ERC721 {
     }
 
     function _beforeSendToken(
-        address _from,
-        uint16 _dstChainId,
-        bytes memory _toAddress,
+        address, // _from
+        uint16, // _dstChainId
+        bytes memory, // _toAddress
         uint256 _tokenId
     ) internal virtual {
         _burn(_tokenId);
     }
 
     function _afterSendToken(
-        address _from,
-        uint16 _dstChainId,
-        bytes memory _toAddress,
-        uint256 _tokenId
+        address, // _from
+        uint16, // _dstChainId
+        bytes memory, // _toAddress
+        uint256 // _tokenId
     ) internal virtual {}
 
     function _beforeReceiveToken(
-        uint16 _srcChainId,
-        bytes memory _srcAddress,
-        bytes memory _payload
+        uint16, // _srcChainId
+        bytes memory, // _srcAddress
+        bytes memory // _payload
     ) internal virtual {}
 
     function _afterReceiveToken(
-        uint16 _srcChainId,
+        uint16, // _srcChainId
         address _toAddress,
         uint256 _tokenId
     ) internal virtual {

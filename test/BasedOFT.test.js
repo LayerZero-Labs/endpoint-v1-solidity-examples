@@ -2,7 +2,6 @@ const { expect } = require("chai")
 const { ethers } = require("hardhat")
 
 describe("BasedOFT", function () {
-
     baseChainId = 1
     otherChainId = 2
 
@@ -13,7 +12,6 @@ describe("BasedOFT", function () {
     beforeEach(async function () {
         this.accounts = await ethers.getSigners()
         this.owner = this.accounts[0]
-
 
         const LZEndpointMock = await ethers.getContractFactory("LZEndpointMock")
         const BasedOFT = await ethers.getContractFactory("BasedOFT")
@@ -51,16 +49,16 @@ describe("BasedOFT", function () {
         expect(b).to.equal(0)
 
         let amount = ethers.utils.parseUnits("100", 18)
-        let messageFee = ethers.utils.parseEther('0.01') // conversion to units of wei
+        let messageFee = ethers.utils.parseEther("0.01") // conversion to units of wei
         // await this.baseOFT.approve(this.OmnichainFungibleTokenSrc.address, sendQty)
         await this.baseOFT.send(
-            otherChainId,                   // destination chainId
-            this.owner.address,             // destination address to send tokens to
-            amount,                         // quantity of tokens to send (in units of wei)
-            this.owner.address,             // LayerZero refund address (if too much fee is sent gets refunded)
-            ethers.constants.AddressZero,   // future parameter
-            "0x",                           // adapterParameters empty bytes specifies default settings
-            { value: messageFee }           // pass a msg.value to pay the LayerZero message fee
+            otherChainId, // destination chainId
+            this.owner.address, // destination address to send tokens to
+            amount, // quantity of tokens to send (in units of wei)
+            this.owner.address, // LayerZero refund address (if too much fee is sent gets refunded)
+            ethers.constants.AddressZero, // future parameter
+            "0x", // adapterParameters empty bytes specifies default settings
+            { value: messageFee } // pass a msg.value to pay the LayerZero message fee
         )
 
         // verify tokens burned on source chain and minted on destination chain

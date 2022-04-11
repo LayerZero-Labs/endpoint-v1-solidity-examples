@@ -3,22 +3,29 @@
 pragma solidity ^0.8.0;
 
 import "../../../lzApp/NonblockingLzApp.sol";
-import "../OFT.sol";
 import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 
-// this is a OFT proxy to interact with other OFT contracts
-// all other OFT contracts MUST initiate with 0 supply
-contract ProxyOFT is OFT{
+contract ProxyOFT is NonblockingLzApp {
     using SafeERC20 for IERC20;
 
-    IERC20 immutable public token;
+    IERC20 public immutable token;
 
-    constructor (
-        string memory _name,
-        string memory _symbol,
-        address _lzEndpoint,
-        address _proxyToken) OFT(_name, _symbol, _lzEndpoint, 0){
+    event SendToChain(address indexed _sender, uint16 indexed _dstChainId, bytes indexed _toAddress, uint256 _amount, uint64 _nonce);
+    event ReceiveFromChain(uint16 _srcChainId, address _toAddress, uint256 _amount, uint64 _nonce);
+
+    constructor(address _lzEndpoint, address _proxyToken) NonblockingLzApp(_lzEndpoint) {
         token = IERC20(_proxyToken);
+    }
+
+    function send(
+        uint16 _dstChainId,
+        bytes calldata _toAddress,
+        uint256 _amount,
+        address payable _refundAddress,
+        address _zroPaymentAddress,
+        bytes calldata _adapterParam
+    ) public payable virtual {
+        _send(_msgSender(), _dstChainId, _toAddress, _amount, _refundAddress, _zroPaymentAddress, _adapterParam);
     }
 
     function sendFrom(
@@ -29,8 +36,61 @@ contract ProxyOFT is OFT{
         address payable _refundAddress,
         address _zroPaymentAddress,
         bytes calldata _adapterParam
-    ) external payable virtual override {
+    ) public payable virtual {
         _send(_from, _dstChainId, _toAddress, _amount, _refundAddress, _zroPaymentAddress, _adapterParam);
+    }
+
+    function estimateSendFee(
+        uint16 _dstChainId,
+        bytes calldata _toAddress,
+        bool _useZro,
+        uint256 _amount,
+        bytes calldata _txParameters
+    ) public view virtual returns (uint256 nativeFee, uint256 zroFee) {
+        // mock the payload for send()
+        bytes memory payload = abi.encode(_toAddress, _amount);
+        return lzEndpoint.estimateFees(_dstChainId, address(this), payload, _useZro, _txParameters);
+    }
+
+    // using the proxy Token's total supply as source of truth
+    function totalSupply() public view virtual returns (uint256) {
+        return token.totalSupply();
+    }
+
+    function _nonblockingLzReceive(
+        uint16 _srcChainId,
+        bytes memory _srcAddress,
+        uint64 _nonce,
+        bytes memory _payload
+    ) internal virtual override {
+        // decode and load the toAddress
+        (bytes memory toAddressBytes, uint256 amount) = abi.decode(_payload, (bytes, uint256));
+        address toAddress;
+        assembly {
+            toAddress := mload(add(toAddressBytes, 20))
+        }
+
+        _creditTo(_srcChainId, toAddress, amount);
+
+        emit ReceiveFromChain(_srcChainId, toAddress, amount, _nonce);
+    }
+
+    function _send(
+        address _from,
+        uint16 _dstChainId,
+        bytes memory _toAddress,
+        uint256 _amount,
+        address payable _refundAddress,
+        address _zroPaymentAddress,
+        bytes calldata _adapterParam
+    ) internal virtual {
+        _debitFrom(_from, _dstChainId, _toAddress, _amount);
+
+        bytes memory payload = abi.encode(_toAddress, _amount);
+        _lzSend(_dstChainId, payload, _refundAddress, _zroPaymentAddress, _adapterParam);
+
+        uint64 nonce = lzEndpoint.getOutboundNonce(_dstChainId, address(this));
+        emit SendToChain(_from, _dstChainId, _toAddress, _amount, nonce);
     }
 
     function _debitFrom(
@@ -38,7 +98,7 @@ contract ProxyOFT is OFT{
         uint16 _dstChainId,
         bytes memory _toAddress,
         uint256 _amount
-    ) internal override {
+    ) internal virtual {
         token.safeTransferFrom(_from, address(this), _amount);
     }
 
@@ -46,12 +106,7 @@ contract ProxyOFT is OFT{
         uint16 _srcChainId,
         address _toAddress,
         uint256 _amount
-    ) internal override {
+    ) internal virtual {
         token.safeTransfer(_toAddress, _amount);
-    }
-
-    // using the proxy Token's total supply as source of truth
-    function totalSupply() public view virtual override returns (uint256) {
-        return token.totalSupply();
     }
 }

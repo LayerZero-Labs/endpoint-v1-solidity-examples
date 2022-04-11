@@ -14,10 +14,10 @@ contract OmniCounter is NonblockingLzApp {
     // implementation of the LayerZero message receiver.
     // on receive, increment a counter
     function _nonblockingLzReceive(
-        uint16 _srcChainId,
-        bytes memory _srcAddress,
-        uint64, /*_nonce*/
-        bytes memory /*_payload*/
+        uint16, // _srcChainId
+        bytes memory, // _srcAddress
+        uint64, // _nonce
+        bytes memory // _payload
     ) internal override {
         counter += 1;
     }
@@ -32,5 +32,4 @@ contract OmniCounter is NonblockingLzApp {
             bytes("")                   // use default adapterParameters
         );
     }
-
 }

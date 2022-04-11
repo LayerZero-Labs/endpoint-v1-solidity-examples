@@ -7,7 +7,7 @@ import "@openzeppelin/contracts/token/ERC721/IERC721.sol";
 /**
  * @dev Interface of the ONFT standard
  */
-interface IONFT is IERC721{
+interface IONFT is IERC721 {
     /**
      * @dev send token `_tokenId` to (`_dstChainId`, `_toAddress`)
      * `_toAddress` can be any size depending on the `dstChainId`.
