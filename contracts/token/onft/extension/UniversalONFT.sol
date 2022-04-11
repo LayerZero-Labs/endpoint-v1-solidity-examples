@@ -5,7 +5,7 @@ pragma solidity ^0.8;
 import ".././ONFT.sol";
 
 /// @title Interface of the UniversalONFT standard
-abstract contract UniversalONFT is ONFT {
+contract UniversalONFT is ONFT {
 
     uint256 startMintIndex;
     uint256 maxMint;

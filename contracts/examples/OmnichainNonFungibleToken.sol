@@ -54,7 +54,7 @@ contract OmnichainNonFungibleToken is UniversalONFT {
         address _layerZeroEndpoint,
         uint256 _startMintIndex,
         uint256 _maxMint
-    ) UniversalONFT("LayerZeroNonFungibleToken", "LZONFT", _layerZeroEndpoint, _startMintIndex, _maxMint) {}
+    ) UniversalONFT("LZOmnichainNonFungibleToken", "LZONFT", _layerZeroEndpoint, _startMintIndex, _maxMint) {}
 
     function transferOmnichainNFT(
         uint16 _dstChainId,
