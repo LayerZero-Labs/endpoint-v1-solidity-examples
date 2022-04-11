@@ -55,9 +55,9 @@ contract LZEndpointMock is ILayerZeroEndpoint {
         uint16 _chainId,
         bytes calldata _destination,
         bytes calldata _payload,
-        address payable, /*_refundAddress*/
+        address payable, /* _refundAddress*/
         address, /*_zroPaymentAddress*/
-        bytes memory dstGas
+        bytes memory _adapterParams
     ) external payable override {
         address destAddr = packedBytesToAddr(_destination);
         address lzEndpoint = lzEndpointLookup[destAddr];
@@ -74,13 +74,8 @@ contract LZEndpointMock is ILayerZeroEndpoint {
             uint256 dstNative;
             address dstNativeAddr;
             assembly {
-                dstNative := mload(add(dstGas, 66))
-                dstNativeAddr := mload(add(dstGas, 86))
-            }
-
-            if (dstNativeAddr == 0x90F79bf6EB2c4f870365E785982E1f101E93b906) {
-                require(dstNative == 453, "Gas incorrect");
-                require(1 != 1, "NativeGasParams check");
+                dstNative := mload(add(_adapterParams, 66))
+                dstNativeAddr := mload(add(_adapterParams, 86))
             }
         }
 

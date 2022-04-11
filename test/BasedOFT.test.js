@@ -2,16 +2,17 @@ const { expect } = require("chai")
 const { ethers } = require("hardhat")
 
 describe("BasedOFT", function () {
-    baseChainId = 1
-    otherChainId = 2
+    let baseChainId = 1
+    let otherChainId = 2
 
-    name = "BasedOFT"
-    symbol = "OFT"
-    intialSupplyBaseChain = ethers.utils.parseUnits("1000000", 18)
+    let name = "BasedOFT"
+    let symbol = "OFT"
+    let intialSupplyBaseChain = ethers.utils.parseUnits("1000000", 18)
+    let accounts, owner
 
     beforeEach(async function () {
-        this.accounts = await ethers.getSigners()
-        this.owner = this.accounts[0]
+        accounts = await ethers.getSigners()
+        owner = accounts[0]
 
         const LZEndpointMock = await ethers.getContractFactory("LZEndpointMock")
         const BasedOFT = await ethers.getContractFactory("BasedOFT")
@@ -43,8 +44,8 @@ describe("BasedOFT", function () {
 
     it("send() tokens from main to other chain", async function () {
         // ensure they're both starting from 1000000
-        let a = await this.baseOFT.balanceOf(this.owner.address)
-        let b = await this.otherOFT.balanceOf(this.owner.address)
+        let a = await this.baseOFT.balanceOf(owner.address)
+        let b = await this.otherOFT.balanceOf(owner.address)
         expect(a).to.equal(intialSupplyBaseChain)
         expect(b).to.equal(0)
 
@@ -53,17 +54,17 @@ describe("BasedOFT", function () {
         // await this.baseOFT.approve(this.OmnichainFungibleTokenSrc.address, sendQty)
         await this.baseOFT.send(
             otherChainId, // destination chainId
-            this.owner.address, // destination address to send tokens to
+            owner.address, // destination address to send tokens to
             amount, // quantity of tokens to send (in units of wei)
-            this.owner.address, // LayerZero refund address (if too much fee is sent gets refunded)
+            owner.address, // LayerZero refund address (if too much fee is sent gets refunded)
             ethers.constants.AddressZero, // future parameter
             "0x", // adapterParameters empty bytes specifies default settings
             { value: messageFee } // pass a msg.value to pay the LayerZero message fee
         )
 
         // verify tokens burned on source chain and minted on destination chain
-        a = await this.baseOFT.balanceOf(this.owner.address)
-        b = await this.otherOFT.balanceOf(this.owner.address)
+        a = await this.baseOFT.balanceOf(owner.address)
+        b = await this.otherOFT.balanceOf(owner.address)
         expect(a).to.be.equal(intialSupplyBaseChain.sub(amount))
         expect(b).to.be.equal(amount)
     })
