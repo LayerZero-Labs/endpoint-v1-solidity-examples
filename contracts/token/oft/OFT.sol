@@ -24,20 +24,16 @@ contract OFT is NonblockingLzApp, IOFT, ERC20 {
         uint64 _nonce,
         bytes memory _payload
     ) internal virtual override {
-        _beforeReceiveTokens(_srcChainId, _srcAddress, _payload);
-
         // decode and load the toAddress
-        (bytes memory toAddress, uint256 amount) = abi.decode(_payload, (bytes, uint256));
-        address localToAddress;
+        (bytes memory toAddressBytes, uint256 amount) = abi.decode(_payload, (bytes, uint256));
+        address toAddress;
         assembly {
-            toAddress := mload(add(toAddress, 20))
+            toAddress := mload(add(toAddressBytes, 20))
         }
-        // if the toAddress is 0x0, burn it or it will get cached
-        if (localToAddress == address(0x0)) localToAddress == address(0xdEaD);
 
-        _afterReceiveTokens(_srcChainId, localToAddress, amount);
+        _creditTo(_srcChainId, toAddress, amount);
 
-        emit ReceiveFromChain(_srcChainId, localToAddress, amount, _nonce);
+        emit ReceiveFromChain(_srcChainId, toAddress, amount, _nonce);
     }
 
     function estimateSendTokensFee(
@@ -85,17 +81,16 @@ contract OFT is NonblockingLzApp, IOFT, ERC20 {
         address _zroPaymentAddress,
         bytes calldata _adapterParam
     ) internal virtual {
-        _beforeSendTokens(_from, _dstChainId, _toAddress, _amount);
+        _debitFrom(_from, _dstChainId, _toAddress, _amount);
 
         bytes memory payload = abi.encode(_toAddress, _amount);
         _lzSend(_dstChainId, payload, _refundAddress, _zroPaymentAddress, _adapterParam);
 
         uint64 nonce = lzEndpoint.getOutboundNonce(_dstChainId, address(this));
         emit SendToChain(_from, _dstChainId, _toAddress, _amount, nonce);
-        _afterSendTokens(_from, _dstChainId, _toAddress, _amount);
     }
 
-    function _beforeSendTokens(
+    function _debitFrom(
         address _from,
         uint16 _dstChainId,
         bytes memory _toAddress,
@@ -104,20 +99,7 @@ contract OFT is NonblockingLzApp, IOFT, ERC20 {
         _burn(_from, _amount);
     }
 
-    function _afterSendTokens(
-        address _from,
-        uint16 _dstChainId,
-        bytes memory _toAddress,
-        uint256 _amount
-    ) internal virtual {}
-
-    function _beforeReceiveTokens(
-        uint16 _srcChainId,
-        bytes memory _srcAddress,
-        bytes memory _payload
-    ) internal virtual {}
-
-    function _afterReceiveTokens(
+    function _creditTo(
         uint16 _srcChainId,
         address _toAddress,
         uint256 _amount

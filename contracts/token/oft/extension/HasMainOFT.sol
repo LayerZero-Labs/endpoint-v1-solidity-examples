@@ -18,7 +18,7 @@ contract HasMainOFT is OFT{
         }
     }
 
-    function _beforeSendTokens(
+    function _debitFrom(
         address _from,
         uint16 _dstChainId,
         bytes memory _toAddress,
@@ -33,7 +33,7 @@ contract HasMainOFT is OFT{
         }
     }
 
-    function _afterReceiveTokens(
+    function _creditTo(
         uint16 _srcChainId,
         address _toAddress,
         uint256 _amount

@@ -12,7 +12,7 @@ contract PausableOFT is OFT, Pausable {
         uint256 _initialSupply) OFT(_name, _symbol, _lzEndpoint, _initialSupply){
     }
 
-    function _beforeSendTokens(
+    function _debitFrom(
         address _from,
         uint16 _dstChainId,
         bytes memory _toAddress,
