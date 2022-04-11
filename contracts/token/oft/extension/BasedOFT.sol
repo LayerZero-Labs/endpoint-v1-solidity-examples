@@ -1,7 +1,10 @@
+// SPDX-License-Identifier: MIT
+
 pragma solidity ^0.8.0;
 import "../OFT.sol";
 
-contract BasedOFT is OFT{
+contract BasedOFT is OFT {
+    // true indicates this is the base chain for this token
     bool public isBase;
 
     constructor(

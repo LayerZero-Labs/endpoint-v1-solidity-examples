@@ -1,3 +1,5 @@
+// SPDX-License-Identifier: MIT
+
 pragma solidity ^0.8.0;
 
 import "../../../lzApp/NonblockingLzApp.sol";
@@ -19,7 +21,7 @@ contract ProxyOFT is OFT{
         token = IERC20(_proxyToken);
     }
 
-    function sendTokensFrom(
+    function sendFrom(
         address _from,
         uint16 _dstChainId,
         bytes calldata _toAddress,
@@ -28,7 +30,7 @@ contract ProxyOFT is OFT{
         address _zroPaymentAddress,
         bytes calldata _adapterParam
     ) external payable virtual override {
-        _sendTokens(_from, _dstChainId, _toAddress, _amount, _refundAddress, _zroPaymentAddress, _adapterParam);
+        _send(_from, _dstChainId, _toAddress, _amount, _refundAddress, _zroPaymentAddress, _adapterParam);
     }
 
     function _debitFrom(

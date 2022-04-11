@@ -6,7 +6,7 @@ import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 import "../../lzApp/NonblockingLzApp.sol";
 import "./IOFT.sol";
 
-// override decimal function is needed
+// override decimal() function is needed
 contract OFT is NonblockingLzApp, IOFT, ERC20 {
 
     constructor(
@@ -37,19 +37,28 @@ contract OFT is NonblockingLzApp, IOFT, ERC20 {
         emit ReceiveFromChain(_srcChainId, toAddress, amount, _nonce);
     }
 
-    function estimateSendTokensFee(
+    function estimateSendFee(
         uint16 _dstChainId,
         bytes calldata _toAddress,
         bool _useZro,
         uint _amount,
         bytes calldata _txParameters
     ) external view returns (uint256 nativeFee, uint256 zroFee) {
-        // mock the payload for sendTokens()
+        // mock the payload for send()
         bytes memory payload = abi.encode(_toAddress, _amount);
         return lzEndpoint.estimateFees(_dstChainId, address(this), payload, _useZro, _txParameters);
     }
 
-    function sendTokens(
+    /**
+     * @dev send `_amount` amount of token to (`_dstChainId`, `_toAddress`)
+     * `_dstChainId` the destination chain identifier
+     * `_toAddress` can be any size depending on the `dstChainId`.
+     * `_amount` the quantity of tokens in wei
+     * `_refundAddress` the address LayerZero refunds if too much message fee is sent
+     * `_zroPaymentAddress` set to address(0x0) if not paying in ZRO (LayerZero Token)
+     * `_adapterParams` is a flexible bytes array to indicate messaging adapter services
+     */
+    function send(
         uint16 _dstChainId,
         bytes calldata _toAddress,
         uint256 _amount,
@@ -57,10 +66,10 @@ contract OFT is NonblockingLzApp, IOFT, ERC20 {
         address _zroPaymentAddress,
         bytes calldata _adapterParam
     ) external payable override {
-        _sendTokens(_msgSender(), _dstChainId, _toAddress, _amount, _refundAddress, _zroPaymentAddress, _adapterParam);
+        _send(_msgSender(), _dstChainId, _toAddress, _amount, _refundAddress, _zroPaymentAddress, _adapterParam);
     }
 
-    function sendTokensFrom(
+    function sendFrom(
         address _from,
         uint16 _dstChainId,
         bytes calldata _toAddress,
@@ -70,10 +79,10 @@ contract OFT is NonblockingLzApp, IOFT, ERC20 {
         bytes calldata _adapterParam
     ) external payable virtual override {
         _spendAllowance(_from, _msgSender(), _amount);
-        _sendTokens(_from, _dstChainId, _toAddress, _amount, _refundAddress, _zroPaymentAddress, _adapterParam);
+        _send(_from, _dstChainId, _toAddress, _amount, _refundAddress, _zroPaymentAddress, _adapterParam);
     }
 
-    function _sendTokens(
+    function _send(
         address _from,
         uint16 _dstChainId,
         bytes memory _toAddress,

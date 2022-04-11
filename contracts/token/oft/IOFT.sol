@@ -16,7 +16,7 @@ interface IOFT is IERC20 {
      * `_zroPaymentAddress` set to address(0x0) if not paying in ZRO (LayerZero Token)
      * `_adapterParams` is a flexible bytes array to indicate messaging adapter services
      */
-    function sendTokens(
+    function send(
         uint16 _dstChainId,
         bytes calldata _toAddress,
         uint256 _amount,
@@ -34,7 +34,7 @@ interface IOFT is IERC20 {
      * `_zroPaymentAddress` set to address(0x0) if not paying in ZRO (LayerZero Token)
      * `_adapterParams` is a flexible bytes array to indicate messaging adapter services
      */
-    function sendTokensFrom(
+    function sendFrom(
         address _from,
         uint16 _dstChainId,
         bytes calldata _toAddress,
