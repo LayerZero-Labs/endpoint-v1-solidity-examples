@@ -19,13 +19,19 @@ contract ProxyOFT is OFT{
         token = IERC20(_proxyToken);
     }
 
-    /**
-     * @dev
-     * for sendTokens, users need to approve this contract some `token` allowance
-     * for sendTokensFrom, users need to approve this contract some `token` allowance
-     *      and approve this contract some `ProxyOFT` allowance
-     */
-    function _beforeSendTokens(
+    function sendTokensFrom(
+        address _from,
+        uint16 _dstChainId,
+        bytes calldata _toAddress,
+        uint256 _amount,
+        address payable _refundAddress,
+        address _zroPaymentAddress,
+        bytes calldata _adapterParam
+    ) external payable virtual override {
+        _sendTokens(_from, _dstChainId, _toAddress, _amount, _refundAddress, _zroPaymentAddress, _adapterParam);
+    }
+
+    function _debitFrom(
         address _from,
         uint16 _dstChainId,
         bytes memory _toAddress,
@@ -34,7 +40,7 @@ contract ProxyOFT is OFT{
         token.safeTransferFrom(_from, address(this), _amount);
     }
 
-    function _afterReceiveTokens(
+    function _creditTo(
         uint16 _srcChainId,
         address _toAddress,
         uint256 _amount
