@@ -14,7 +14,7 @@ task("omniCounterGetOracle", "get the Oracle address being used by the OmniCount
 )
 
 //
-task("omniCounterIncrementCounter", "increment the destination OmniCounter", require("./omniCounterIncrementCounter"))
+task("omniCounterIncrementCounter", "increment the destination OmniCounter", require("./ocIncrementCounter"))
     .addParam("targetNetwork", "the target network name, ie: fuji, or mumbai, etc (from hardhat.config.js)")
     .addOptionalParam("n", "number of tx", 1, types.int)
 
@@ -26,9 +26,9 @@ task("omniCounterIncrementMultiCounter", "increment the destination OmniCounter"
 
 //
 task(
-    "omniCounterSetDestination",
+    "ocSetTrustedRemote",
     "setTrustedRemote(chainId, sourceAddr) to allow the local contract to receive messages from known source contracts",
-    require("./omniCounterSetTrustedRemote")
+    require("./ocSetTrustedRemote")
 ).addParam("targetNetwork", "the target network to let this instance receive messages from")
 
 //
@@ -50,26 +50,23 @@ task(
 
 //
 task(
-    "omnichainNonFungibleTokensetTrustedRemote",
-    "setTrustedRemote(chainId, sourceAddr) to allow the local contract to receive messages from known source contracts",
-    require("./omnichainNonFungibleTokensetTrustedRemote")
-).addParam("targetNetwork", "the target network to let this instance receive messages from")
+    "onftSetTrustedSource",
+    "setTrustedRemote(chainId, sourceAddr) to allow the local contract to send/receive messages from known source contracts",
+    require("./onftSetTrustedRemote")
+)
+    .addParam("targetNetwork", "the target network to let this instance receive messages from")
 
 //
-task("omnichainNonFungibleTokenOwnerOf", "ownerOf(tokenId) to get the owner of a token", require("./omnichainNonFungibleTokenOwnerOf")).addParam(
+task("onftOwnerOf", "ownerOf(tokenId) to get the owner of a token", require("./onftOwnerOf")).addParam(
     "tokenId",
     "the tokenId of ONFT"
 )
 
 //
-task("omnichainNonFungibleTokenMint", "mint() mint ONFT", require("./omnichainNonFungibleTokenMint"))
+task("onftMint", "mint() mint ONFT", require("./onftMint"))
 
 //
-task(
-    "omnichainNonFungibleTokenTransfer",
-    "transferOmnichainNFT(chainId, tokenId) transfer ONFT from one chain to another",
-    require("./omnichainNonFungibleTokenTransfer")
-)
+task("onftSend", "send an ONFT nftId from one chain to another", require("./onftSend"))
     .addParam("targetNetwork", "the chainId to transfer to")
     .addParam("tokenId", "the tokenId of ONFT")
 

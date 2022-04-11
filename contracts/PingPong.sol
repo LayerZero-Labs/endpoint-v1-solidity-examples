@@ -23,7 +23,7 @@ contract PingPong is NonblockingLzApp, Pausable {
 
     // constructor requires the LayerZero endpoint for this chain
     constructor(address _endpoint) NonblockingLzApp(_endpoint) {
-        //        endpoint = ILayerZeroEndpoint(_layerZeroEndpoint);
+        // ...
     }
 
     // disable ping-ponging

@@ -11,10 +11,10 @@ module.exports = async function (taskArgs, hre) {
         // console.log(e)
 
         if (e.error?.message.includes("ERC721: owner query for nonexistent token")) {
-            console.log("*ERC721: owner query for nonexistent token.*")
+            console.log("*ERC721: owner query for nonexistent token. Its possible this token has been burned from being sendt across chain! *")
         }
         if (e.reason.includes("nonexistent")) {
-            console.log("*ERC721: owner query for nonexistent token.*")
+            console.log("*ERC721: owner query for nonexistent token. Its possible this token has been burned from being sendt across chain! *")
         } else {
             console.log(e)
         }
