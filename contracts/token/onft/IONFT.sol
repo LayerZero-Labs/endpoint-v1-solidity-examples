@@ -14,7 +14,7 @@ interface IONFT is IERC721 {
      * `_zroPaymentAddress` set to address(0x0) if not paying in ZRO (LayerZero Token)
      * `_adapterParam` is a flexible bytes array to indicate messaging adapter services
      */
-    function sendToken(
+    function send(
         uint16 _dstChainId,
         bytes calldata _toAddress,
         uint256 _tokenId,
@@ -29,7 +29,7 @@ interface IONFT is IERC721 {
      * `_zroPaymentAddress` set to address(0x0) if not paying in ZRO (LayerZero Token)
      * `_adapterParam` is a flexible bytes array to indicate messaging adapter services
      */
-    function sendTokenFrom(
+    function sendFrom(
         address _from,
         uint16 _dstChainId,
         bytes calldata _toAddress,

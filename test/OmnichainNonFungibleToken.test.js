@@ -17,16 +17,14 @@ describe("OmnichainNonFungibleToken", function () {
 
         // create two OmnichainNonFungibleToken instances
         this.OmnichainNonFungibleTokenSrc = await OmnichainNonFungibleToken.deploy(
-            "https://layerzero.network",
             this.lzEndpointSrcMock.address,
             0,
-            50
+            1
         )
         this.OmnichainNonFungibleTokenDst = await OmnichainNonFungibleToken.deploy(
-            "https://layerzero.network",
             this.lzEndpointDstMock.address,
-            50,
-            100
+            1,
+            2
         )
 
         this.lzEndpointSrcMock.setDestLzEndpoint(this.OmnichainNonFungibleTokenDst.address, this.lzEndpointDstMock.address)
@@ -39,9 +37,9 @@ describe("OmnichainNonFungibleToken", function () {
 
     it("mint on the source chain and send ONFT to the destination chain", async function () {
         // mint OmnichainNonFungibleToken
-        await this.OmnichainNonFungibleTokenSrc.mint()
-        // expected tokenId
-        let onftTokenId = 1
+        let tx = await this.OmnichainNonFungibleTokenSrc.mint();
+        let onftTokenIdTemp = await ethers.provider.getTransactionReceipt(tx.hash)
+        let onftTokenId = parseInt(Number(onftTokenIdTemp.logs[0].topics[3]));
 
         // verify the owner of the token is on the source chain
         let currentOwner = await this.OmnichainNonFungibleTokenSrc.ownerOf(onftTokenId)
@@ -49,7 +47,12 @@ describe("OmnichainNonFungibleToken", function () {
 
         // approve and send OmnichainNonFungibleToken
         await this.OmnichainNonFungibleTokenSrc.approve(this.OmnichainNonFungibleTokenSrc.address, onftTokenId)
-        await this.OmnichainNonFungibleTokenSrc.transferOmnichainNFT(this.chainIdDst, onftTokenId)
+        // v1 adapterParams, encoded for version 1 style, and 200k gas quote
+        let adapterParam = ethers.utils.solidityPack(
+            ['uint16','uint256'],
+            [1, 225000]
+        )
+        await this.OmnichainNonFungibleTokenSrc.transferOmnichainNFT(this.chainIdDst, onftTokenId, adapterParam)
 
         // verify the owner of the token is no longer on the source chain
         await expect(this.OmnichainNonFungibleTokenSrc.ownerOf(onftTokenId)).to.revertedWith("ERC721: owner query for nonexistent token")
@@ -57,5 +60,8 @@ describe("OmnichainNonFungibleToken", function () {
         // verify the owner of the token is on the destination chain
         currentOwner = await this.OmnichainNonFungibleTokenDst.ownerOf(onftTokenId)
         expect(currentOwner).to.not.equal(this.owner)
+
+        // hit the max mint on the source chain
+        await expect(this.OmnichainNonFungibleTokenSrc.mint()).to.revertedWith("ONFT: Max Mint limit reached")
     })
 })

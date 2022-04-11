@@ -17,7 +17,7 @@ abstract contract ONFT is IONFT, NonblockingLzApp, ERC721 {
         address _lzEndpoint
     ) ERC721(_name, _symbol) NonblockingLzApp(_lzEndpoint) {}
 
-    function sendTokenFrom(
+    function sendFrom(
         address _from,
         uint16 _dstChainId,
         bytes calldata _toAddress,
@@ -26,11 +26,10 @@ abstract contract ONFT is IONFT, NonblockingLzApp, ERC721 {
         address _zroPaymentAddress,
         bytes calldata _adapterParam
     ) external payable virtual override {
-        require(_isApprovedOrOwner(_msgSender(), _tokenId), "ERC721: transfer caller is not owner nor approved");
-        _sendToken(_from, _dstChainId, _toAddress, _tokenId, _refundAddress, _zroPaymentAddress, _adapterParam);
+        _send(_from, _dstChainId, _toAddress, _tokenId, _refundAddress, _zroPaymentAddress, _adapterParam);
     }
 
-    function sendToken(
+    function send(
         uint16 _dstChainId,
         bytes calldata _toAddress,
         uint256 _tokenId,
@@ -38,10 +37,10 @@ abstract contract ONFT is IONFT, NonblockingLzApp, ERC721 {
         address _zroPaymentAddress,
         bytes calldata _adapterParam
     ) external payable virtual override {
-        _sendToken(_msgSender(), _dstChainId, _toAddress, _tokenId, _refundAddress, _zroPaymentAddress, _adapterParam);
+        _send(_msgSender(), _dstChainId, _toAddress, _tokenId, _refundAddress, _zroPaymentAddress, _adapterParam);
     }
 
-    function _sendToken(
+    function _send(
         address _from,
         uint16 _dstChainId,
         bytes memory _toAddress,
@@ -50,14 +49,15 @@ abstract contract ONFT is IONFT, NonblockingLzApp, ERC721 {
         address _zroPaymentAddress,
         bytes calldata _adapterParam
     ) internal virtual {
-        _beforeSendToken(_from, _dstChainId, _toAddress, _tokenId);
+        require(_isApprovedOrOwner(_msgSender(), _tokenId), "ERC721: transfer caller is not owner nor approved");
+        _beforeSend(_from, _dstChainId, _toAddress, _tokenId);
 
         bytes memory payload = abi.encode(_toAddress, _tokenId);
         _lzSend(_dstChainId, payload, _refundAddress, _zroPaymentAddress, _adapterParam);
 
         uint64 nonce = lzEndpoint.getOutboundNonce(_dstChainId, address(this));
         emit SendToChain(_from, _dstChainId, _toAddress, _tokenId, nonce);
-        _afterSendToken(_from, _dstChainId, _toAddress, _tokenId);
+        _afterSend(_from, _dstChainId, _toAddress, _tokenId);
     }
 
     function _nonblockingLzReceive(
@@ -66,23 +66,23 @@ abstract contract ONFT is IONFT, NonblockingLzApp, ERC721 {
         uint64 _nonce,
         bytes memory _payload
     ) internal virtual override {
-        _beforeReceiveToken(_srcChainId, _srcAddress, _payload);
+        _beforeReceive(_srcChainId, _srcAddress, _payload);
 
         // decode and load the toAddress
         (bytes memory toAddress, uint256 tokenId) = abi.decode(_payload, (bytes, uint256));
         address localToAddress;
         assembly {
-            toAddress := mload(add(toAddress, 20))
+            localToAddress := mload(add(toAddress, 20))
         }
         // if the toAddress is 0x0, burn it or it will get cached
         if (localToAddress == address(0x0)) localToAddress == address(0xdEaD);
 
-        _afterReceiveToken(_srcChainId, localToAddress, tokenId);
+        _afterReceive(_srcChainId, localToAddress, tokenId);
 
         emit ReceiveFromChain(_srcChainId, localToAddress, tokenId, _nonce);
     }
 
-    function _beforeSendToken(
+    function _beforeSend(
         address, // _from
         uint16, // _dstChainId
         bytes memory, // _toAddress
@@ -91,20 +91,20 @@ abstract contract ONFT is IONFT, NonblockingLzApp, ERC721 {
         _burn(_tokenId);
     }
 
-    function _afterSendToken(
+    function _afterSend(
         address, // _from
         uint16, // _dstChainId
         bytes memory, // _toAddress
         uint256 // _tokenId
     ) internal virtual {}
 
-    function _beforeReceiveToken(
+    function _beforeReceive(
         uint16, // _srcChainId
         bytes memory, // _srcAddress
         bytes memory // _payload
     ) internal virtual {}
 
-    function _afterReceiveToken(
+    function _afterReceive(
         uint16, // _srcChainId
         address _toAddress,
         uint256 _tokenId
