@@ -124,14 +124,14 @@ npx hardhat --network fantom-testnet deploy --tags OmniCounter
 
 2. Set the remote addresses, so each contract can receive messages
 ```angular2html
-npx hardhat --network bsc-testnet omniCounterSetDestination --target-network fuji
-npx hardhat --network fuji omniCounterSetDestination --target-network bsc-testnet
+npx hardhat --network bsc-testnet ocSetTrustedRemote --target-network fuji
+npx hardhat --network fuji ocSetTrustedRemote --target-network bsc-testnet
 
-npx hardhat --network bsc-testnet omniCounterSetDestination --target-network mumbai
-npx hardhat --network mumbai omniCounterSetDestination --target-network bsc-testnet
+npx hardhat --network bsc-testnet ocSetTrustedRemote --target-network mumbai
+npx hardhat --network mumbai ocSetTrustedRemote --target-network bsc-testnet
 
-npx hardhat --network bsc-testnet omniCounterSetDestination --target-network fantom-testnet
-npx hardhat --network fantom-testnet omniCounterSetDestination --target-network bsc-testnet
+npx hardhat --network bsc-testnet ocSetTrustedRemote --target-network fantom-testnet
+npx hardhat --network fantom-testnet ocSetTrustedRemote --target-network bsc-testnet
 ```
 3. Send a cross chain message from `mumbai` to `fuji` !
 ```angular2html
