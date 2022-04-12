@@ -46,7 +46,6 @@ pragma solidity 0.8.4;
 import "../token/onft/extension/UniversalONFT.sol";
 
 /// @title A LayerZero OmnichainNonFungibleToken example
-/// @author sirarthurmoney
 /// @notice You can use this to mint ONFT and transfer across chain
 contract OmnichainNonFungibleToken is UniversalONFT {
 

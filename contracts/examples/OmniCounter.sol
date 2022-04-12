@@ -3,8 +3,9 @@
 pragma solidity 0.8.4;
 pragma abicoder v2;
 
-import "./lzApp/NonblockingLzApp.sol";
+import "../lzApp/NonblockingLzApp.sol";
 
+/// @title A LayerZero example sending a cross chain message from a source chain to a destination chain to increment a counter
 contract OmniCounter is NonblockingLzApp {
     // count of messages have been received
     uint256 public counter;

@@ -15,16 +15,14 @@ pragma solidity 0.8.4;
 pragma abicoder v2;
 
 import "@openzeppelin/contracts/security/Pausable.sol";
-import "./lzApp/NonblockingLzApp.sol";
+import "../lzApp/NonblockingLzApp.sol";
 
 contract PingPong is NonblockingLzApp, Pausable {
     // event emitted every ping() to keep track of consecutive pings count
     event Ping(uint256 pings);
 
     // constructor requires the LayerZero endpoint for this chain
-    constructor(address _endpoint) NonblockingLzApp(_endpoint) {
-        //        endpoint = ILayerZeroEndpoint(_layerZeroEndpoint);
-    }
+    constructor(address _endpoint) NonblockingLzApp(_endpoint) {}
 
     // disable ping-ponging
     function enable(bool en) external {
