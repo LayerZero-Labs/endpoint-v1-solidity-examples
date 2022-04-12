@@ -27,9 +27,9 @@ contract PingPong is NonblockingLzApp, Pausable {
     // disable ping-ponging
     function enable(bool en) external {
         if (en) {
-            _unpause();
-        } else {
             _pause();
+        } else {
+            _unpause();
         }
     }
 
@@ -90,7 +90,5 @@ contract PingPong is NonblockingLzApp, Pausable {
     }
 
     // allow this contract to receive ether
-    fallback() external payable {}
-
     receive() external payable {}
 }
