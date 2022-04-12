@@ -1,24 +1,23 @@
 const { expect } = require("chai")
 const { ethers } = require("hardhat")
 
-describe.only("BasedOFT: ", function () {
+describe("BasedOFT: ", function () {
     const baseChainId = 1
     const otherChainId = 2
     const name = "OmnichainFungibleToken"
     const symbol = "OFT"
     const globalSupply = ethers.utils.parseUnits("1000000", 18)
 
-    let owner, lzEndpointBase, lzEndpointOther, baseOFT, otherOFT
+    let owner, lzEndpointBase, lzEndpointOther, baseOFT, otherOFT, LZEndpointMock, BasedOFT, OFT
 
     before(async function () {
         owner = (await ethers.getSigners())[0]
+        LZEndpointMock = await ethers.getContractFactory("LZEndpointMock")
+        BasedOFT = await ethers.getContractFactory("BasedOFT")
+        OFT = await ethers.getContractFactory("OFT")
     })
 
     beforeEach(async function () {
-        const LZEndpointMock = await ethers.getContractFactory("LZEndpointMock")
-        const BasedOFT = await ethers.getContractFactory("BasedOFT")
-        const OFT = await ethers.getContractFactory("OFT")
-
         lzEndpointBase = await LZEndpointMock.deploy(baseChainId)
         lzEndpointOther = await LZEndpointMock.deploy(otherChainId)
 

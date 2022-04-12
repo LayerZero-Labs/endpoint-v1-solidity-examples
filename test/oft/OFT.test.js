@@ -2,69 +2,62 @@ const { expect } = require("chai")
 const { ethers } = require("hardhat")
 
 describe("OFT: ", function () {
-    beforeEach(async function () {
-        this.accounts = await ethers.getSigners()
-        this.owner = this.accounts[0]
+    const chainIdSrc = 1
+    const chainIdDst = 2
+    const name = "OmnichainFungibleToken"
+    const symbol = "OFT"
+    const globalSupply = ethers.utils.parseUnits("1000000", 18)
 
-        const LZEndpointMock = await ethers.getContractFactory("LZEndpointMock")
-        const BasedOFT = await ethers.getContractFactory("BasedOFT")
-        const OmnichainFungibleToken = await ethers.getContractFactory("OFT")
+    let owner, lzEndpointSrcMock, lzEndpointDstMock, OFTSrc, OFTDst, LZEndpointMock, BasedOFT, OFT
 
-        this.chainIdSrc = 1
-        this.chainIdDst = 2
+    before(async function () {
+        owner = (await ethers.getSigners())[0]
 
-        this.lzEndpointSrcMock = await LZEndpointMock.deploy(this.chainIdSrc)
-        this.lzEndpointDstMock = await LZEndpointMock.deploy(this.chainIdDst)
-
-        this.initialSupplyOnEndpoint = ethers.utils.parseUnits("1000000", 18)
-
-        // create two OmnichainFungibleToken instances
-        this.OmnichainFungibleTokenSrc = await BasedOFT.deploy(
-            "NAME1",
-            "SYM1",
-            this.lzEndpointSrcMock.address,
-            this.initialSupplyOnEndpoint
-        )
-
-        this.OmnichainFungibleTokenDst = await OmnichainFungibleToken.deploy("NAME1", "SYM1", this.lzEndpointDstMock.address, 0)
-
-        this.lzEndpointSrcMock.setDestLzEndpoint(this.OmnichainFungibleTokenDst.address, this.lzEndpointDstMock.address)
-        this.lzEndpointDstMock.setDestLzEndpoint(this.OmnichainFungibleTokenSrc.address, this.lzEndpointSrcMock.address)
-
-        // set each contracts source address so it can send to each other
-        await this.OmnichainFungibleTokenSrc.setTrustedRemote(this.chainIdDst, this.OmnichainFungibleTokenDst.address) // for A, set B
-        await this.OmnichainFungibleTokenDst.setTrustedRemote(this.chainIdSrc, this.OmnichainFungibleTokenSrc.address) // for B, set A
-
-        // retrieve the starting tokens
-        this.startingTokens = await this.OmnichainFungibleTokenSrc.balanceOf(this.owner.address)
+        LZEndpointMock = await ethers.getContractFactory("LZEndpointMock")
+        BasedOFT = await ethers.getContractFactory("BasedOFT")
+        OFT = await ethers.getContractFactory("OFT")
     })
 
-    it("burn local tokens on source chain and mint on destination chain", async function () {
+    beforeEach(async function () {
+        lzEndpointSrcMock = await LZEndpointMock.deploy(chainIdSrc)
+        lzEndpointDstMock = await LZEndpointMock.deploy(chainIdDst)
+
+        // create two OmnichainFungibleToken instances
+        OFTSrc = await BasedOFT.deploy(name, symbol, lzEndpointSrcMock.address, globalSupply)
+        OFTDst = await OFT.deploy(name, symbol, lzEndpointDstMock.address, globalSupply)
+
+        // internal bookkeeping for endpoints (not part of a real deploy, just for this test)
+        lzEndpointSrcMock.setDestLzEndpoint(OFTDst.address, lzEndpointDstMock.address)
+        lzEndpointDstMock.setDestLzEndpoint(OFTSrc.address, lzEndpointSrcMock.address)
+
+        // set each contracts source address so it can send to each other
+        await OFTSrc.setTrustedRemote(chainIdDst, OFTDst.address) // for A, set B
+        await OFTDst.setTrustedRemote(chainIdSrc, OFTSrc.address) // for B, set A
+    })
+
+    it("send() - burn local tokens on source chain and mint on destination chain", async function () {
         // ensure they're both starting from 1000000
-        let a = await this.OmnichainFungibleTokenSrc.balanceOf(this.owner.address)
-        let b = await this.OmnichainFungibleTokenDst.balanceOf(this.owner.address)
-        expect(a).to.be.equal(this.startingTokens)
-        expect(b).to.be.equal("0x0")
+        expect(await OFTSrc.balanceOf(owner.address)).to.be.equal(globalSupply)
+        expect(await OFTDst.balanceOf(owner.address)).to.be.equal("0")
 
         // v1 adapterParams, encoded for version 1 style, and 200k gas quote
-        let adapterParam = ethers.utils.solidityPack(["uint16", "uint256"], [1, 225000])
+        const adapterParam = ethers.utils.solidityPack(["uint16", "uint256"], [1, 225000])
+        // amount to be sent across
+        const sendQty = ethers.utils.parseUnits("100", 18)
 
         // approve and send tokens
-        let sendQty = ethers.utils.parseUnits("100", 18)
-        await this.OmnichainFungibleTokenSrc.approve(this.OmnichainFungibleTokenSrc.address, sendQty)
-        await this.OmnichainFungibleTokenSrc.send(
-            this.chainIdDst,
-            ethers.utils.solidityPack(["address"], [this.owner.address]),
+        await OFTSrc.approve(OFTSrc.address, sendQty)
+        await OFTSrc.send(
+            chainIdDst,
+            ethers.utils.solidityPack(["address"], [owner.address]),
             sendQty,
-            this.owner.address,
+            owner.address,
             ethers.constants.AddressZero,
             adapterParam
         )
 
         // verify tokens burned on source chain and minted on destination chain
-        a = await this.OmnichainFungibleTokenSrc.balanceOf(this.owner.address)
-        b = await this.OmnichainFungibleTokenDst.balanceOf(this.owner.address)
-        expect(a).to.be.equal(this.startingTokens.sub(sendQty))
-        expect(b).to.be.equal(sendQty)
+        expect(await OFTSrc.balanceOf(owner.address)).to.be.equal(globalSupply.sub(sendQty))
+        expect(await OFTDst.balanceOf(owner.address)).to.be.equal(sendQty)
     })
 })
