@@ -1,30 +1,32 @@
-# LayerZero Omnichain Contracts
+# LayerZero Omnichain Contract Examples
 
  ### Install & Run tests
 ```shell
-npm install
+yarn install
 npx hardhat test 
 ```
 
-* The examples in the `example` folder are meant for demonstrating LayerZero messaging behaviours. 
+* The code in the `/contracts` folder demonstrates LayerZero behaviours.
+* `NonblockingLzApp` is a great contract to extend. Take a look at how `OmniCounter` overrides `_nonblockingLzReceive` and `_LzReceive` to easily handle messaging. There are also example for `OFT` and `ONFT` which illustrate erc20 and erc721 cross chain functionality.
 * Always audit your own code and test extensively on `testnet` before going to mainnet 🙏
 
 # OmnichainFungibleToken (OFT)
 
 The `OmnichainFungibleToken` has two varieties of deployments:
- 1. `BasedOFT.sol` - The token supply is minted at deploy time on the `base` chain. Other chains deploy with 0 supply initially. 
- 2. `OFT.sol` - At deploy time, any token supply can be minted on the local chain.    
+ 1. `BasedOFT.sol` - The token supply is minted (on deployment) on the `base` chain. Other chains deploy with 0 supply initially. 
+ 2. `OFT.sol` - At deploy time, any quantity of tokens can be minted, regardless of chain.    
 
- For the `BasedOFT` variety, all tokens transferred out of the `base` chain will be locked in the base contract (and minted on destination), and tokens transferred out of `other` chains will be burned on that chain (and minted on destination). This results in the `Base chain` being like the home base. The initial supply will be minted entirely on the `Base Chain` on deployment.
- 
+ For the `BasedOFT`, the initial supply will be minted entirely on the `Base Chain` on deployment. All tokens transferred out of the `base` chain will be locked in the contract (and minted on destination), and tokens transferred out of `other` chains will be burned on that chain. Tokens returning to the `base` chain will be `unlocked` and transferred to the destination address. This results in the `Base chain` being like the home base, hence the name.
+
 In the example deployment below we use `BasedOFT` and the `base` chain is ```rinkeby```.
 This setting is configured in ```constants/oftBaseChain.json```.
 The `OmnichainFungibleToken` deployed on other chains will use this configuration to set their `base` chain.
 Using the Ethereum network ```(testnet: rinkeby)``` as a `base` (really its like the source of truth) is a security decision.
 In the event a chain goes rogue, Ethereum will be the final source of truth for OFT tokens.
 
-# Deploy Examples
-> Add a .env file with your MNEMONIC="" and fund your wallet in order to deploy!
+## Deploy Setup
+1. Add a .env file (to the root project directory) with your MNEMONIC="" and fund your wallet in order to deploy!
+2. Follow any of the tutorials below
 
 ## BasedOFT.sol - an omnichain ERC20
 
@@ -42,9 +44,9 @@ npx hardhat --network fuji oftSetTrustedRemote --target-network rinkeby
 ```
 3. Send tokens from rinkeby to fuji
 ```angular2html
-npx hardhat --network rinkeby oftSendTokens --target-network fuji --qty 250
+npx hardhat --network rinkeby oftSend --target-network fuji --qty 42
 ```
-
+ Pro-tip: Check the ERC20 transactions tab of the destination chain block explorer and await your tokens!
 
 # OmnichainNonFungibleToken (ONFT)
 
@@ -80,8 +82,8 @@ npx hardhat --network bsc-testnet onftSend --target-network fuji --token-id 1
 ```
 6. Verify your token no longer exists on the source chain & wait for it to reach the destination side.
 ```angular2html
- npx hardhat --network bsc-testnet  onftOwnerOf --token-id 1
- npx hardhat --network fuji  onftOwnerOf --token-id 1
+ npx hardhat --network bsc-testnet onftOwnerOf --token-id 1
+ npx hardhat --network fuji onftOwnerOf --token-id 1
 ```
 
 

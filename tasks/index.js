@@ -50,7 +50,7 @@ task(
 
 //
 task(
-    "onftSetTrustedSource",
+    "onftSetTrustedRemote",
     "setTrustedRemote(chainId, sourceAddr) to allow the local contract to send/receive messages from known source contracts",
     require("./onftSetTrustedRemote")
 )
