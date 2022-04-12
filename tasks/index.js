@@ -36,15 +36,10 @@ task(
     "oftSetTrustedRemote",
     "setTrustedRemote(chainId, sourceAddr) to enable inbound/outbound messages with your other contracts",
     require("./oftSetTrustedRemote")
-)
-    .addParam("targetNetwork", "the target network to set as a trusted remote")
+).addParam("targetNetwork", "the target network to set as a trusted remote")
 
 //
-task(
-    "oftSend",
-    "basedOFT.send()  tokens to another chain",
-    require("./oftSend")
-)
+task("oftSend", "basedOFT.send()  tokens to another chain", require("./oftSend"))
     .addParam("qty", "qty of tokens to send")
     .addParam("targetNetwork", "the target network to let this instance receive messages from")
 
@@ -53,14 +48,10 @@ task(
     "onftSetTrustedRemote",
     "setTrustedRemote(chainId, sourceAddr) to allow the local contract to send/receive messages from known source contracts",
     require("./onftSetTrustedRemote")
-)
-    .addParam("targetNetwork", "the target network to let this instance receive messages from")
+).addParam("targetNetwork", "the target network to let this instance receive messages from")
 
 //
-task("onftOwnerOf", "ownerOf(tokenId) to get the owner of a token", require("./onftOwnerOf")).addParam(
-    "tokenId",
-    "the tokenId of ONFT"
-)
+task("onftOwnerOf", "ownerOf(tokenId) to get the owner of a token", require("./onftOwnerOf")).addParam("tokenId", "the tokenId of ONFT")
 
 //
 task("onftMint", "mint() mint ONFT", require("./onftMint"))

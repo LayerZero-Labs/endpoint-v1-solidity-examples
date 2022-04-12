@@ -17,13 +17,7 @@ module.exports = async function ({ deployments, getNamedAccounts }) {
 
     await deploy("BasedOFT", {
         from: deployer,
-        args: [
-            "BasedOFT",
-            "OFT",
-            endpointAddr,
-            baseChainId === currentChainId ? ethers.utils.parseUnits("1000000", 18) : 0,
-            baseChainId
-        ],
+        args: ["BasedOFT", "OFT", endpointAddr, baseChainId === currentChainId ? ethers.utils.parseUnits("1000000", 18) : 0, baseChainId],
         log: true,
         waitConfirmations: 1,
     })

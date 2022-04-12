@@ -12,17 +12,12 @@ import "./LzApp.sol";
 abstract contract NonblockingLzApp is LzApp {
     constructor(address _endpoint) LzApp(_endpoint) {}
 
-    mapping(uint16 => mapping(bytes => mapping(uint256 => bytes32))) public failedMessages;
+    mapping(uint16 => mapping(bytes => mapping(uint => bytes32))) public failedMessages;
 
     event MessageFailed(uint16 _srcChainId, bytes _srcAddress, uint64 _nonce, bytes _payload);
 
     // overriding the virtual function in LzReceiver
-    function _LzReceive(
-        uint16 _srcChainId,
-        bytes memory _srcAddress,
-        uint64 _nonce,
-        bytes memory _payload
-    ) internal virtual override {
+    function _LzReceive(uint16 _srcChainId, bytes memory _srcAddress, uint64 _nonce, bytes memory _payload) internal virtual override {
         // try-catch all errors/exceptions
         try this.nonblockingLzReceive(_srcChainId, _srcAddress, _nonce, _payload) {
             // do nothing
@@ -33,31 +28,16 @@ abstract contract NonblockingLzApp is LzApp {
         }
     }
 
-    function nonblockingLzReceive(
-        uint16 _srcChainId,
-        bytes memory _srcAddress,
-        uint64 _nonce,
-        bytes memory _payload
-    ) public virtual {
+    function nonblockingLzReceive(uint16 _srcChainId, bytes memory _srcAddress, uint64 _nonce, bytes memory _payload) public virtual {
         // only internal transaction
         require(_msgSender() == address(this), "LzReceiver: caller must be Bridge.");
         _nonblockingLzReceive(_srcChainId, _srcAddress, _nonce, _payload);
     }
 
     //@notice override this function
-    function _nonblockingLzReceive(
-        uint16 _srcChainId,
-        bytes memory _srcAddress,
-        uint64 _nonce,
-        bytes memory _payload
-    ) internal virtual;
+    function _nonblockingLzReceive(uint16 _srcChainId, bytes memory _srcAddress, uint64 _nonce, bytes memory _payload) internal virtual;
 
-    function retryMessage(
-        uint16 _srcChainId,
-        bytes memory _srcAddress,
-        uint64 _nonce,
-        bytes calldata _payload
-    ) external payable virtual {
+    function retryMessage(uint16 _srcChainId, bytes memory _srcAddress, uint64 _nonce, bytes calldata _payload) external payable virtual {
         // assert there is message to retry
         bytes32 payloadHash = failedMessages[_srcChainId][_srcAddress][_nonce];
         require(payloadHash != bytes32(0), "LzReceiver: no stored message");

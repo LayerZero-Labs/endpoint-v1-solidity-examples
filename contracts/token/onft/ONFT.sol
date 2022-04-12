@@ -11,44 +11,17 @@ import "@openzeppelin/contracts/token/ERC721/ERC721.sol";
 abstract contract ONFT is IONFT, NonblockingLzApp, ERC721 {
     string public baseTokenURI;
 
-    constructor(
-        string memory _name,
-        string memory _symbol,
-        address _lzEndpoint
-    ) ERC721(_name, _symbol) NonblockingLzApp(_lzEndpoint) {}
+    constructor(string memory _name, string memory _symbol, address _lzEndpoint) ERC721(_name, _symbol) NonblockingLzApp(_lzEndpoint) {}
 
-    function sendFrom(
-        address _from,
-        uint16 _dstChainId,
-        bytes calldata _toAddress,
-        uint256 _tokenId,
-        address payable _refundAddress,
-        address _zroPaymentAddress,
-        bytes calldata _adapterParam
-    ) external payable virtual override {
+    function sendFrom(address _from, uint16 _dstChainId, bytes calldata _toAddress, uint _tokenId, address payable _refundAddress, address _zroPaymentAddress, bytes calldata _adapterParam) external payable virtual override {
         _send(_from, _dstChainId, _toAddress, _tokenId, _refundAddress, _zroPaymentAddress, _adapterParam);
     }
 
-    function send(
-        uint16 _dstChainId,
-        bytes calldata _toAddress,
-        uint256 _tokenId,
-        address payable _refundAddress,
-        address _zroPaymentAddress,
-        bytes calldata _adapterParam
-    ) external payable virtual override {
+    function send(uint16 _dstChainId, bytes calldata _toAddress, uint _tokenId, address payable _refundAddress, address _zroPaymentAddress, bytes calldata _adapterParam) external payable virtual override {
         _send(_msgSender(), _dstChainId, _toAddress, _tokenId, _refundAddress, _zroPaymentAddress, _adapterParam);
     }
 
-    function _send(
-        address _from,
-        uint16 _dstChainId,
-        bytes memory _toAddress,
-        uint256 _tokenId,
-        address payable _refundAddress,
-        address _zroPaymentAddress,
-        bytes calldata _adapterParam
-    ) internal virtual {
+    function _send(address _from, uint16 _dstChainId, bytes memory _toAddress, uint _tokenId, address payable _refundAddress, address _zroPaymentAddress, bytes calldata _adapterParam) internal virtual {
         require(_isApprovedOrOwner(_msgSender(), _tokenId), "ERC721: transfer caller is not owner nor approved");
         _beforeSend(_from, _dstChainId, _toAddress, _tokenId);
 
@@ -60,16 +33,11 @@ abstract contract ONFT is IONFT, NonblockingLzApp, ERC721 {
         _afterSend(_from, _dstChainId, _toAddress, _tokenId);
     }
 
-    function _nonblockingLzReceive(
-        uint16 _srcChainId,
-        bytes memory _srcAddress,
-        uint64 _nonce,
-        bytes memory _payload
-    ) internal virtual override {
+    function _nonblockingLzReceive(uint16 _srcChainId, bytes memory _srcAddress, uint64 _nonce, bytes memory _payload) internal virtual override {
         _beforeReceive(_srcChainId, _srcAddress, _payload);
 
         // decode and load the toAddress
-        (bytes memory toAddress, uint256 tokenId) = abi.decode(_payload, (bytes, uint256));
+        (bytes memory toAddress, uint tokenId) = abi.decode(_payload, (bytes, uint));
         address localToAddress;
         assembly {
             localToAddress := mload(add(toAddress, 20))
@@ -86,7 +54,7 @@ abstract contract ONFT is IONFT, NonblockingLzApp, ERC721 {
         address, // _from
         uint16, // _dstChainId
         bytes memory, // _toAddress
-        uint256 _tokenId
+        uint _tokenId
     ) internal virtual {
         _burn(_tokenId);
     }
@@ -95,7 +63,7 @@ abstract contract ONFT is IONFT, NonblockingLzApp, ERC721 {
         address, // _from
         uint16, // _dstChainId
         bytes memory, // _toAddress
-        uint256 // _tokenId
+        uint // _tokenId
     ) internal virtual {}
 
     function _beforeReceive(
@@ -107,7 +75,7 @@ abstract contract ONFT is IONFT, NonblockingLzApp, ERC721 {
     function _afterReceive(
         uint16, // _srcChainId
         address _toAddress,
-        uint256 _tokenId
+        uint _tokenId
     ) internal virtual {
         _safeMint(_toAddress, _tokenId);
     }

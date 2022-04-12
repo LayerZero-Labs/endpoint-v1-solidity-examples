@@ -40,8 +40,8 @@ describe("PingPong", function () {
         await this.pingPongA.setTrustedRemote(this.chainIdDst, this.pingPongB.address) // for A, set B
         await this.pingPongB.setTrustedRemote(this.chainIdSrc, this.pingPongA.address) // for B, set A
 
-        await this.pingPongA.enable(true);
-        await this.pingPongB.enable(true);
+        await this.pingPongA.enable(true)
+        await this.pingPongB.enable(true)
     })
 
     it("increment the counter of the destination PingPong when paused should revert", async function () {
@@ -49,8 +49,8 @@ describe("PingPong", function () {
     })
 
     it("increment the counter of the destination PingPong when unpaused show not revert", async function () {
-        await this.pingPongA.enable(false);
-        await this.pingPongB.enable(false);
-        await this.pingPongA.ping(this.chainIdDst, this.pingPongB.address, 0);
+        await this.pingPongA.enable(false)
+        await this.pingPongB.enable(false)
+        await this.pingPongA.ping(this.chainIdDst, this.pingPongB.address, 0)
     })
 })
