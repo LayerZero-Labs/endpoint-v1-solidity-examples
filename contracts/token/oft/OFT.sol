@@ -8,8 +8,11 @@ import "./IOFT.sol";
 
 // override decimal() function is needed
 contract OFT is NonblockingLzApp, IOFT, ERC20 {
-    constructor(string memory _name, string memory _symbol, address _lzEndpoint, uint _initialSupply) ERC20(_name, _symbol) NonblockingLzApp(_lzEndpoint) {
-        _mint(_msgSender(), _initialSupply);
+    uint public immutable globalSupply;
+
+    constructor(string memory _name, string memory _symbol, address _lzEndpoint, uint _globalSupply) ERC20(_name, _symbol) NonblockingLzApp(_lzEndpoint) {
+        if (getType() == 1) _mint(_msgSender(), _globalSupply);
+        globalSupply = _globalSupply;
     }
 
     /**
@@ -30,8 +33,12 @@ contract OFT is NonblockingLzApp, IOFT, ERC20 {
         _send(_from, _dstChainId, _toAddress, _amount, _refundAddress, _zroPaymentAddress, _adapterParam);
     }
 
-    function getType() virtual override returns(uint) {
+    function getType() public view virtual override returns(uint) {
         return 0;
+    }
+
+    function getGlobalSupply() public view virtual override returns(uint) {
+        return globalSupply;
     }
 
     function estimateSendFee(uint16 _dstChainId, bytes calldata _toAddress, bool _useZro, uint _amount, bytes calldata _adapterParams) public view virtual returns (uint nativeFee, uint zroFee) {

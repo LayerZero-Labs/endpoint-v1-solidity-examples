@@ -36,7 +36,7 @@ contract ProxyOFT is NonblockingLzApp {
         return token.totalSupply();
     }
 
-    function _nonblockingLzReceive(uint16 _srcChainId, bytes memory _srcAddress, uint64 _nonce, bytes memory _payload) internal virtual override {
+    function _nonblockingLzReceive(uint16 _srcChainId, bytes memory /*_srcAddress*/, uint64 _nonce, bytes memory _payload) internal virtual override {
         // decode and load the toAddress
         (bytes memory toAddressBytes, uint amount) = abi.decode(_payload, (bytes, uint));
         address toAddress;
@@ -59,7 +59,7 @@ contract ProxyOFT is NonblockingLzApp {
         emit SendToChain(_from, _dstChainId, _toAddress, _amount, nonce);
     }
 
-    function _debitFrom(address _from, uint16 _dstChainId, bytes memory _toAddress, uint _amount) internal virtual {
+    function _debitFrom(address _from, uint16 /*_dstChainId*/, bytes memory /*_toAddress*/, uint _amount) internal virtual {
         token.safeTransferFrom(_from, address(this), _amount);
     }
 

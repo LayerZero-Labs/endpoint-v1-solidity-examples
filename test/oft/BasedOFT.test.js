@@ -16,6 +16,7 @@ describe("BasedOFT: ", function () {
 
         const LZEndpointMock = await ethers.getContractFactory("LZEndpointMock")
         const BasedOFT = await ethers.getContractFactory("BasedOFT")
+        const OFT = await ethers.getContractFactory("OFT")
 
         this.lzEndpointBase = await LZEndpointMock.deploy(baseChainId)
         this.lzEndpointOther = await LZEndpointMock.deploy(otherChainId)
@@ -26,8 +27,8 @@ describe("BasedOFT: ", function () {
         // create two BasedOFT instances. both tokens have the same name and symbol on each chain
         // 1. base chain
         // 2. other chain
-        this.baseOFT = await BasedOFT.deploy(name, symbol, this.lzEndpointBase.address, intialSupplyBaseChain, baseChainId)
-        this.otherOFT = await BasedOFT.deploy(name, symbol, this.lzEndpointOther.address, intialSupplyBaseChain, baseChainId)
+        this.baseOFT = await BasedOFT.deploy(name, symbol, this.lzEndpointBase.address, intialSupplyBaseChain)
+        this.otherOFT = await OFT.deploy(name, symbol, this.lzEndpointOther.address, intialSupplyBaseChain)
 
         // internal bookkeepping for endpoints (not part of a real deploy, just for this test)
         this.lzEndpointBase.setDestLzEndpoint(this.otherOFT.address, this.lzEndpointOther.address)
