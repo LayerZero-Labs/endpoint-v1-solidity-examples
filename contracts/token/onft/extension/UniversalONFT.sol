@@ -10,8 +10,8 @@ contract UniversalONFT is ONFT {
     uint maxMint;
 
     /// @notice Constructor for the UniversalONFT
-    /// @param _name the name of the oft
-    /// @param _symbol the oft symbol
+    /// @param _name the name of the token
+    /// @param _symbol the token symbol
     /// @param _layerZeroEndpoint handles message transmission across chains
     /// @param _startMintIndex the starting mint number on this chain
     /// @param _maxMint the max number of mints on this chain

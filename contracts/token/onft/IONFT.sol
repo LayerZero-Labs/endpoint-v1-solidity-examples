@@ -9,7 +9,7 @@ import "@openzeppelin/contracts/token/ERC721/IERC721.sol";
  */
 interface IONFT is IERC721 {
     /**
-     * @dev send oft `_tokenId` to (`_dstChainId`, `_toAddress`)
+     * @dev send token `_tokenId` to (`_dstChainId`, `_toAddress`)
      * `_toAddress` can be any size depending on the `dstChainId`.
      * `_zroPaymentAddress` set to address(0x0) if not paying in ZRO (LayerZero Token)
      * `_adapterParam` is a flexible bytes array to indicate messaging adapter services
@@ -17,7 +17,7 @@ interface IONFT is IERC721 {
     function send(uint16 _dstChainId, bytes calldata _toAddress, uint _tokenId, address payable _refundAddress, address _zroPaymentAddress, bytes calldata _adapterParam) external payable;
 
     /**
-     * @dev send oft `_tokenId` to (`_dstChainId`, `_toAddress`) from `_from`
+     * @dev send token `_tokenId` to (`_dstChainId`, `_toAddress`) from `_from`
      * `_toAddress` can be any size depending on the `dstChainId`.
      * `_zroPaymentAddress` set to address(0x0) if not paying in ZRO (LayerZero Token)
      * `_adapterParam` is a flexible bytes array to indicate messaging adapter services

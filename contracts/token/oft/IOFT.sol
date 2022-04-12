@@ -9,7 +9,7 @@ import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
  */
 interface IOFT is IERC20 {
     /**
-     * @dev send `_amount` amount of oft to (`_dstChainId`, `_toAddress`)
+     * @dev send `_amount` amount of token to (`_dstChainId`, `_toAddress`)
      * `_toAddress` can be any size depending on the `dstChainId`.
      * `_amount` the quantity of tokens in wei
      * `_refundAddress` the address LayerZero refunds if too much message fee is sent
@@ -19,7 +19,7 @@ interface IOFT is IERC20 {
     function send(uint16 _dstChainId, bytes calldata _toAddress, uint _amount, address payable _refundAddress, address _zroPaymentAddress, bytes calldata _adapterParams) external payable;
 
     /**
-     * @dev send `_amount` amount of oft to (`_dstChainId`, `_toAddress`) from `_from`
+     * @dev send `_amount` amount of token to (`_dstChainId`, `_toAddress`) from `_from`
      * `_dstChainId` the destination chain identifier
      * `_toAddress` can be any size depending on the `dstChainId`.
      * `_amount` the quantity of tokens in wei
