@@ -21,7 +21,7 @@ module.exports = async function ({ deployments, getNamedAccounts }) {
             "BasedOFT",
             "OFT",
             endpointAddr,
-            baseChainId === currentChainId ? ethers.utils.parseUnits("1000000", 18) : ethers.utils.parseUnits("0", 18),
+            baseChainId === currentChainId ? ethers.utils.parseUnits("1000000", 18) : 0,
             baseChainId
         ],
         log: true,

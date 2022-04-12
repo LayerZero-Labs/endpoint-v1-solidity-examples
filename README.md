@@ -9,11 +9,7 @@ npx hardhat test
 * The examples in the `example` folder are meant for demonstrating LayerZero messaging behaviours. 
 * Always audit your own code and test extensively on `testnet` before going to mainnet 🙏
 
-
-
-> WARNING: For all examples that follow: You *must* perform the `setTrustedRemote` on each of your deployed contracts to allow inbound/outboud messages for all remote contracs.
-
-# OmnichainFungibleToken
+# OmnichainFungibleToken (OFT)
 
 The `OmnichainFungibleToken` has two varieties of deployments:
  1. `BasedOFT.sol` - The token supply is minted at deploy time on the `base` chain. Other chains deploy with 0 supply initially. 
@@ -27,7 +23,13 @@ The `OmnichainFungibleToken` deployed on other chains will use this configuratio
 Using the Ethereum network ```(testnet: rinkeby)``` as a `base` (really its like the source of truth) is a security decision.
 In the event a chain goes rogue, Ethereum will be the final source of truth for OFT tokens.
 
-# Are you down [to deploy] with OFT?
+# Deploy Examples
+> Add a .env file with your MNEMONIC="" and fund your wallet in order to deploy!
+
+## BasedOFT.sol - an omnichain ERC20
+
+> WARNING: **You must perform the setTrustedRemote() (step 2).**
+
 1. Deploy two contracts:  ```rinkeby``` is the `base` chain
 ```angular2html
  npx hardhat --network rinkeby deploy --tags BasedOFT
@@ -42,55 +44,50 @@ npx hardhat --network fuji oftSetTrustedRemote --target-network rinkeby
 ```angular2html
 npx hardhat --network rinkeby oftSendTokens --target-network fuji --qty 250
 ```
-#### Note: Remember to add a .env file with your MNEMONIC=""
 
-# OmnichainNonFungibleToken - Send an ONFT to another chain
-> WARNING: **YOU NEED TO PERFORM THE SET TRUSTED SOURCES STEP.**
 
-In the `All Chain` implementation we deploy the contracts on the chains with a starting token id and max mint number. 
-The key is to separate the token ids so no same token id can be minted on different chains. 
-For our OmnichainNonFungibleToken example we deploy to two chains, `bsc-testnet` and `fuji`. 
-We set the starting token id on `bsc-testnet` to `0` and max mint to `50`. On `fuji` we set the starting token id to `50` and max mint to `100`.
-This way no same token id can be minted on the same chain. These setting are configured in ```constants/onftArgs.json```.
-When a transfer occurs between chains the ONFT will be `burned` on the source chain and `minted` on the destination chain.
+# OmnichainNonFungibleToken (ONFT)
 
-# Go Omnichain: Be the Deployooooor
+This ONFT contract allows minting of `nftId`s on separate chains. To ensure two chains can not mint the same `nfId` each contract on each chain is only allowed to mint`nftIds` in certain ranges.
+Check `constants/onftArgs.json` for the specific test configuration used in this demo.
+## UniversalONFT.sol 
+
+> WARNING: **You must perform the setTrustedRemote() (step 2).**
+
 1. Deploy two contracts:
 ```angular2html
- npx hardhat --network bsc-testnet deploy --tags OmnichainNonFungibleToken
- npx hardhat --network fuji deploy --tags OmnichainNonFungibleToken
+ npx hardhat --network bsc-testnet deploy --tags UniversalONFT
+ npx hardhat --network fuji deploy --tags UniversalONFT
 ```
-2. Set the trusted sources, so each contract can receive messages from one another, and `only` one another.
+2. Set the "trusted remotes", so each contract can send & receive messages from one another, and `only` one another.
 ```angular2html
- npx hardhat --network bsc-testnet omnichainNonFungibleTokenSetTrustedSource --target-network fuji
- npx hardhat --network fuji omnichainNonFungibleTokenSetTrustedSource --target-network bsc-testnet
+ npx hardhat --network bsc-testnet onftSetTrustedRemote --target-network fuji
+ npx hardhat --network fuji onftSetTrustedRemote --target-network bsc-testnet
 ```
-3. Mint your ONFT on each chain!
+3. Mint an NFT on each chain!
 ```angular2html
- npx hardhat --network bsc-testnet omnichainNonFungibleTokenMint
- npx hardhat --network fuji omnichainNonFungibleTokenMint
+ npx hardhat --network bsc-testnet onftMint
+ npx hardhat --network fuji onftMint
 ```
-4. Verify you are the owner of that token on that chain
+4. [Optional] Show the token owner(s)
 ```angular2html
- npx hardhat --network bsc-testnet  omnichainNonFungibleTokenOwnerOf --token-id 1
- npx hardhat --network fuji omnichainNonFungibleTokenOwnerOf --token-id 51
+ npx hardhat --network bsc-testnet onftOwnerOf --token-id 1
+ npx hardhat --network fuji onftOwnerOf --token-id 51
 ```
-5. Send ONFT's across chains
+5. Send ONFT across chains
 ```angular2html
-npx hardhat --network bsc-testnet omnichainNonFungibleTokenTransfer --target-network fuji --token-id 1
+npx hardhat --network bsc-testnet onftSend --target-network fuji --token-id 1
 ```
-6. Verify your token no longer exists on the source chain
+6. Verify your token no longer exists on the source chain & wait for it to reach the destination side.
 ```angular2html
- npx hardhat --network bsc-testnet  omnichainNonFungibleTokenOwnerOf --token-id 1
-```
-7. Lastly verify your token exist on the destination chain
-```angular2html
-npx hardhat --network fuji  omnichainNonFungibleTokenOwnerOf --token-id 1
+ npx hardhat --network bsc-testnet  onftOwnerOf --token-id 1
+ npx hardhat --network fuji  onftOwnerOf --token-id 1
 ```
 
-#### Note: Remember to add a .env file with your MNEMONIC=""
 
-# Testing Cross Chain Messages
+# OmniCounter.sol
+
+OmniCounter is a simple contract with a counter. You can only *remotely* increment the counter!
 
 1. Deploy both OmniCounters:
 
@@ -101,12 +98,12 @@ npx hardhat --network fuji deploy --tags OmniCounter
 
 2. Set the remote addresses, so each contract can receive messages
 ```angular2html
-npx hardhat --network bsc-testnet omniCounterSetDestination --target-network fuji
-npx hardhat --network fuji omniCounterSetDestination --target-network bsc-testnet
+npx hardhat --network bsc-testnet ocSetTrustedRemote --target-network fuji
+npx hardhat --network fuji ocSetTrustedSource --target-network bsc-testnet
 ```
 3. Send a cross chain message from `mumbai` to `fuji` !
 ```angular2html
-npx hardhat --network bsc-testnet omniCounterIncrementCounter --target-network fuji
+npx hardhat --network bsc-testnet ocIncrementCounter --target-network fuji
 ```
 
 Optionally use this command in a separate terminal to watch the counter increment in real-time.
@@ -127,14 +124,14 @@ npx hardhat --network fantom-testnet deploy --tags OmniCounter
 
 2. Set the remote addresses, so each contract can receive messages
 ```angular2html
-npx hardhat --network bsc-testnet omniCounterSetDestination --target-network fuji
-npx hardhat --network fuji omniCounterSetDestination --target-network bsc-testnet
+npx hardhat --network bsc-testnet ocSetTrustedRemote --target-network fuji
+npx hardhat --network fuji ocSetTrustedRemote --target-network bsc-testnet
 
-npx hardhat --network bsc-testnet omniCounterSetDestination --target-network mumbai
-npx hardhat --network mumbai omniCounterSetDestination --target-network bsc-testnet
+npx hardhat --network bsc-testnet ocSetTrustedRemote --target-network mumbai
+npx hardhat --network mumbai ocSetTrustedRemote --target-network bsc-testnet
 
-npx hardhat --network bsc-testnet omniCounterSetDestination --target-network fantom-testnet
-npx hardhat --network fantom-testnet omniCounterSetDestination --target-network bsc-testnet
+npx hardhat --network bsc-testnet ocSetTrustedRemote --target-network fantom-testnet
+npx hardhat --network fantom-testnet ocSetTrustedRemote --target-network bsc-testnet
 ```
 3. Send a cross chain message from `mumbai` to `fuji` !
 ```angular2html
