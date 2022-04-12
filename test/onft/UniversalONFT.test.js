@@ -1,8 +1,7 @@
 const { expect } = require("chai")
 const { ethers } = require("hardhat")
 
-describe("UniversalONFT", function () {
-
+describe("UniversalONFT: ", function () {
     let accounts, owner, chainIdSrc, chainIdDst, name, symbol, lzEndpointSrcMock, lzEndpointDstMock, UniversalONFTSrc, UniversalONFTDst
 
     before(async function () {
@@ -50,7 +49,7 @@ describe("UniversalONFT", function () {
         let onftTokenIdTemp = await ethers.provider.getTransactionReceipt(tx.hash)
         let onftTokenId = parseInt(Number(onftTokenIdTemp.logs[0].topics[3]));
 
-        // verify the owner of the token is on the source chain
+        // verify the owner of the oft is on the source chain
         let currentOwner = await UniversalONFTSrc.ownerOf(onftTokenId)
         expect(currentOwner).to.be.equal(owner.address)
 
@@ -71,10 +70,10 @@ describe("UniversalONFT", function () {
             adapterParam
         )
 
-        // verify the owner of the token is no longer on the source chain
-        await expect(UniversalONFTSrc.ownerOf(onftTokenId)).to.revertedWith("ERC721: owner query for nonexistent token")
+        // verify the owner of the oft is no longer on the source chain
+        await expect(UniversalONFTSrc.ownerOf(onftTokenId)).to.revertedWith("ERC721: owner query for nonexistent oft")
 
-        // verify the owner of the token is on the destination chain
+        // verify the owner of the oft is on the destination chain
         currentOwner = await UniversalONFTDst.ownerOf(onftTokenId)
         expect(currentOwner).to.not.equal(owner)
 

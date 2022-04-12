@@ -1,7 +1,7 @@
 const { expect } = require("chai")
 const { ethers } = require("hardhat")
 
-describe("OmnichainFungibleToken", function () {
+describe("OFT: ", function () {
     beforeEach(async function () {
         this.accounts = await ethers.getSigners()
         this.owner = this.accounts[0]

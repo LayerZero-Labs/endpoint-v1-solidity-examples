@@ -18,7 +18,7 @@ contract OFT is NonblockingLzApp, IOFT, ERC20 {
     }
 
     /**
-     * @dev send `_amount` amount of token to (`_dstChainId`, `_toAddress`)
+     * @dev send `_amount` amount of oft to (`_dstChainId`, `_toAddress`)
      * `_dstChainId` the destination chain identifier
      * `_toAddress` can be any size depending on the `dstChainId`.
      * `_amount` the quantity of tokens in wei

@@ -4,7 +4,7 @@ pragma solidity ^0.8.0;
 import "../OFT.sol";
 
 contract BasedOFT is OFT {
-    // true indicates this is the base chain for this token
+    // true indicates this is the base chain for this oft
     bool public immutable isBase;
 
     constructor(

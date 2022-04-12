@@ -18,7 +18,7 @@ import "@openzeppelin/contracts/security/Pausable.sol";
 import "../lzApp/NonblockingLzApp.sol";
 
 contract PingPong is NonblockingLzApp, Pausable {
-    // event emitted every ping() to keep track of consecutive pings count
+    // event emitted every ping() to keep track of consecutive _pings count
     event Ping(uint256 pings);
 
     // constructor requires the LayerZero endpoint for this chain
@@ -37,7 +37,7 @@ contract PingPong is NonblockingLzApp, Pausable {
     function ping(
         uint16 _dstChainId, // send a ping to this destination chainId
         address _dstPingPongAddr, // destination address of PingPong contract
-        uint256 pings // the number of pings
+        uint256 _pings // the number of pings
     ) public whenNotPaused {
         require(
             this.isTrustedRemote(_dstChainId, abi.encodePacked(_dstPingPongAddr)),
@@ -45,10 +45,10 @@ contract PingPong is NonblockingLzApp, Pausable {
         );
         require(address(this).balance > 0, "the balance of this contract is 0. pls send gas for message fees");
 
-        emit Ping(++pings);
+        emit Ping(++_pings);
 
         // encode the payload with the number of pings
-        bytes memory payload = abi.encode(pings);
+        bytes memory payload = abi.encode(_pings);
 
         // use adapterParams v1 to specify more gas for the destination
         uint16 version = 1;
@@ -73,7 +73,7 @@ contract PingPong is NonblockingLzApp, Pausable {
     function _nonblockingLzReceive(
         uint16 _srcChainId,
         bytes memory _srcAddress,
-        uint64 _nonce,
+        uint64, // _nonce
         bytes memory _payload
     ) internal override {
         // use assembly to extract the address from the bytes memory parameter

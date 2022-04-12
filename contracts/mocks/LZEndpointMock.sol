@@ -69,7 +69,7 @@ contract LZEndpointMock is ILayerZeroEndpoint {
             nonce = ++outboundNonce[_chainId][msg.sender];
         }
 
-        // Mock the relayer paying the dstNativeAddr the amount of extra native token
+        // Mock the relayer paying the dstNativeAddr the amount of extra native oft
         {
             uint256 dstNative;
             address dstNativeAddr;
@@ -99,8 +99,8 @@ contract LZEndpointMock is ILayerZeroEndpoint {
     // @param _dstChainId - the destination chain identifier
     // @param _userApplication - the user app address on this EVM chain
     // @param _payload - the custom message to send over LayerZero
-    // @param _payInZRO - if false, user app pays the protocol fee in native token
-    // @param _adapterParam - parameters for the adapter service, e.g. send some dust native token to dstChain
+    // @param _payInZRO - if false, user app pays the protocol fee in native oft
+    // @param _adapterParam - parameters for the adapter service, e.g. send some dust native oft to dstChain
     function estimateFees(
         uint16,
         address,

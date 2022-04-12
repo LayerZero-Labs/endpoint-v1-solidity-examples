@@ -57,7 +57,7 @@ task(
     .addParam("targetNetwork", "the target network to let this instance receive messages from")
 
 //
-task("onftOwnerOf", "ownerOf(tokenId) to get the owner of a token", require("./onftOwnerOf")).addParam(
+task("onftOwnerOf", "ownerOf(tokenId) to get the owner of a oft", require("./onftOwnerOf")).addParam(
     "tokenId",
     "the tokenId of ONFT"
 )

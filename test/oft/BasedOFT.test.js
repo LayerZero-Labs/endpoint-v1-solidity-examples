@@ -1,7 +1,7 @@
 const { expect } = require("chai")
 const { ethers } = require("hardhat")
 
-describe("BasedOFT", function () {
+describe("BasedOFT: ", function () {
     let baseChainId = 1
     let otherChainId = 2
 
