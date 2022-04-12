@@ -67,7 +67,7 @@ contract PingPong is NonblockingLzApp, Pausable {
         );
     }
 
-    function _nonblockingLzReceive(uint16 _srcChainId, bytes memory _srcAddress, uint64 _nonce, bytes memory _payload) internal override {
+    function _nonblockingLzReceive(uint16 _srcChainId, bytes memory _srcAddress, uint64 /*_nonce*/, bytes memory _payload) internal override {
         // use assembly to extract the address from the bytes memory parameter
         address sendBackToAddress;
         assembly {

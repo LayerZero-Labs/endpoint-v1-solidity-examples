@@ -1,12 +1,13 @@
 const { expect } = require("chai")
 const { ethers } = require("hardhat")
 
-describe("OmnichainFungibleToken", function () {
+describe("OFT: ", function () {
     beforeEach(async function () {
         this.accounts = await ethers.getSigners()
         this.owner = this.accounts[0]
 
         const LZEndpointMock = await ethers.getContractFactory("LZEndpointMock")
+        const BasedOFT = await ethers.getContractFactory("BasedOFT")
         const OmnichainFungibleToken = await ethers.getContractFactory("OFT")
 
         this.chainIdSrc = 1
@@ -18,7 +19,7 @@ describe("OmnichainFungibleToken", function () {
         this.initialSupplyOnEndpoint = ethers.utils.parseUnits("1000000", 18)
 
         // create two OmnichainFungibleToken instances
-        this.OmnichainFungibleTokenSrc = await OmnichainFungibleToken.deploy(
+        this.OmnichainFungibleTokenSrc = await BasedOFT.deploy(
             "NAME1",
             "SYM1",
             this.lzEndpointSrcMock.address,

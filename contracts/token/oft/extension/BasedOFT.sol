@@ -4,7 +4,7 @@ pragma solidity ^0.8.0;
 import "../OFT.sol";
 
 contract BasedOFT is OFT {
-    constructor(string memory _name, string memory _symbol, address _lzEndpoint, uint _initialSupply) OFT(_name, _symbol, _lzEndpoint, _initialSupply) {}
+    constructor(string memory _name, string memory _symbol, address _lzEndpoint, uint _globalSupply) OFT(_name, _symbol, _lzEndpoint, _globalSupply) {}
 
     function _debitFrom(address, uint16, bytes memory, uint _amount) internal override {
         _transfer(_msgSender(), address(this), _amount);
@@ -14,7 +14,7 @@ contract BasedOFT is OFT {
         _transfer(address(this), _toAddress, _amount);
     }
 
-    function getType() virtual override returns(uint) {
+    function getType() public view virtual override returns(uint) {
         return 1;
     }
 }

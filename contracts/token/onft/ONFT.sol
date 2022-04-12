@@ -80,13 +80,10 @@ abstract contract ONFT is IONFT, NonblockingLzApp, ERC721 {
         _safeMint(_toAddress, _tokenId);
     }
 
-    /// @notice Set the baseTokenURI
-    /// @param _baseTokenURI to set
     function setBaseURI(string memory _baseTokenURI) public onlyOwner {
         baseTokenURI = _baseTokenURI;
     }
 
-    /// @notice Get the base URI
     function _baseURI() internal view override returns (string memory) {
         return baseTokenURI;
     }

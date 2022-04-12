@@ -32,7 +32,12 @@ interface IOFT is IERC20 {
     /**
      * @dev returns the type of OFT
      */
-    function getType() returns(uint);
+    function getType() external returns(uint);
+
+    /**
+     * @dev returns the total amount of tokens across all chains
+     */
+    function getGlobalSupply() external returns(uint);
 
     /**
      * @dev Emitted when `_amount` tokens are moved from the `_sender` to (`_dstChainId`, `_toAddress`)
