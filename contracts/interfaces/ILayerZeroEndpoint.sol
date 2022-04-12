@@ -10,16 +10,9 @@ interface ILayerZeroEndpoint is ILayerZeroUserApplicationConfig {
     // @param _destination - the address on destination chain (in bytes). address length/format may vary by chains
     // @param _payload - a custom bytes payload to send to the destination contract
     // @param _refundAddress - if the source transaction is cheaper than the amount of value passed, refund the additional amount to this address
-    // @param _zroPaymentAddress - the address of the ZRO oft holder who would pay for the transaction
+    // @param _zroPaymentAddress - the address of the ZRO token holder who would pay for the transaction
     // @param _adapterParams - parameters for custom functionality. e.g. receive airdropped native gas from the relayer on destination
-    function send(
-        uint16 _dstChainId,
-        bytes calldata _destination,
-        bytes calldata _payload,
-        address payable _refundAddress,
-        address _zroPaymentAddress,
-        bytes calldata _adapterParams
-    ) external payable;
+    function send(uint16 _dstChainId, bytes calldata _destination, bytes calldata _payload, address payable _refundAddress, address _zroPaymentAddress, bytes calldata _adapterParams) external payable;
 
     // @notice used by the messaging library to publish verified payload
     // @param _srcChainId - the source chain identifier
@@ -28,14 +21,7 @@ interface ILayerZeroEndpoint is ILayerZeroUserApplicationConfig {
     // @param _nonce - the unbound message ordering nonce
     // @param _gasLimit - the gas limit for external contract execution
     // @param _payload - verified payload to send to the destination contract
-    function receivePayload(
-        uint16 _srcChainId,
-        bytes calldata _srcAddress,
-        address _dstAddress,
-        uint64 _nonce,
-        uint256 _gasLimit,
-        bytes calldata _payload
-    ) external;
+    function receivePayload(uint16 _srcChainId, bytes calldata _srcAddress, address _dstAddress, uint64 _nonce, uint _gasLimit, bytes calldata _payload) external;
 
     // @notice get the inboundNonce of a lzApp from a source chain which could be EVM or non-EVM chain
     // @param _srcChainId - the source chain identifier
@@ -50,15 +36,9 @@ interface ILayerZeroEndpoint is ILayerZeroUserApplicationConfig {
     // @param _dstChainId - the destination chain identifier
     // @param _userApplication - the user app address on this EVM chain
     // @param _payload - the custom message to send over LayerZero
-    // @param _payInZRO - if false, user app pays the protocol fee in native oft
-    // @param _adapterParam - parameters for the adapter service, e.g. send some dust native oft to dstChain
-    function estimateFees(
-        uint16 _dstChainId,
-        address _userApplication,
-        bytes calldata _payload,
-        bool _payInZRO,
-        bytes calldata _adapterParam
-    ) external view returns (uint256 nativeFee, uint256 zroFee);
+    // @param _payInZRO - if false, user app pays the protocol fee in native token
+    // @param _adapterParam - parameters for the adapter service, e.g. send some dust native token to dstChain
+    function estimateFees(uint16 _dstChainId, address _userApplication, bytes calldata _payload, bool _payInZRO, bytes calldata _adapterParam) external view returns (uint nativeFee, uint zroFee);
 
     // @notice get this Endpoint's immutable source identifier
     function getChainId() external view returns (uint16);
@@ -67,11 +47,7 @@ interface ILayerZeroEndpoint is ILayerZeroUserApplicationConfig {
     // @param _srcChainId - the source chain identifier
     // @param _srcAddress - the source chain contract address
     // @param _payload - the payload to be retried
-    function retryPayload(
-        uint16 _srcChainId,
-        bytes calldata _srcAddress,
-        bytes calldata _payload
-    ) external;
+    function retryPayload(uint16 _srcChainId, bytes calldata _srcAddress, bytes calldata _payload) external;
 
     // @notice query if any STORED payload (message blocking) at the endpoint.
     // @param _srcChainId - the source chain identifier
@@ -99,12 +75,7 @@ interface ILayerZeroEndpoint is ILayerZeroUserApplicationConfig {
     // @param _chainId - the chainId for the pending config change
     // @param _userApplication - the contract address of the user application
     // @param _configType - type of configuration. every messaging library has its own convention.
-    function getConfig(
-        uint16 _version,
-        uint16 _chainId,
-        address _userApplication,
-        uint256 _configType
-    ) external view returns (bytes memory);
+    function getConfig(uint16 _version, uint16 _chainId, address _userApplication, uint _configType) external view returns (bytes memory);
 
     // @notice get the send() LayerZero messaging library version
     // @param _userApplication - the contract address of the user application

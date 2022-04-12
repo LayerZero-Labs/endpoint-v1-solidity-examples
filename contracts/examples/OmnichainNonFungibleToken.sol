@@ -48,25 +48,16 @@ import "../token/onft/extension/UniversalONFT.sol";
 /// @title A LayerZero OmnichainNonFungibleToken example
 /// @notice You can use this to mint ONFT and transfer across chain
 contract OmnichainNonFungibleToken is UniversalONFT {
+    constructor(address _layerZeroEndpoint, uint _startMintIndex, uint _maxMint) UniversalONFT("OmnichainNonFungibleToken", "ONFT", _layerZeroEndpoint, _startMintIndex, _maxMint) {}
 
-    constructor(
-        address _layerZeroEndpoint,
-        uint256 _startMintIndex,
-        uint256 _maxMint
-    ) UniversalONFT("OmnichainNonFungibleToken", "ONFT", _layerZeroEndpoint, _startMintIndex, _maxMint) {}
-
-    function transferOmnichainNFT(
-        uint16 _dstChainId,
-        uint256 _omniChainNFT_tokenId,
-        bytes memory _adapterParam
-    ) public payable {
+    function transferOmnichainNFT(uint16 _dstChainId, uint _omniChainNFT_tokenId, bytes memory _adapterParam) public payable {
         this.send(
-            _dstChainId,                  // destination chainId
+            _dstChainId, // destination chainId
             abi.encodePacked(msg.sender), // destination address in bytes
-            _omniChainNFT_tokenId,        // omniChainNFT_tokenId
-            payable(msg.sender),          // refund address
-            address(0x0),                 // future parameter
-            _adapterParam                 // adapterParams
+            _omniChainNFT_tokenId, // omniChainNFT_tokenId
+            payable(msg.sender), // refund address
+            address(0x0), // future parameter
+            _adapterParam // adapterParams
         );
     }
 }

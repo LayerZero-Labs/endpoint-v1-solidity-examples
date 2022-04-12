@@ -531,6 +531,18 @@
     "@ethersproject/properties" "^5.6.0"
     "@ethersproject/strings" "^5.6.0"
 
+"@layerzerolabs/prettier-plugin-solidity@^1.0.0-beta.19":
+  version "1.0.0-beta.19"
+  resolved "https://registry.yarnpkg.com/@layerzerolabs/prettier-plugin-solidity/-/prettier-plugin-solidity-1.0.0-beta.19.tgz#ae3d8509da1b680dc32149120bce91448ebc307a"
+  integrity sha512-LhWUofwoB7iOPlFNwRImsrmgiMaXMnjXB4Ytypgr9n85uuASX+zrIStOrRbvHmgSGgOlaZQ1Gu/ZJLRFpYojBA==
+  dependencies:
+    "@solidity-parser/parser" "^0.14.0"
+    emoji-regex "^10.0.0"
+    escape-string-regexp "^4.0.0"
+    semver "^7.3.5"
+    solidity-comments-extractor "^0.0.7"
+    string-width "^4.2.3"
+
 "@metamask/eth-sig-util@^4.0.0":
   version "4.0.0"
   resolved "https://registry.yarnpkg.com/@metamask/eth-sig-util/-/eth-sig-util-4.0.0.tgz#11553ba06de0d1352332c1bde28c8edd00e0dcf6"
@@ -7043,18 +7055,6 @@ prettier-linter-helpers@^1.0.0:
   integrity sha512-GbK2cP9nraSSUF9N2XwUwqfzlAFlMNYYl+ShE/V+H8a9uNl/oUqB1w2EL54Jh0OlyRSd8RfWYJ3coVS4TROP2w==
   dependencies:
     fast-diff "^1.1.2"
-
-prettier-plugin-solidity@^1.0.0-beta.18:
-  version "1.0.0-beta.19"
-  resolved "https://registry.yarnpkg.com/prettier-plugin-solidity/-/prettier-plugin-solidity-1.0.0-beta.19.tgz#7c3607fc4028f5e6a425259ff03e45eedf733df3"
-  integrity sha512-xxRQ5ZiiZyUoMFLE9h7HnUDXI/daf1tnmL1msEdcKmyh7ZGQ4YklkYLC71bfBpYU2WruTb5/SFLUaEb3RApg5g==
-  dependencies:
-    "@solidity-parser/parser" "^0.14.0"
-    emoji-regex "^10.0.0"
-    escape-string-regexp "^4.0.0"
-    semver "^7.3.5"
-    solidity-comments-extractor "^0.0.7"
-    string-width "^4.2.3"
 
 prettier@^1.14.3:
   version "1.19.1"

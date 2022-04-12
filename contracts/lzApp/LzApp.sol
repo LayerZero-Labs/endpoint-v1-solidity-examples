@@ -21,58 +21,30 @@ abstract contract LzApp is Ownable, ILayerZeroReceiver, ILayerZeroUserApplicatio
         lzEndpoint = ILayerZeroEndpoint(_endpoint);
     }
 
-    function lzReceive(
-        uint16 _srcChainId,
-        bytes memory _srcAddress,
-        uint64 _nonce,
-        bytes memory _payload
-    ) external override {
+    function lzReceive(uint16 _srcChainId, bytes memory _srcAddress, uint64 _nonce, bytes memory _payload) external override {
         // lzReceive must be called by the endpoint for security
         require(_msgSender() == address(lzEndpoint));
         // if will still block the message pathway from (srcChainId, srcAddress). should not receive message from untrusted remote.
-        require(
-            _srcAddress.length == trustedRemoteLookup[_srcChainId].length &&
-                keccak256(_srcAddress) == keccak256(trustedRemoteLookup[_srcChainId]),
-            "LzReceiver: invalid source sending contract"
-        );
+        require(_srcAddress.length == trustedRemoteLookup[_srcChainId].length && keccak256(_srcAddress) == keccak256(trustedRemoteLookup[_srcChainId]), "LzReceiver: invalid source sending contract");
 
         _LzReceive(_srcChainId, _srcAddress, _nonce, _payload);
     }
 
     // abstract function
-    function _LzReceive(
-        uint16 _srcChainId,
-        bytes memory _srcAddress,
-        uint64 _nonce,
-        bytes memory _payload
-    ) internal virtual;
+    function _LzReceive(uint16 _srcChainId, bytes memory _srcAddress, uint64 _nonce, bytes memory _payload) internal virtual;
 
-    function _lzSend(
-        uint16 _dstChainId,
-        bytes memory _payload,
-        address payable _refundAddress,
-        address _zroPaymentAddress,
-        bytes memory _adapterParam
-    ) internal {
+    function _lzSend(uint16 _dstChainId, bytes memory _payload, address payable _refundAddress, address _zroPaymentAddress, bytes memory _adapterParam) internal {
         require(trustedRemoteLookup[_dstChainId].length != 0, "LzSend: destination chain is not a trusted source.");
-        lzEndpoint.send{value: msg.value}(
-            _dstChainId,
-            trustedRemoteLookup[_dstChainId],
-            _payload,
-            _refundAddress,
-            _zroPaymentAddress,
-            _adapterParam
-        );
+        lzEndpoint.send{value: msg.value}(_dstChainId, trustedRemoteLookup[_dstChainId], _payload, _refundAddress, _zroPaymentAddress, _adapterParam);
     }
 
-    //---------------------------DAO CALL----------------------------------------
+    //---------------------------UserApplication config----------------------------------------
+    function getConfig(uint16, uint16 _chainId, address, uint _configType) external view returns (bytes memory) {
+        return lzEndpoint.getConfig(lzEndpoint.getSendVersion(address(this)), _chainId, address(this), _configType);
+    }
+
     // generic config for LayerZero user Application
-    function setConfig(
-        uint16 _version,
-        uint16 _chainId,
-        uint256 _configType,
-        bytes calldata _config
-    ) external override onlyOwner {
+    function setConfig(uint16 _version, uint16 _chainId, uint _configType, bytes calldata _config) external override onlyOwner {
         lzEndpoint.setConfig(_version, _chainId, _configType, _config);
     }
 

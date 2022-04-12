@@ -20,8 +20,8 @@
   "devDependencies": {
     "eslint-config-prettier": "^8.3.0",
     "eslint-plugin-prettier": "^3.4.1",
+    "@layerzerolabs/prettier-plugin-solidity": "^1.0.0-beta.19",
     "prettier": "^2.4.1",
-    "prettier-plugin-solidity": "^1.0.0-beta.18",
     "solhint": "^3.3.6",
     "@nomiclabs/hardhat-ethers": "^2.0.3",
     "@nomiclabs/hardhat-waffle": "^2.0.1",

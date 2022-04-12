@@ -10,6 +10,8 @@ npx hardhat test
 * `NonblockingLzApp` is a great contract to extend. Take a look at how `OmniCounter` overrides `_nonblockingLzReceive` and `_LzReceive` to easily handle messaging. There are also example for `OFT` and `ONFT` which illustrate erc20 and erc721 cross chain functionality.
 * Always audit your own code and test extensively on `testnet` before going to mainnet 🙏
 
+> The examples below use two chains, however you could substitute any LayerZero supported chain! 
+
 # OmnichainFungibleToken (OFT)
 
 The `OmnichainFungibleToken` has two varieties of deployments:
@@ -101,59 +103,31 @@ npx hardhat --network fuji deploy --tags OmniCounter
 2. Set the remote addresses, so each contract can receive messages
 ```angular2html
 npx hardhat --network bsc-testnet ocSetTrustedRemote --target-network fuji
-npx hardhat --network fuji ocSetTrustedSource --target-network bsc-testnet
+npx hardhat --network fuji ocSetTrustedRemote --target-network bsc-testnet
 ```
-3. Send a cross chain message from `mumbai` to `fuji` !
+3. Send a cross chain message from `bsc-testnet` to `fuji` !
 ```angular2html
 npx hardhat --network bsc-testnet ocIncrementCounter --target-network fuji
 ```
 
 Optionally use this command in a separate terminal to watch the counter increment in real-time.
 ```
-npx hardhat --network fuji omniCounterPoll    
+npx hardhat --network fuji ocPoll    
 ```
 
-# Testing Multiple Cross Chain Messages
-
-1. Deploy both OmniCounters:
-
-```
-npx hardhat --network bsc-testnet deploy --tags OmniCounter
-npx hardhat --network fuji deploy --tags OmniCounter
-npx hardhat --network mumbai deploy --tags OmniCounter
-npx hardhat --network fantom-testnet deploy --tags OmniCounter
-````
-
-2. Set the remote addresses, so each contract can receive messages
-```angular2html
-npx hardhat --network bsc-testnet ocSetTrustedRemote --target-network fuji
-npx hardhat --network fuji ocSetTrustedRemote --target-network bsc-testnet
-
-npx hardhat --network bsc-testnet ocSetTrustedRemote --target-network mumbai
-npx hardhat --network mumbai ocSetTrustedRemote --target-network bsc-testnet
-
-npx hardhat --network bsc-testnet ocSetTrustedRemote --target-network fantom-testnet
-npx hardhat --network fantom-testnet ocSetTrustedRemote --target-network bsc-testnet
-```
-3. Send a cross chain message from `mumbai` to `fuji` !
-```angular2html
-npx hardhat --network bsc-testnet omniCounterIncrementMultiCounter --target-networks fuji,mumbai,fantom-testnet
-```
-
-Optionally use this command in a separate terminal to watch the counter increment in real-time.
-```
-npx hardhat --network fuji omniCounterPoll
-npx hardhat --network mumbai omniCounterPoll
-npx hardhat --network fantom-testnet omniCounterPoll
-```
 # Getting and Setting the Oracle
+> You need to have deployed the `OmniCounter` on `fuji`
 
-### Read the currently set Oracle
-```npx hardhat --network bsc-testnet omniCounterGetOracle --target-network fantom-testnet```
+### Get the OmniCounter's Oracle
 
-### Set a custom Oracle for the deployed OmniCounter
-```npx hardhat --network bsc-testnet omniCounterSetOracle --target-network fantom-testnet --oracle 0x000000000000000000000000000000000000dEaD```
-#
+```npx hardhat --network fuji ocGetOracle --target-network bsc-testnet```
+
+### Set a custom Oracle
+
+```npx hardhat --network fuji ocSetOracle --target-network bsc-testnet --oracle 0x0000000000000000000000000000000000oracle```
+
+Note: `0x0000000000000000000000000000000000oracle` in the above example should be a legitimate oracle address.
+
 ### See some examples in `/contracts`  🙌
 
 Many of the example contracts make use of LayerZeroEndpointMock.sol which is a nice way to test LayerZero locally!

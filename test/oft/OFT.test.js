@@ -25,12 +25,7 @@ describe("OFT: ", function () {
             this.initialSupplyOnEndpoint
         )
 
-        this.OmnichainFungibleTokenDst = await OmnichainFungibleToken.deploy(
-            "NAME1",
-            "SYM1",
-            this.lzEndpointDstMock.address,
-            0
-        )
+        this.OmnichainFungibleTokenDst = await OmnichainFungibleToken.deploy("NAME1", "SYM1", this.lzEndpointDstMock.address, 0)
 
         this.lzEndpointSrcMock.setDestLzEndpoint(this.OmnichainFungibleTokenDst.address, this.lzEndpointDstMock.address)
         this.lzEndpointDstMock.setDestLzEndpoint(this.OmnichainFungibleTokenSrc.address, this.lzEndpointSrcMock.address)
@@ -51,10 +46,7 @@ describe("OFT: ", function () {
         expect(b).to.be.equal("0x0")
 
         // v1 adapterParams, encoded for version 1 style, and 200k gas quote
-        let adapterParam = ethers.utils.solidityPack(
-            ['uint16','uint256'],
-            [1, 225000]
-        )
+        let adapterParam = ethers.utils.solidityPack(["uint16", "uint256"], [1, 225000])
 
         // approve and send tokens
         let sendQty = ethers.utils.parseUnits("100", 18)

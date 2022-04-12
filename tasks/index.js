@@ -8,13 +8,13 @@ task(
     .addParam("oracle", "the Oracle address for the specified targetNetwork")
 
 // get the Oracle for sending to the destination chain
-task("omniCounterGetOracle", "get the Oracle address being used by the OmniCounter", require("./omniCounterGetOracle")).addParam(
+task("ocGetOracle", "get the Oracle address being used by the OmniCounter", require("./ocGetOracle")).addParam(
     "targetNetwork",
     "the target network name, ie: fuji, or mumbai, etc (from hardhat.config.js)"
 )
 
 //
-task("omniCounterIncrementCounter", "increment the destination OmniCounter", require("./ocIncrementCounter"))
+task("ocIncrementCounter", "increment the destination OmniCounter", require("./ocIncrementCounter"))
     .addParam("targetNetwork", "the target network name, ie: fuji, or mumbai, etc (from hardhat.config.js)")
     .addOptionalParam("n", "number of tx", 1, types.int)
 
@@ -36,15 +36,10 @@ task(
     "oftSetTrustedRemote",
     "setTrustedRemote(chainId, sourceAddr) to enable inbound/outbound messages with your other contracts",
     require("./oftSetTrustedRemote")
-)
-    .addParam("targetNetwork", "the target network to set as a trusted remote")
+).addParam("targetNetwork", "the target network to set as a trusted remote")
 
 //
-task(
-    "oftSend",
-    "basedOFT.send()  tokens to another chain",
-    require("./oftSend")
-)
+task("oftSend", "basedOFT.send()  tokens to another chain", require("./oftSend"))
     .addParam("qty", "qty of tokens to send")
     .addParam("targetNetwork", "the target network to let this instance receive messages from")
 
@@ -53,14 +48,10 @@ task(
     "onftSetTrustedRemote",
     "setTrustedRemote(chainId, sourceAddr) to allow the local contract to send/receive messages from known source contracts",
     require("./onftSetTrustedRemote")
-)
-    .addParam("targetNetwork", "the target network to let this instance receive messages from")
+).addParam("targetNetwork", "the target network to let this instance receive messages from")
 
 //
-task("onftOwnerOf", "ownerOf(tokenId) to get the owner of a oft", require("./onftOwnerOf")).addParam(
-    "tokenId",
-    "the tokenId of ONFT"
-)
+task("onftOwnerOf", "ownerOf(tokenId) to get the owner of a token", require("./onftOwnerOf")).addParam("tokenId", "the tokenId of ONFT")
 
 //
 task("onftMint", "mint() mint ONFT", require("./onftMint"))
@@ -71,7 +62,7 @@ task("onftSend", "send an ONFT nftId from one chain to another", require("./onft
     .addParam("tokenId", "the tokenId of ONFT")
 
 //
-task("omniCounterPoll", "poll the counter of the OmniCounter", require("./omniCounterPoll"))
+task("ocPoll", "poll the counter of the OmniCounter", require("./ocPoll"))
 
 //
 task(

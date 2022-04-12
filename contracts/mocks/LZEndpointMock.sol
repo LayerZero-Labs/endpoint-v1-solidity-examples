@@ -19,12 +19,12 @@ contract LZEndpointMock is ILayerZeroEndpoint {
     uint16 public mockChainId;
     address payable public mockOracle;
     address payable public mockRelayer;
-    uint256 public mockBlockConfirmations;
+    uint public mockBlockConfirmations;
     uint16 public mockLibraryVersion;
-    uint256 public mockStaticNativeFee;
+    uint public mockStaticNativeFee;
     uint16 public mockLayerZeroVersion;
-    uint256 public nativeFee;
-    uint256 public zroFee;
+    uint public nativeFee;
+    uint public zroFee;
 
     // inboundNonce = [srcChainId][srcAddress].
     mapping(uint16 => mapping(bytes => uint64)) public inboundNonce;
@@ -38,7 +38,7 @@ contract LZEndpointMock is ILayerZeroEndpoint {
     }
 
     // mock helper to set the value returned by `estimateNativeFees`
-    function setEstimatedFees(uint256 _nativeFee, uint256 _zroFee) public {
+    function setEstimatedFees(uint _nativeFee, uint _zroFee) public {
         nativeFee = _nativeFee;
         zroFee = _zroFee;
     }
@@ -69,9 +69,9 @@ contract LZEndpointMock is ILayerZeroEndpoint {
             nonce = ++outboundNonce[_chainId][msg.sender];
         }
 
-        // Mock the relayer paying the dstNativeAddr the amount of extra native oft
+        // Mock the relayer paying the dstNativeAddr the amount of extra native token
         {
-            uint256 dstNative;
+            uint dstNative;
             address dstNativeAddr;
             assembly {
                 dstNative := mload(add(_adapterParams, 66))
@@ -85,13 +85,7 @@ contract LZEndpointMock is ILayerZeroEndpoint {
         LZEndpointMock(lzEndpoint).receiveAndForward(destAddr, mockChainId, bytesSourceUserApplicationAddr, nonce, _payload);
     }
 
-    function receiveAndForward(
-        address _destAddr,
-        uint16 _srcChainId,
-        bytes memory _srcAddress,
-        uint64 _nonce,
-        bytes memory _payload
-    ) external {
+    function receiveAndForward(address _destAddr, uint16 _srcChainId, bytes memory _srcAddress, uint64 _nonce, bytes memory _payload) external {
         ILayerZeroReceiver(_destAddr).lzReceive(_srcChainId, _srcAddress, _nonce, _payload); // invoke lzReceive
     }
 
@@ -99,15 +93,9 @@ contract LZEndpointMock is ILayerZeroEndpoint {
     // @param _dstChainId - the destination chain identifier
     // @param _userApplication - the user app address on this EVM chain
     // @param _payload - the custom message to send over LayerZero
-    // @param _payInZRO - if false, user app pays the protocol fee in native oft
-    // @param _adapterParam - parameters for the adapter service, e.g. send some dust native oft to dstChain
-    function estimateFees(
-        uint16,
-        address,
-        bytes memory,
-        bool,
-        bytes memory
-    ) external view override returns (uint256 _nativeFee, uint256 _zroFee) {
+    // @param _payInZRO - if false, user app pays the protocol fee in native token
+    // @param _adapterParam - parameters for the adapter service, e.g. send some dust native token to dstChain
+    function estimateFees(uint16, address, bytes memory, bool, bytes memory) external view override returns (uint _nativeFee, uint _zroFee) {
         _nativeFee = nativeFee;
         _zroFee = zroFee;
     }
@@ -132,7 +120,7 @@ contract LZEndpointMock is ILayerZeroEndpoint {
     function setConfig(
         uint16, /*_version*/
         uint16, /*_chainId*/
-        uint256, /*_configType*/
+        uint, /*_configType*/
         bytes memory /*_config*/
     ) external override {}
 
@@ -140,19 +128,12 @@ contract LZEndpointMock is ILayerZeroEndpoint {
         uint16, /*_version*/
         uint16, /*_chainId*/
         address, /*_ua*/
-        uint256 /*_configType*/
+        uint /*_configType*/
     ) external pure override returns (bytes memory) {
         return "";
     }
 
-    function receivePayload(
-        uint16 _srcChainId,
-        bytes calldata _srcAddress,
-        address _dstAddress,
-        uint64 _nonce,
-        uint256 _gasLimit,
-        bytes calldata _payload
-    ) external override {}
+    function receivePayload(uint16 _srcChainId, bytes calldata _srcAddress, address _dstAddress, uint64 _nonce, uint _gasLimit, bytes calldata _payload) external override {}
 
     function setSendVersion(
         uint16 /*version*/
@@ -186,11 +167,7 @@ contract LZEndpointMock is ILayerZeroEndpoint {
         // This mock does not implement the forceResumeReceive
     }
 
-    function retryPayload(
-        uint16 _srcChainId,
-        bytes calldata _srcAddress,
-        bytes calldata _payload
-    ) external pure override {}
+    function retryPayload(uint16 _srcChainId, bytes calldata _srcAddress, bytes calldata _payload) external pure override {}
 
     function hasStoredPayload(uint16, bytes memory) external pure override returns (bool) {
         return true;

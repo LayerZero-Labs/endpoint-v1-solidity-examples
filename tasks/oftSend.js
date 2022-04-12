@@ -20,10 +20,10 @@ module.exports = async function (taskArgs, hre) {
 
     tx = await (
         await basedOFT.send(
-            dstChainId,             // destination LayerZero chainId
-            owner.address,          // the 'to' address to send tokens
-            qty,                    // the amount of tokens to send (in wei)
-            owner.address,          // the refund address (if too much message fee is sent, it gets refunded)
+            dstChainId, // destination LayerZero chainId
+            owner.address, // the 'to' address to send tokens
+            qty, // the amount of tokens to send (in wei)
+            owner.address, // the refund address (if too much message fee is sent, it gets refunded)
             ethers.constants.AddressZero,
             adapterParams,
             { value: ethers.utils.parseEther("1") } // estimate/guess 1 eth will cover
