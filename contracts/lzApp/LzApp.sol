@@ -65,7 +65,16 @@ abstract contract LzApp is Ownable, ILayerZeroReceiver, ILayerZeroUserApplicatio
         );
     }
 
-    //---------------------------DAO CALL----------------------------------------
+    //---------------------------UserApplication config----------------------------------------
+    function getConfig(
+        uint16,
+        uint16 _chainId,
+        address,
+        uint _configType
+    ) external view returns (bytes memory) {
+        return lzEndpoint.getConfig(lzEndpoint.getSendVersion(address(this)), _chainId, address(this), _configType);
+    }
+
     // generic config for LayerZero user Application
     function setConfig(
         uint16 _version,

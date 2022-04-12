@@ -8,13 +8,13 @@ task(
     .addParam("oracle", "the Oracle address for the specified targetNetwork")
 
 // get the Oracle for sending to the destination chain
-task("omniCounterGetOracle", "get the Oracle address being used by the OmniCounter", require("./omniCounterGetOracle")).addParam(
+task("ocGetOracle", "get the Oracle address being used by the OmniCounter", require("./ocGetOracle")).addParam(
     "targetNetwork",
     "the target network name, ie: fuji, or mumbai, etc (from hardhat.config.js)"
 )
 
 //
-task("omniCounterIncrementCounter", "increment the destination OmniCounter", require("./ocIncrementCounter"))
+task("ocIncrementCounter", "increment the destination OmniCounter", require("./ocIncrementCounter"))
     .addParam("targetNetwork", "the target network name, ie: fuji, or mumbai, etc (from hardhat.config.js)")
     .addOptionalParam("n", "number of tx", 1, types.int)
 
@@ -71,7 +71,7 @@ task("onftSend", "send an ONFT nftId from one chain to another", require("./onft
     .addParam("tokenId", "the tokenId of ONFT")
 
 //
-task("omniCounterPoll", "poll the counter of the OmniCounter", require("./omniCounterPoll"))
+task("ocPoll", "poll the counter of the OmniCounter", require("./ocPoll"))
 
 //
 task(
