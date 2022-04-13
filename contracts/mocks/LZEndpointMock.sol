@@ -25,12 +25,18 @@ contract LZEndpointMock is ILayerZeroEndpoint {
     uint16 public mockLayerZeroVersion;
     uint public nativeFee;
     uint public zroFee;
-    bool msgsBlocked;
+    bool nextMsgBLocked;
 
     struct StoredPayload {
         uint64 payloadLength;
         address dstAddress;
         bytes32 payloadHash;
+    }
+
+    struct QuedPayload {
+        address dstAddress;
+        uint64 nonce;
+        bytes storage payload;
     }
 
     // inboundNonce = [srcChainId][srcAddress].
@@ -39,6 +45,8 @@ contract LZEndpointMock is ILayerZeroEndpoint {
     mapping(uint16 => mapping(address => uint64)) public outboundNonce;
     // storedPayload = [srcChainId][srcAddress]
     mapping(uint16 => mapping(bytes => StoredPayload)) public storedPayload;
+    // msgToDeliver = [srcChainId][srcAddress]
+    mapping(uint16 => mapping(bytes => QuedPayload[])) public msgsToDeliver;
 
     event UaForceResumeReceive(uint16 chainId, bytes srcAddress);
     event PayloadCleared(uint16 srcChainId, bytes srcAddress, uint64 nonce, address dstAddress);
@@ -105,13 +113,19 @@ contract LZEndpointMock is ILayerZeroEndpoint {
     }
 
     function receivePayload(uint16 _srcChainId, bytes calldata _srcAddress, address _dstAddress, uint64 _nonce, uint /*_gasLimit*/, bytes calldata _payload) external override {
-        // block if any message blocking
         StoredPayload storage sp = storedPayload[_srcChainId][_srcAddress];
-        require(sp.payloadHash == bytes32(0), "LayerZero: in message blocking");
 
-        if (msgsBlocked) {
+        // assert and increment the nonce. no message shuffling
+        require(_nonce == ++inboundNonce[_srcChainId][_srcAddress], "LayerZero: wrong nonce");
+
+        // que the following msgs inside of a cue to simulate a successful send on src, but not fully delivered on dst
+        if (sp.payloadHash != bytes32(0)) {
+            msgsToDeliver[_srcChainId][_srcAddress].push(QuedPayload(_dstAddress, _nonce, payload));
+        } else if (nextMsgBLocked) {
             storedPayload[_srcChainId][_srcAddress] = StoredPayload(uint64(_payload.length), _dstAddress, keccak256(_payload));
             emit PayloadStored(_srcChainId, _srcAddress, _dstAddress, _nonce, _payload, bytes(""));
+            // ensure the next msgs that go through are no longer blocked
+            blockNextMsg = false;
         } else {
             // we ignore the gas limit because this call is made in one tx due to being "same chain"
             // ILayerZeroReceiver(_dstAddress).lzReceive{gas: _gasLimit}(_srcChainId, _srcAddress, _nonce, _payload); // invoke lzReceive
@@ -120,8 +134,8 @@ contract LZEndpointMock is ILayerZeroEndpoint {
     }
 
     // used to simulate messages received get stored as a payload
-    function setBlocking(bool _isBlocking) external {
-        msgsBlocked = _isBlocking;
+    function blockNextMsg() external {
+        nextMsgBLocked = true;
     }
 
     // @notice gets a quote in source native gas, for the amount that send() requires to pay for message delivery
@@ -188,6 +202,21 @@ contract LZEndpointMock is ILayerZeroEndpoint {
         return outboundNonce[_chainID][_srcAddress];
     }
 
+    // simulates the relayer pushing through the rest of the msgs that got delayed due to the stored payload
+    function _clearMsgQue(uint16 _srcChainId, bytes calldata _srcAddress) internal {
+        QuedPayload[] storage msgs = msgsToDeliver[_srcChainId][_srcAddress];
+
+        // warning, might run into gas issues trying to forward through a bunch of "qued" msgs
+        for (uint i = 0; i < msgs.length; i++){
+            QuedPayload payload = msgs[i];
+            ILayerZeroReceiver(payload.dstAddress).lzReceive(_srcChainId, _srcAddress, payload.nonce, payload.payload);
+        }
+
+        // reset the msg que
+        QuedPayload[] emptyMsgQue;
+        msgsToDeliver[_srcChainId][_srcAddress] = emptyMsgQue;
+    }
+
     function forceResumeReceive(uint16 _srcChainId, bytes calldata _srcAddress) external override {
         StoredPayload storage sp = storedPayload[_srcChainId][_srcAddress];
         // revert if no messages are cached. safeguard malicious UA behaviour
@@ -199,8 +228,10 @@ contract LZEndpointMock is ILayerZeroEndpoint {
         sp.dstAddress = address(0);
         sp.payloadHash = bytes32(0);
 
-        // emit the event with the new nonce
         emit UaForceResumeReceive(_srcChainId, _srcAddress);
+
+        // resume the receiving of msgs after we force clear the "stuck" msg
+        _clearMsgQue(_srcChainId, _srcAddress);
     }
 
     function retryPayload(uint16 _srcChainId, bytes calldata _srcAddress, bytes calldata _payload) external override {

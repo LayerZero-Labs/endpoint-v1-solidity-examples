@@ -1,7 +1,7 @@
 const { expect } = require("chai")
 const { ethers } = require("hardhat")
 
-describe("OFT: ", function () {
+describe.only("OFT: ", function () {
     const chainIdSrc = 1
     const chainIdDst = 2
     const name = "OmnichainFungibleToken"
@@ -63,7 +63,7 @@ describe("OFT: ", function () {
 
     it("setBlocking() - stores the payload", async function () {
         // block receiving msgs on the dst lzEndpoint to simulate ua reverts which stores a payload
-        await lzEndpointDstMock.setBlocking(true)
+        await lzEndpointDstMock.blockNextMsg()
 
         // v1 adapterParams, encoded for version 1 style, and 200k gas quote
         const adapterParam = ethers.utils.solidityPack(["uint16", "uint256"], [1, 225000])
@@ -82,6 +82,32 @@ describe("OFT: ", function () {
             ethers.constants.AddressZero,
             adapterParam
         )).to.emit(lzEndpointDstMock, "PayloadStored")
+
+        expect(await lzEndpointDstMock.hasStoredPayload(chainIdSrc, OFTSrc.address)).to.equal(true)
     })
 
+    it("setBlocking() - cant send another msg if payload is blocked", async function () {
+        // block receiving msgs on the dst lzEndpoint to simulate ua reverts which stores a payload
+        await lzEndpointDstMock.blockNextMsg(true)
+
+        // v1 adapterParams, encoded for version 1 style, and 200k gas quote
+        const adapterParam = ethers.utils.solidityPack(["uint16", "uint256"], [1, 225000])
+        // amount to be sent across
+        const sendQty = ethers.utils.parseUnits("100", 18)
+
+        // approve and send tokens
+        await OFTSrc.approve(OFTSrc.address, sendQty)
+
+        // stores a payload
+        await expect(OFTSrc.send(
+            chainIdDst,
+            ethers.utils.solidityPack(["address"], [owner.address]),
+            sendQty,
+            owner.address,
+            ethers.constants.AddressZero,
+            adapterParam
+        )).to.emit(lzEndpointDstMock, "PayloadStored")
+
+        expect(await lzEndpointDstMock.hasStoredPayload(chainIdSrc, OFTSrc.address)).to.equal(true)
+    })
 })
