@@ -50,7 +50,7 @@ import "../token/onft/extension/UniversalONFT.sol";
 contract OmnichainNonFungibleToken is UniversalONFT {
     constructor(address _layerZeroEndpoint, uint _startMintIndex, uint _maxMint) UniversalONFT("OmnichainNonFungibleToken", "ONFT", _layerZeroEndpoint, _startMintIndex, _maxMint) {}
 
-    function transferOmnichainNFT(uint16 _dstChainId, uint _omniChainNFT_tokenId, bytes memory _adapterParam) public payable {
+    function send(uint16 _dstChainId, uint _omniChainNFT_tokenId, bytes memory _adapterParam) public payable {
         this.send(
             _dstChainId, // destination chainId
             abi.encodePacked(msg.sender), // destination address in bytes

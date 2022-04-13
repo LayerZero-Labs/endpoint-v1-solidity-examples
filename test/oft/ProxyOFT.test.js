@@ -1,10 +1,11 @@
 const { expect } = require("chai")
 const { ethers } = require("hardhat")
 
-describe("ProxyOFT: ", function () {
+describe.skip("ProxyOFT: ", function () {
     beforeEach(async function () {
     })
 
-    it("test()", async function () {
+    it("todo", async function () {
+        // todo
     })
 })
