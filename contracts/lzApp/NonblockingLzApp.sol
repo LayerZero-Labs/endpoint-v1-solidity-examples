@@ -17,7 +17,7 @@ abstract contract NonblockingLzApp is LzApp {
     event MessageFailed(uint16 _srcChainId, bytes _srcAddress, uint64 _nonce, bytes _payload);
 
     // overriding the virtual function in LzReceiver
-    function _LzReceive(uint16 _srcChainId, bytes memory _srcAddress, uint64 _nonce, bytes memory _payload) internal virtual override {
+    function _blockingLzReceive(uint16 _srcChainId, bytes memory _srcAddress, uint64 _nonce, bytes memory _payload) internal virtual override {
         // try-catch all errors/exceptions
         try this.nonblockingLzReceive(_srcChainId, _srcAddress, _nonce, _payload) {
             // do nothing
