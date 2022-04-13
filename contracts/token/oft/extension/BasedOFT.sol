@@ -14,7 +14,7 @@ contract BasedOFT is OFT {
         _transfer(address(this), _toAddress, _amount);
     }
 
-    function getType() public view virtual override returns(uint) {
+    function getType() public view virtual override returns (uint) {
         return 1;
     }
 }

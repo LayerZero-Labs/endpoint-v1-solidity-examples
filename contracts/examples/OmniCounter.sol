@@ -7,30 +7,15 @@ import "../lzApp/NonblockingLzApp.sol";
 
 /// @title A LayerZero example sending a cross chain message from a source chain to a destination chain to increment a counter
 contract OmniCounter is NonblockingLzApp {
-    // count of messages have been received
     uint public counter;
 
     constructor(address _lzEndpoint) NonblockingLzApp(_lzEndpoint) {}
 
-    // implementation of the LayerZero message receiver.
-    // on receive, increment a counter
-    function _nonblockingLzReceive(
-        uint16, // _srcChainId
-        bytes memory, // _srcAddress
-        uint64, // _nonce
-        bytes memory // _payload
-    ) internal override {
+    function _nonblockingLzReceive(uint16, bytes memory, uint64, bytes memory) internal override {
         counter += 1;
     }
 
-    // send a message to the chainId, incrementing the counter on the destination
     function incrementCounter(uint16 _dstChainId) public payable {
-        _lzSend(
-            _dstChainId, // detsination LayerZero chainId
-            bytes(""), // empty payload
-            payable(msg.sender), // refundAddress
-            address(0x0), // future parameter
-            bytes("") // use default adapterParameters
-        );
+        _lzSend(_dstChainId, bytes(""), payable(msg.sender), address(0x0), bytes(""));
     }
 }

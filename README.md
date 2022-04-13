@@ -34,15 +34,15 @@ In the event a chain goes rogue, Ethereum will be the final source of truth for 
 
 > WARNING: **You must perform the setTrustedRemote() (step 2).**
 
-1. Deploy two contracts:  ```rinkeby``` is the `base` chain
+1. Deploy two contracts:  ```rinkeby``` is the `base` chain. Fuji is the oft for the other chain.
 ```angular2html
- npx hardhat --network rinkeby deploy --tags BasedOFT
- npx hardhat --network fuji deploy --tags BasedOFT
+npx hardhat --network rinkeby deploy --tags ExampleBasedOFT
+npx hardhat --network fuji deploy --tags ExampleOFT
 ```
 2. Set the "trusted remotes" (ie: your contracts) so each of them can receive messages from one another, and `only` one another.
 ```angular2html
-npx hardhat --network rinkeby oftSetTrustedRemote --target-network fuji
-npx hardhat --network fuji oftSetTrustedRemote --target-network rinkeby
+npx hardhat --network rinkeby setTrustedRemote --target-network fuji
+npx hardhat --network fuji setTrustedRemote --target-network rinkeby
 ```
 3. Send tokens from rinkeby to fuji
 ```angular2html
@@ -60,8 +60,8 @@ Check `constants/onftArgs.json` for the specific test configuration used in this
 
 1. Deploy two contracts:
 ```angular2html
- npx hardhat --network bsc-testnet deploy --tags UniversalONFT
- npx hardhat --network fuji deploy --tags UniversalONFT
+ npx hardhat --network bsc-testnet deploy --tags ExampleUniversalONFT
+ npx hardhat --network fuji deploy --tags ExampleUniversalONFT
 ```
 2. Set the "trusted remotes", so each contract can send & receive messages from one another, and `only` one another.
 ```angular2html

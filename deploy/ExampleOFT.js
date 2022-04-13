@@ -1,6 +1,5 @@
 const LZ_ENDPOINTS = require("../constants/layerzeroEndpoints.json")
-const CHAIN_ID = require("../constants/chainIds.json")
-const MAIN_CHAIN = require("../constants/oftBaseChain.json")
+const OFT_CONFIG = require("../constants/oftConfig.json")
 const { ethers } = require("hardhat")
 
 module.exports = async function ({ deployments, getNamedAccounts }) {
@@ -11,16 +10,15 @@ module.exports = async function ({ deployments, getNamedAccounts }) {
 
     // get the Endpoint address
     const endpointAddr = LZ_ENDPOINTS[hre.network.name]
-    const baseChainId = CHAIN_ID[MAIN_CHAIN["mainChain"]]
-    const currentChainId = CHAIN_ID[hre.network.name]
+    const globalSupply = ethers.utils.parseUnits(OFT_CONFIG.globalSupply, 18)
     console.log(`[${hre.network.name}] LayerZero Endpoint address: ${endpointAddr}`)
 
-    await deploy("BasedOFT", {
+    await deploy("ExampleOFT", {
         from: deployer,
-        args: ["BasedOFT", "OFT", endpointAddr, baseChainId === currentChainId ? ethers.utils.parseUnits("1000000", 18) : 0, baseChainId],
+        args: [endpointAddr, globalSupply],
         log: true,
         waitConfirmations: 1,
     })
 }
 
-module.exports.tags = ["BasedOFT"]
+module.exports.tags = ["ExampleOFT"]

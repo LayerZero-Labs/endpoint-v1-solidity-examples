@@ -33,11 +33,11 @@ contract OFT is NonblockingLzApp, IOFT, ERC20 {
         _send(_from, _dstChainId, _toAddress, _amount, _refundAddress, _zroPaymentAddress, _adapterParam);
     }
 
-    function getType() public view virtual override returns(uint) {
+    function getType() public view virtual override returns (uint) {
         return 0;
     }
 
-    function getGlobalSupply() public view virtual override returns(uint) {
+    function getGlobalSupply() public view virtual override returns (uint) {
         return globalSupply;
     }
 
@@ -75,6 +75,7 @@ contract OFT is NonblockingLzApp, IOFT, ERC20 {
         emit SendToChain(_from, _dstChainId, _toAddress, _amount, nonce);
     }
 
+    // on transfer - OFT burns tokens on the source chainanoz
     function _debitFrom(address _from, uint16, bytes memory, uint _amount) internal virtual {
         _burn(_from, _amount);
     }

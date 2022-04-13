@@ -1,5 +1,6 @@
 const CHAIN_ID = require("../constants/chainIds.json")
 const { getDeploymentAddresses } = require("../utils/readStatic")
+const OFT_CONFIG = require("../constants/oftConfig.json");
 
 module.exports = async function (taskArgs, hre) {
     let signers = await ethers.getSigners()
@@ -8,10 +9,16 @@ module.exports = async function (taskArgs, hre) {
     const dstChainId = CHAIN_ID[taskArgs.targetNetwork]
     const qty = ethers.utils.parseEther(taskArgs.qty)
 
-    const dstAddr = getDeploymentAddresses(taskArgs.targetNetwork)["BasedOFT"]
-    // get local contract instance
-    const basedOFT = await ethers.getContract("BasedOFT")
-    console.log(`[source] basedOFT.address: ${basedOFT.address}`)
+    let srcContractName = 'ExampleOFT'
+    let dstContractName = srcContractName
+    if(taskArgs.targetNetwork == OFT_CONFIG.baseChain){dstContractName = 'ExampleBasedOFT'}
+    if(hre.network.name == OFT_CONFIG.baseChain){srcContractName = 'ExampleBasedOFT'}
+
+    // the destination contract address
+    const dstAddr = getDeploymentAddresses(taskArgs.targetNetwork)[dstContractName]
+    // get source contract instance
+    const basedOFT = await ethers.getContract(srcContractName)
+    console.log(`[source] address: ${basedOFT.address}`)
 
     tx = await (await basedOFT.approve(basedOFT.address, qty)).wait()
     console.log(`approve tx: ${tx.transactionHash}`)
@@ -29,7 +36,7 @@ module.exports = async function (taskArgs, hre) {
             { value: ethers.utils.parseEther("1") } // estimate/guess 1 eth will cover
         )
     ).wait()
-    console.log(`✅ Message Sent [${hre.network.name}] sendTokens() to BasedOFT @ [${dstChainId}] token:[${dstAddr}]`)
+    console.log(`✅ Message Sent [${hre.network.name}] sendTokens() to OFT @ LZ chainId[${dstChainId}] token:[${dstAddr}]`)
     console.log(` tx: ${tx.transactionHash}`)
     console.log(`* check your address [${owner.address}] on the destination chain, in the ERC20 transaction tab !"`)
 }

@@ -11,7 +11,7 @@ module.exports = async function ({ deployments, getNamedAccounts }) {
     console.log({ onftArgs })
     console.log(`[${hre.network.name}] LayerZero Endpoint address: ${lzEndpointAddress}`)
 
-    await deploy("OmnichainNonFungibleToken", {
+    await deploy("ExampleUniversalONFT", {
         from: deployer,
         args: [lzEndpointAddress, onftArgs.startMintId, onftArgs.endMintId],
         log: true,
@@ -19,4 +19,4 @@ module.exports = async function ({ deployments, getNamedAccounts }) {
     })
 }
 
-module.exports.tags = ["UniversalONFT"]
+module.exports.tags = ["ExampleUniversalONFT"]

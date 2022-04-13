@@ -5,14 +5,14 @@ module.exports = async function (taskArgs, hre) {
     const owner = signers[0]
     const dstChainId = CHAIN_ID[taskArgs.targetNetwork]
     const tokenId = taskArgs.tokenId
-    const omnichainNonFungibleToken = await ethers.getContract("OmnichainNonFungibleToken")
-    console.log(`[source] omnichainNonFungibleToken.address: ${omnichainNonFungibleToken.address}`)
+    const exampleUniversalONFT = await ethers.getContract("ExampleUniversalONFT")
+    console.log(`[source] exampleUniversalONFT.address: ${exampleUniversalONFT.address}`)
 
     let adapterParams = ethers.utils.solidityPack(["uint16", "uint256"], [1, 200000]) // default adapterParams example
 
     try {
         let tx = await (
-            await omnichainNonFungibleToken.send(
+            await exampleUniversalONFT.send(
                 dstChainId,
                 owner.address,
                 tokenId,

@@ -45,19 +45,21 @@ pragma solidity 0.8.4;
 
 import "../token/onft/extension/UniversalONFT.sol";
 
-/// @title A LayerZero OmnichainNonFungibleToken example
-/// @notice You can use this to mint ONFT and transfer across chain
-contract OmnichainNonFungibleToken is UniversalONFT {
-    constructor(address _layerZeroEndpoint, uint _startMintIndex, uint _maxMint) UniversalONFT("OmnichainNonFungibleToken", "ONFT", _layerZeroEndpoint, _startMintIndex, _maxMint) {}
+/// @title A LayerZero UniversalONFT example
+/// @notice You can use this to mint ONFT and send nftIds across chain.
+///  Each contract deployed to a chain should carefully set a `_startMintIndex` and a `_maxMint`
+///  value to set a range of allowed mintable nftIds (so that no two chains can mint the same id!)
+contract ExampleUniversalONFT is UniversalONFT {
+    constructor(address _layerZeroEndpoint, uint _startMintId, uint _endMintId) UniversalONFT("ExampleUniversalONFT", "ONFT", _layerZeroEndpoint, _startMintId, _endMintId) {}
 
-    function send(uint16 _dstChainId, uint _omniChainNFT_tokenId, bytes memory _adapterParam) public payable {
-        this.send(
-            _dstChainId, // destination chainId
-            abi.encodePacked(msg.sender), // destination address in bytes
-            _omniChainNFT_tokenId, // omniChainNFT_tokenId
-            payable(msg.sender), // refund address
-            address(0x0), // future parameter
-            _adapterParam // adapterParams
-        );
-    }
+//    function send(uint16 _dstChainId, uint _nftId, bytes memory _adapterParam) public payable {
+//        this.send(
+//            _dstChainId, // destination chainId
+//            abi.encodePacked(msg.sender), // destination address in bytes
+//            _nftId, // omniChainNFT_tokenId
+//            payable(msg.sender), // refund address
+//            address(0x0), // future parameter
+//            _adapterParam // adapterParams
+//        );
+//    }
 }
