@@ -13,16 +13,12 @@ module.exports = async function ({ deployments, getNamedAccounts }) {
     const globalSupply = ethers.utils.parseUnits(OFT_CONFIG.globalSupply, 18)
     console.log(`[${hre.network.name}] LayerZero Endpoint address: ${endpointAddr}`)
 
-    await deploy("OFT", {
+    await deploy("ExampleOFT", {
         from: deployer,
-        args: [
-            endpointAddr,
-            globalSupply
-        ],
-        contract: "ExampleOFT",
+        args: [endpointAddr, globalSupply],
         log: true,
         waitConfirmations: 1,
     })
 }
 
-module.exports.tags = ["OFT"]
+module.exports.tags = ["ExampleOFT"]

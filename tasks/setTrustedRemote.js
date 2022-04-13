@@ -1,12 +1,25 @@
 const CHAIN_ID = require("../constants/chainIds.json")
 const { getDeploymentAddresses } = require("../utils/readStatic")
+const OFT_CONFIG = require('../constants/oftConfig.json')
 
 module.exports = async function (taskArgs, hre) {
-    // console.log(taskArgs)
+
+    let srcContractName = 'ExampleOFT'
+    let dstContractName = srcContractName
+    if(taskArgs.targetNetwork == OFT_CONFIG.baseChain){
+        // if its the base chain, we need to grab a different contract
+        // Note: its reversed though!
+        dstContractName = 'ExampleBasedOFT'
+    }
+    if(hre.network.name == OFT_CONFIG.baseChain){
+        srcContractName = 'ExampleBasedOFT'
+    }
+
     const dstChainId = CHAIN_ID[taskArgs.targetNetwork]
-    const dstAddr = getDeploymentAddresses(taskArgs.targetNetwork)[taskArgs.contractName]
+    // console.log(getDeploymentAddresses(taskArgs.targetNetwork))
+    const dstAddr = getDeploymentAddresses(taskArgs.targetNetwork)[dstContractName]
     // get local contract instance
-    const contractInstance = await ethers.getContract(taskArgs.contractName)
+    const contractInstance = await ethers.getContract(srcContractName)
     console.log(`[source] contract address: ${contractInstance.address}`)
 
     // setTrustedRemote() on the local contract, so it can receive message from the source contract

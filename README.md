@@ -34,15 +34,15 @@ In the event a chain goes rogue, Ethereum will be the final source of truth for 
 
 > WARNING: **You must perform the setTrustedRemote() (step 2).**
 
-1. Deploy two contracts:  ```rinkeby``` is the `base` chain. Fuji is the OFT for the other chain.
+1. Deploy two contracts:  ```rinkeby``` is the `base` chain. Fuji is the oft for the other chain.
 ```angular2html
-npx hardhat --network rinkeby deploy --tags BasedOFT
-npx hardhat --network fuji deploy --tags OFT
+npx hardhat --network rinkeby deploy --tags ExampleBasedOFT
+npx hardhat --network fuji deploy --tags ExampleOFT
 ```
 2. Set the "trusted remotes" (ie: your contracts) so each of them can receive messages from one another, and `only` one another.
 ```angular2html
-npx hardhat --network rinkeby setTrustedRemote --contract-name OFT --target-network fuji
-npx hardhat --network fuji setTrustedRemote --contract-name OFT --target-network rinkeby
+npx hardhat --network rinkeby setTrustedRemote --target-network fuji
+npx hardhat --network fuji setTrustedRemote --target-network rinkeby
 ```
 3. Send tokens from rinkeby to fuji
 ```angular2html

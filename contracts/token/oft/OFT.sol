@@ -33,11 +33,11 @@ contract OFT is NonblockingLzApp, IOFT, ERC20 {
         _send(_from, _dstChainId, _toAddress, _amount, _refundAddress, _zroPaymentAddress, _adapterParam);
     }
 
-    function getType() public view virtual override returns(uint) {
+    function getType() public view virtual override returns (uint) {
         return 0;
     }
 
-    function getGlobalSupply() public view virtual override returns(uint) {
+    function getGlobalSupply() public view virtual override returns (uint) {
         return globalSupply;
     }
 

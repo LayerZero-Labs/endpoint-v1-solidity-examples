@@ -19,12 +19,7 @@ describe("OFT: ", function () {
         this.initialSupplyOnEndpoint = ethers.utils.parseUnits("1000000", 18)
 
         // create two OmnichainFungibleToken instances
-        this.OmnichainFungibleTokenSrc = await BasedOFT.deploy(
-            "NAME1",
-            "SYM1",
-            this.lzEndpointSrcMock.address,
-            this.initialSupplyOnEndpoint
-        )
+        this.OmnichainFungibleTokenSrc = await BasedOFT.deploy("NAME1", "SYM1", this.lzEndpointSrcMock.address, this.initialSupplyOnEndpoint)
 
         this.OmnichainFungibleTokenDst = await OmnichainFungibleToken.deploy("NAME1", "SYM1", this.lzEndpointDstMock.address, 0)
 
