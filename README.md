@@ -60,8 +60,8 @@ Check `constants/onftArgs.json` for the specific test configuration used in this
 
 1. Deploy two contracts:
 ```angular2html
- npx hardhat --network bsc-testnet deploy --tags UniversalONFT
- npx hardhat --network fuji deploy --tags UniversalONFT
+ npx hardhat --network bsc-testnet deploy --tags ExampleUniversalONFT
+ npx hardhat --network fuji deploy --tags ExampleUniversalONFT
 ```
 2. Set the "trusted remotes", so each contract can send & receive messages from one another, and `only` one another.
 ```angular2html
