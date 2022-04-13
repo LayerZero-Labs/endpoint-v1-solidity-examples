@@ -60,4 +60,28 @@ describe("OFT: ", function () {
         expect(await OFTSrc.balanceOf(owner.address)).to.be.equal(globalSupply.sub(sendQty))
         expect(await OFTDst.balanceOf(owner.address)).to.be.equal(sendQty)
     })
+
+    it("setBlocking() - stores the payload", async function () {
+        // block receiving msgs on the dst lzEndpoint to simulate ua reverts which stores a payload
+        await lzEndpointDstMock.setBlocking(true)
+
+        // v1 adapterParams, encoded for version 1 style, and 200k gas quote
+        const adapterParam = ethers.utils.solidityPack(["uint16", "uint256"], [1, 225000])
+        // amount to be sent across
+        const sendQty = ethers.utils.parseUnits("100", 18)
+
+        // approve and send tokens
+        await OFTSrc.approve(OFTSrc.address, sendQty)
+
+        // stores a payload
+        await expect(OFTSrc.send(
+            chainIdDst,
+            ethers.utils.solidityPack(["address"], [owner.address]),
+            sendQty,
+            owner.address,
+            ethers.constants.AddressZero,
+            adapterParam
+        )).to.emit(lzEndpointDstMock, "PayloadStored")
+    })
+
 })
