@@ -2,58 +2,57 @@ const { expect } = require("chai")
 const { ethers } = require("hardhat")
 
 describe("BasedOFT: ", function () {
-    let baseChainId = 1
-    let otherChainId = 2
+    const baseChainId = 1
+    const otherChainId = 2
+    const name = "OmnichainFungibleToken"
+    const symbol = "OFT"
+    const globalSupply = ethers.utils.parseUnits("1000000", 18)
 
-    let name = "BasedOFT"
-    let symbol = "OFT"
-    let intialSupplyBaseChain = ethers.utils.parseUnits("1000000", 18)
-    let accounts, owner
+    let owner, lzEndpointBase, lzEndpointOther, baseOFT, otherOFT, LZEndpointMock, BasedOFT, OFT
+
+    before(async function () {
+        owner = (await ethers.getSigners())[0]
+        LZEndpointMock = await ethers.getContractFactory("LZEndpointMock")
+        BasedOFT = await ethers.getContractFactory("BasedOFT")
+        OFT = await ethers.getContractFactory("OFT")
+    })
 
     beforeEach(async function () {
-        accounts = await ethers.getSigners()
-        owner = accounts[0]
+        lzEndpointBase = await LZEndpointMock.deploy(baseChainId)
+        lzEndpointOther = await LZEndpointMock.deploy(otherChainId)
 
-        const LZEndpointMock = await ethers.getContractFactory("LZEndpointMock")
-        const BasedOFT = await ethers.getContractFactory("BasedOFT")
-        const OFT = await ethers.getContractFactory("OFT")
-
-        this.lzEndpointBase = await LZEndpointMock.deploy(baseChainId)
-        this.lzEndpointOther = await LZEndpointMock.deploy(otherChainId)
-        expect(await this.lzEndpointBase.getChainId()).to.equal(baseChainId)
-        expect(await this.lzEndpointOther.getChainId()).to.equal(otherChainId)
+        expect(await lzEndpointBase.getChainId()).to.equal(baseChainId)
+        expect(await lzEndpointOther.getChainId()).to.equal(otherChainId)
 
         //------  deploy: base & other chain  -------------------------------------------------------
         // create two BasedOFT instances. both tokens have the same name and symbol on each chain
         // 1. base chain
         // 2. other chain
-        this.baseOFT = await BasedOFT.deploy(name, symbol, this.lzEndpointBase.address, intialSupplyBaseChain)
-        this.otherOFT = await OFT.deploy(name, symbol, this.lzEndpointOther.address, intialSupplyBaseChain)
+        baseOFT = await BasedOFT.deploy(name, symbol, lzEndpointBase.address, globalSupply)
+        otherOFT = await OFT.deploy(name, symbol, lzEndpointOther.address, globalSupply)
 
-        // internal bookkeepping for endpoints (not part of a real deploy, just for this test)
-        this.lzEndpointBase.setDestLzEndpoint(this.otherOFT.address, this.lzEndpointOther.address)
-        this.lzEndpointOther.setDestLzEndpoint(this.baseOFT.address, this.lzEndpointBase.address)
+        // internal bookkeeping for endpoints (not part of a real deploy, just for this test)
+        lzEndpointBase.setDestLzEndpoint(otherOFT.address, lzEndpointOther.address)
+        lzEndpointOther.setDestLzEndpoint(baseOFT.address, lzEndpointBase.address)
 
         //------  setTrustedRemote(s) -------------------------------------------------------
         // for each OFT, setTrustedRemote to allow it to receive from the remote OFT contract.
         // Note: This is sometimes referred to as the "wire-up" process.
-        await this.baseOFT.setTrustedRemote(otherChainId, this.otherOFT.address)
-        await this.otherOFT.setTrustedRemote(baseChainId, this.baseOFT.address)
+        await baseOFT.setTrustedRemote(otherChainId, otherOFT.address)
+        await otherOFT.setTrustedRemote(baseChainId, baseOFT.address)
 
         // ... the deployed OFTs are ready now!
     })
 
-    it("send() tokens from main to other chain", async function () {
-        // ensure they're both starting from 1000000
-        let a = await this.baseOFT.balanceOf(owner.address)
-        let b = await this.otherOFT.balanceOf(owner.address)
-        expect(a).to.equal(intialSupplyBaseChain)
-        expect(b).to.equal(0)
+    it("send() - tokens from main to other chain", async function () {
+        // ensure they're both allocated initial amounts
+        expect(await baseOFT.balanceOf(owner.address)).to.equal(globalSupply)
+        expect(await otherOFT.balanceOf(owner.address)).to.equal(0)
 
-        let amount = ethers.utils.parseUnits("100", 18)
-        let messageFee = ethers.utils.parseEther("0.01") // conversion to units of wei
-        // await this.baseOFT.approve(this.OmnichainFungibleTokenSrc.address, sendQty)
-        await this.baseOFT.send(
+        const amount = ethers.utils.parseUnits("100", 18)
+        const messageFee = ethers.utils.parseEther("0.01") // conversion to units of wei
+
+        await baseOFT.send(
             otherChainId, // destination chainId
             owner.address, // destination address to send tokens to
             amount, // quantity of tokens to send (in units of wei)
@@ -64,9 +63,7 @@ describe("BasedOFT: ", function () {
         )
 
         // verify tokens burned on source chain and minted on destination chain
-        a = await this.baseOFT.balanceOf(owner.address)
-        b = await this.otherOFT.balanceOf(owner.address)
-        expect(a).to.be.equal(intialSupplyBaseChain.sub(amount))
-        expect(b).to.be.equal(amount)
+        expect(await baseOFT.balanceOf(owner.address)).to.be.equal(globalSupply.sub(amount))
+        expect(await otherOFT.balanceOf(owner.address)).to.be.equal(amount)
     })
 })
