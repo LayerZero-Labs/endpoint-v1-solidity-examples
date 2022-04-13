@@ -13,11 +13,11 @@ contract UniversalONFT is ONFT {
     /// @param _name the name of the token
     /// @param _symbol the token symbol
     /// @param _layerZeroEndpoint handles message transmission across chains
-    /// @param _startMintIndex the starting mint number on this chain
-    /// @param _maxMint the max number of mints on this chain
-    constructor(string memory _name, string memory _symbol, address _layerZeroEndpoint, uint _startMintIndex, uint _maxMint) ONFT(_name, _symbol, _layerZeroEndpoint) {
-        nextMintId = _startMintIndex;
-        maxMintId = _maxMint;
+    /// @param _startMintId the starting mint number on this chain
+    /// @param _endMintId the max number of mints on this chain
+    constructor(string memory _name, string memory _symbol, address _layerZeroEndpoint, uint _startMintId, uint _endMintId) ONFT(_name, _symbol, _layerZeroEndpoint) {
+        nextMintId = _startMintId;
+        maxMintId = _endMintId;
     }
 
     /// @notice Mint your ONFT

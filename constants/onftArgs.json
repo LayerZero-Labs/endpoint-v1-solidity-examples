@@ -1,14 +1,14 @@
 {
   "bsc-testnet": {
-    "startMintIndex": 0,
-    "maxMint": 50
+    "startMintId": 0,
+    "endMintId": 50
   },
   "fuji": {
-    "startMintIndex": 50,
-    "maxMint": 100
+    "startMintId": 50,
+    "endMintId": 100
   },
   "arbitrum-rinkeby": {
-    "startMintIndex": 100,
-    "maxMint": 150
+    "startMintId": 100,
+    "endMintId": 150
   }
 }
