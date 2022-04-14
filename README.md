@@ -115,6 +115,7 @@ Optionally use this command in a separate terminal to watch the counter incremen
 npx hardhat --network fuji ocPoll    
 ```
 
+>>>>>>>                                                  LayerZero
 # Getting and Setting the Oracle
 > You need to have deployed the `OmniCounter` on `fuji`
 
