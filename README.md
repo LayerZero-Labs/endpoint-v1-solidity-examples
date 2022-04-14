@@ -115,19 +115,6 @@ Optionally use this command in a separate terminal to watch the counter incremen
 npx hardhat --network fuji ocPoll    
 ```
 
-# Getting and Setting the Oracle
-> You need to have deployed the `OmniCounter` on `fuji`
-
-### Get the OmniCounter's Oracle
-
-```npx hardhat --network fuji ocGetOracle --target-network bsc-testnet```
-
-### Set a custom Oracle
-
-```npx hardhat --network fuji ocSetOracle --target-network bsc-testnet --oracle 0x0000000000000000000000000000000000oracle```
-
-Note: `0x0000000000000000000000000000000000oracle` in the above example should be a legitimate oracle address.
-
 ### See some examples in `/contracts`  🙌
 
 Many of the example contracts make use of LayerZeroEndpointMock.sol which is a nice way to test LayerZero locally!
