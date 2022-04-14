@@ -76,7 +76,7 @@ Check `constants/onftArgs.json` for the specific test configuration used in this
 4. [Optional] Show the token owner(s)
 ```angular2html
  npx hardhat --network bsc-testnet onftOwnerOf --token-id 1
- npx hardhat --network fuji onftOwnerOf --token-id 51
+ npx hardhat --network fuji onftOwnerOf --token-id 10
 ```
 5. Send ONFT across chains
 ```angular2html
