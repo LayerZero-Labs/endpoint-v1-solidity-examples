@@ -6,6 +6,8 @@ pragma abicoder v2;
 import "../interfaces/ILayerZeroReceiver.sol";
 import "../interfaces/ILayerZeroEndpoint.sol";
 
+import "hardhat/console.sol";
+
 /*
 mocking multi endpoint connection.
 - send() will short circuit to lzReceive() directly
@@ -106,7 +108,6 @@ contract LZEndpointMock is ILayerZeroEndpoint {
 
         bytes memory bytesSourceUserApplicationAddr = addrToPackedBytes(address(msg.sender)); // cast this address to bytes
 
-        inboundNonce[_chainId][abi.encodePacked(msg.sender)] = nonce;
         // not using the extra gas parameter because this is a single tx call, not split between different chains
         // LZEndpointMock(lzEndpoint).receivePayload(mockChainId, bytesSourceUserApplicationAddr, destAddr, nonce, extraGas, _payload);
         LZEndpointMock(lzEndpoint).receivePayload(mockChainId, bytesSourceUserApplicationAddr, destAddr, nonce, 0, _payload);
