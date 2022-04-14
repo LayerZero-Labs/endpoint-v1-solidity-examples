@@ -35,79 +35,165 @@ describe.only("OFT: ", function () {
         await OFTDst.setTrustedRemote(chainIdSrc, OFTSrc.address) // for B, set A
     })
 
-    it("send() - burn local tokens on source chain and mint on destination chain", async function () {
-        // ensure they're both starting from 1000000
-        expect(await OFTSrc.balanceOf(owner.address)).to.be.equal(globalSupply)
-        expect(await OFTDst.balanceOf(owner.address)).to.be.equal("0")
-
+    describe("setting up stored payload", async function () {
         // v1 adapterParams, encoded for version 1 style, and 200k gas quote
         const adapterParam = ethers.utils.solidityPack(["uint16", "uint256"], [1, 225000])
-        // amount to be sent across
-        const sendQty = ethers.utils.parseUnits("100", 18)
+        const sendQty = ethers.utils.parseUnits("1", 18) // amount to be sent across
 
-        // approve and send tokens
-        await OFTSrc.approve(OFTSrc.address, sendQty)
-        await OFTSrc.send(
-            chainIdDst,
-            ethers.utils.solidityPack(["address"], [owner.address]),
-            sendQty,
-            owner.address,
-            ethers.constants.AddressZero,
-            adapterParam
-        )
+        beforeEach(async function () {
+            // ensure they're both starting with correct amounts
+            expect(await OFTSrc.balanceOf(owner.address)).to.be.equal(globalSupply)
+            expect(await OFTDst.balanceOf(owner.address)).to.be.equal("0")
 
-        // verify tokens burned on source chain and minted on destination chain
-        expect(await OFTSrc.balanceOf(owner.address)).to.be.equal(globalSupply.sub(sendQty))
-        expect(await OFTDst.balanceOf(owner.address)).to.be.equal(sendQty)
-    })
+            // block receiving msgs on the dst lzEndpoint to simulate ua reverts which stores a payload
+            await lzEndpointDstMock.blockNextMsg()
 
-    it("setBlocking() - stores the payload", async function () {
-        // block receiving msgs on the dst lzEndpoint to simulate ua reverts which stores a payload
-        await lzEndpointDstMock.blockNextMsg()
+            // stores a payload
+            await expect(OFTSrc.send(
+                chainIdDst,
+                ethers.utils.solidityPack(["address"], [owner.address]),
+                sendQty,
+                owner.address,
+                ethers.constants.AddressZero,
+                adapterParam
+            )).to.emit(lzEndpointDstMock, "PayloadStored")
 
-        // v1 adapterParams, encoded for version 1 style, and 200k gas quote
-        const adapterParam = ethers.utils.solidityPack(["uint16", "uint256"], [1, 225000])
-        // amount to be sent across
-        const sendQty = ethers.utils.parseUnits("100", 18)
+            // verify tokens burned on source chain and minted on destination chain
+            expect(await OFTSrc.balanceOf(owner.address)).to.be.equal(globalSupply.sub(sendQty))
+            expect(await OFTDst.balanceOf(owner.address)).to.be.equal(0)
+        })
 
-        // approve and send tokens
-        await OFTSrc.approve(OFTSrc.address, sendQty)
+        it("hasStoredPayload() - stores the payload", async function () {
+            expect(await lzEndpointDstMock.hasStoredPayload(chainIdSrc, OFTSrc.address)).to.equal(true)
+        })
 
-        // stores a payload
-        await expect(OFTSrc.send(
-            chainIdDst,
-            ethers.utils.solidityPack(["address"], [owner.address]),
-            sendQty,
-            owner.address,
-            ethers.constants.AddressZero,
-            adapterParam
-        )).to.emit(lzEndpointDstMock, "PayloadStored")
+        it("getLengthOfQueue() - cant send another msg if payload is blocked", async function () {
+            expect(await lzEndpointDstMock.hasStoredPayload(chainIdSrc, OFTSrc.address)).to.equal(true)
 
-        expect(await lzEndpointDstMock.hasStoredPayload(chainIdSrc, OFTSrc.address)).to.equal(true)
-    })
+            // no tokens were sent
+            expect(await OFTDst.balanceOf(owner.address)).to.be.equal(0)
 
-    it("setBlocking() - cant send another msg if payload is blocked", async function () {
-        // block receiving msgs on the dst lzEndpoint to simulate ua reverts which stores a payload
-        await lzEndpointDstMock.blockNextMsg(true)
+            // queue is empty
+            expect(await lzEndpointDstMock.getLengthOfQueue(chainIdSrc, OFTSrc.address)).to.equal(0)
 
-        // v1 adapterParams, encoded for version 1 style, and 200k gas quote
-        const adapterParam = ethers.utils.solidityPack(["uint16", "uint256"], [1, 225000])
-        // amount to be sent across
-        const sendQty = ethers.utils.parseUnits("100", 18)
+            // now that a msg has been stored, subsequent ones will not revert, but will get added to the queue
+            await expect(OFTSrc.send(
+                chainIdDst,
+                ethers.utils.solidityPack(["address"], [owner.address]),
+                sendQty,
+                owner.address,
+                ethers.constants.AddressZero,
+                adapterParam
+            )).to.not.reverted
 
-        // approve and send tokens
-        await OFTSrc.approve(OFTSrc.address, sendQty)
+            // queue has increased
+            expect(await lzEndpointDstMock.getLengthOfQueue(chainIdSrc, OFTSrc.address)).to.equal(1)
+        })
 
-        // stores a payload
-        await expect(OFTSrc.send(
-            chainIdDst,
-            ethers.utils.solidityPack(["address"], [owner.address]),
-            sendQty,
-            owner.address,
-            ethers.constants.AddressZero,
-            adapterParam
-        )).to.emit(lzEndpointDstMock, "PayloadStored")
+        it("retryPayload() - delivers a stuck msg", async function () {
+            // balance before transfer is 0
+            expect(await OFTDst.balanceOf(owner.address)).to.be.equal(0)
 
-        expect(await lzEndpointDstMock.hasStoredPayload(chainIdSrc, OFTSrc.address)).to.equal(true)
+            const payload = ethers.utils.defaultAbiCoder.encode(["bytes", "uint256"], [owner.address, sendQty])
+            await expect(lzEndpointDstMock.retryPayload(chainIdSrc, OFTSrc.address, payload)).to.emit(lzEndpointDstMock, "PayloadCleared")
+
+            // balance after transfer is sendQty
+            expect(await OFTDst.balanceOf(owner.address)).to.be.equal(sendQty)
+        })
+
+        it("forceResumeReceive() - removes msg", async function () {
+            // balance before is 0
+            expect(await OFTDst.balanceOf(owner.address)).to.be.equal(0)
+
+            // forceResumeReceive deletes the stuck msg
+            await expect(OFTDst.forceResumeReceive(chainIdSrc, OFTSrc.address)).to.emit(lzEndpointDstMock, "UaForceResumeReceive")
+
+            // stored payload gone
+            expect(await lzEndpointDstMock.hasStoredPayload(chainIdSrc, OFTSrc.address)).to.equal(false)
+
+            // balance after transfer is 0
+            expect(await OFTDst.balanceOf(owner.address)).to.be.equal(0)
+        })
+
+        it("forceResumeReceive() - removes msg, delivers all msgs in the queue", async function () {
+            const msgsInQueue = 3
+
+            for (let i = 0; i < msgsInQueue; i++) {
+                // first iteration stores a payload, the following get added to queue
+                await OFTSrc.send(
+                    chainIdDst,
+                    ethers.utils.solidityPack(["address"], [owner.address]),
+                    sendQty,
+                    owner.address,
+                    ethers.constants.AddressZero,
+                    adapterParam
+                )
+            }
+
+            // msg queue is full
+            expect(await lzEndpointDstMock.getLengthOfQueue(chainIdSrc, OFTSrc.address)).to.equal(msgsInQueue)
+
+            // balance before is 0
+            expect(await OFTDst.balanceOf(owner.address)).to.be.equal(0)
+
+            // forceResumeReceive deletes the stuck msg
+            await expect(OFTDst.forceResumeReceive(chainIdSrc, OFTSrc.address)).to.emit(lzEndpointDstMock, "UaForceResumeReceive")
+
+            // balance after transfer is 0
+            expect(await OFTDst.balanceOf(owner.address)).to.be.equal(sendQty.mul(msgsInQueue))
+
+            // msg queue is empty
+            expect(await lzEndpointDstMock.getLengthOfQueue(chainIdSrc, OFTSrc.address)).to.equal(0)
+        })
+
+        it("forceResumeReceive() - emptied queue is actually emptied and doesnt get double counted", async function () {
+            const msgsInQueue = 3
+
+            for (let i = 0; i < msgsInQueue; i++) {
+                // first iteration stores a payload, the following gets added to queue
+                await OFTSrc.send(
+                    chainIdDst,
+                    ethers.utils.solidityPack(["address"], [owner.address]),
+                    sendQty,
+                    owner.address,
+                    ethers.constants.AddressZero,
+                    adapterParam
+                )
+            }
+
+            // msg queue is full
+            expect(await lzEndpointDstMock.getLengthOfQueue(chainIdSrc, OFTSrc.address)).to.equal(msgsInQueue)
+
+            // balance before is 0
+            expect(await OFTDst.balanceOf(owner.address)).to.be.equal(0)
+
+            // forceResumeReceive deletes the stuck msg
+            await expect(OFTDst.forceResumeReceive(chainIdSrc, OFTSrc.address)).to.emit(lzEndpointDstMock, "UaForceResumeReceive")
+
+            // balance after transfer
+            expect(await OFTDst.balanceOf(owner.address)).to.be.equal(sendQty.mul(msgsInQueue))
+
+            // store a new payload
+            await lzEndpointDstMock.blockNextMsg()
+            await OFTSrc.send(
+                chainIdDst,
+                ethers.utils.solidityPack(["address"], [owner.address]),
+                sendQty,
+                owner.address,
+                ethers.constants.AddressZero,
+                adapterParam
+            )
+
+            // forceResumeReceive deletes msgs but since there's nothing in the queue, balance shouldn't increase
+            await expect(OFTDst.forceResumeReceive(chainIdSrc, OFTSrc.address)).to.emit(lzEndpointDstMock, "UaForceResumeReceive")
+
+            // balance after transfer remains the same
+            expect(await OFTDst.balanceOf(owner.address)).to.be.equal(sendQty.mul(msgsInQueue))
+        })
+
+        // todo
+        it.skip("forceResumeReceive() - the queue being emptied is done in the correct fifo order", async function () {
+
+        })
     })
 })

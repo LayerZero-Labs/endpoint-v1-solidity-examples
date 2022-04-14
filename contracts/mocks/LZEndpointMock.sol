@@ -33,10 +33,10 @@ contract LZEndpointMock is ILayerZeroEndpoint {
         bytes32 payloadHash;
     }
 
-    struct QuedPayload {
+    struct QueuedPayload {
         address dstAddress;
         uint64 nonce;
-        bytes storage payload;
+        bytes payload;
     }
 
     // inboundNonce = [srcChainId][srcAddress].
@@ -46,7 +46,7 @@ contract LZEndpointMock is ILayerZeroEndpoint {
     // storedPayload = [srcChainId][srcAddress]
     mapping(uint16 => mapping(bytes => StoredPayload)) public storedPayload;
     // msgToDeliver = [srcChainId][srcAddress]
-    mapping(uint16 => mapping(bytes => QuedPayload[])) public msgsToDeliver;
+    mapping(uint16 => mapping(bytes => QueuedPayload[])) public msgsToDeliver;
 
     event UaForceResumeReceive(uint16 chainId, bytes srcAddress);
     event PayloadCleared(uint16 srcChainId, bytes srcAddress, uint64 nonce, address dstAddress);
@@ -118,14 +118,33 @@ contract LZEndpointMock is ILayerZeroEndpoint {
         // assert and increment the nonce. no message shuffling
         require(_nonce == ++inboundNonce[_srcChainId][_srcAddress], "LayerZero: wrong nonce");
 
-        // que the following msgs inside of a cue to simulate a successful send on src, but not fully delivered on dst
+        // queue the following msgs inside of a stack to simulate a successful send on src, but not fully delivered on dst
         if (sp.payloadHash != bytes32(0)) {
-            msgsToDeliver[_srcChainId][_srcAddress].push(QuedPayload(_dstAddress, _nonce, payload));
+            QueuedPayload[] storage msgs = msgsToDeliver[_srcChainId][_srcAddress];
+            QueuedPayload memory newMsg = QueuedPayload(_dstAddress, _nonce, _payload);
+
+            // warning, might run into gas issues trying to forward through a bunch of queued msgs
+            // shift all the msgs over so we can treat this like a fifo via array.pop()
+            if (msgs.length > 0) {
+                // extend the array
+                msgs.push(newMsg);
+
+                // shift all the indexes up for pop()
+                for (uint i = 0; i < msgs.length-1; i++){
+                    msgs[i+1] = msgs[i];
+                }
+
+                // put the newMsg at the bottom of the stack
+                msgs[0] = newMsg;
+            } else {
+                msgs.push(newMsg);
+            }
+
         } else if (nextMsgBLocked) {
             storedPayload[_srcChainId][_srcAddress] = StoredPayload(uint64(_payload.length), _dstAddress, keccak256(_payload));
             emit PayloadStored(_srcChainId, _srcAddress, _dstAddress, _nonce, _payload, bytes(""));
             // ensure the next msgs that go through are no longer blocked
-            blockNextMsg = false;
+            nextMsgBLocked = false;
         } else {
             // we ignore the gas limit because this call is made in one tx due to being "same chain"
             // ILayerZeroReceiver(_dstAddress).lzReceive{gas: _gasLimit}(_srcChainId, _srcAddress, _nonce, _payload); // invoke lzReceive
@@ -136,6 +155,10 @@ contract LZEndpointMock is ILayerZeroEndpoint {
     // used to simulate messages received get stored as a payload
     function blockNextMsg() external {
         nextMsgBLocked = true;
+    }
+
+    function getLengthOfQueue(uint16 _srcChainId, bytes calldata _srcAddress) external view returns(uint) {
+        return msgsToDeliver[_srcChainId][_srcAddress].length;
     }
 
     // @notice gets a quote in source native gas, for the amount that send() requires to pay for message delivery
@@ -204,17 +227,14 @@ contract LZEndpointMock is ILayerZeroEndpoint {
 
     // simulates the relayer pushing through the rest of the msgs that got delayed due to the stored payload
     function _clearMsgQue(uint16 _srcChainId, bytes calldata _srcAddress) internal {
-        QuedPayload[] storage msgs = msgsToDeliver[_srcChainId][_srcAddress];
+        QueuedPayload[] storage msgs = msgsToDeliver[_srcChainId][_srcAddress];
 
-        // warning, might run into gas issues trying to forward through a bunch of "qued" msgs
-        for (uint i = 0; i < msgs.length; i++){
-            QuedPayload payload = msgs[i];
+        // warning, might run into gas issues trying to forward through a bunch of queued msgs
+        while (msgs.length > 0){
+            QueuedPayload memory payload = msgs[msgs.length-1];
             ILayerZeroReceiver(payload.dstAddress).lzReceive(_srcChainId, _srcAddress, payload.nonce, payload.payload);
+            msgs.pop();
         }
-
-        // reset the msg que
-        QuedPayload[] emptyMsgQue;
-        msgsToDeliver[_srcChainId][_srcAddress] = emptyMsgQue;
     }
 
     function forceResumeReceive(uint16 _srcChainId, bytes calldata _srcAddress) external override {
