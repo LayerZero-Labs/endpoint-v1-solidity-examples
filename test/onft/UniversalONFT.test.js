@@ -1,68 +1,68 @@
 const { expect } = require("chai")
 const { ethers } = require("hardhat")
 
-describe("UniversalONFT", function () {
-    let accounts, owner, chainIdSrc, chainIdDst, name, symbol, lzEndpointSrcMock, lzEndpointDstMock, UniversalONFTSrc, UniversalONFTDst
+describe("UniversalONFT: ", function () {
+    const chainIdSrc = 1
+    const chainIdDst = 2
+    const name = "UniversalONFT"
+    const symbol = "UONFT"
+
+    let owner, lzEndpointSrcMock, lzEndpointDstMock, ONFTSrc, ONFTDst, LZEndpointMock, ONFT, ONFTSrcIds, ONFTDstIds
 
     before(async function () {
-        accounts = await ethers.getSigners()
-        owner = accounts[0]
+        owner = (await ethers.getSigners())[0]
 
-        const LZEndpointMock = await ethers.getContractFactory("LZEndpointMock")
-        const UniversalONFT = await ethers.getContractFactory("UniversalONFT")
+        LZEndpointMock = await ethers.getContractFactory("LZEndpointMock")
+        ONFT = await ethers.getContractFactory("UniversalONFT")
+        ONFTSrcIds = [1, 1] // [startID, endID]... only allowed to mint one ONFT
+        ONFTDstIds = [2, 2] // [startID, endID]... only allowed to mint one ONFT
+    })
 
-        chainIdSrc = 1
-        chainIdDst = 2
-        name = "UniversalONFT"
-        symbol = "UONFT"
-
+    beforeEach(async function () {
         lzEndpointSrcMock = await LZEndpointMock.deploy(chainIdSrc)
         lzEndpointDstMock = await LZEndpointMock.deploy(chainIdDst)
 
         // create two UniversalONFT instances
-        UniversalONFTSrc = await UniversalONFT.deploy(name, symbol, lzEndpointSrcMock.address, 0, 1)
-        UniversalONFTDst = await UniversalONFT.deploy(name, symbol, lzEndpointDstMock.address, 1, 2)
+        ONFTSrc = await ONFT.deploy(name, symbol, lzEndpointSrcMock.address, ...ONFTSrcIds)
+        ONFTDst = await ONFT.deploy(name, symbol, lzEndpointDstMock.address, ...ONFTDstIds)
 
-        lzEndpointSrcMock.setDestLzEndpoint(UniversalONFTDst.address, lzEndpointDstMock.address)
-        lzEndpointDstMock.setDestLzEndpoint(UniversalONFTSrc.address, lzEndpointSrcMock.address)
+        lzEndpointSrcMock.setDestLzEndpoint(ONFTDst.address, lzEndpointDstMock.address)
+        lzEndpointDstMock.setDestLzEndpoint(ONFTSrc.address, lzEndpointSrcMock.address)
 
         // set each contracts source address so it can send to each other
-        await UniversalONFTSrc.setTrustedRemote(chainIdDst, UniversalONFTDst.address) // for A, set B
-        await UniversalONFTDst.setTrustedRemote(chainIdSrc, UniversalONFTSrc.address) // for B, set A
+        await ONFTSrc.setTrustedRemote(chainIdDst, ONFTDst.address) // for A, set B
+        await ONFTDst.setTrustedRemote(chainIdSrc, ONFTSrc.address) // for B, set A
     })
 
-    it("mint on the source chain and send ONFT to the destination chain", async function () {
-        // mint UniversalONFT
-        let tx = await UniversalONFTSrc.mint()
-        let onftTokenIdTemp = await ethers.provider.getTransactionReceipt(tx.hash)
-        let onftTokenId = parseInt(Number(onftTokenIdTemp.logs[0].topics[3]))
+    it("send() - mint on the source chain and send ONFT to the destination chain", async function () {
+        // mint ONFT
+        const newId = await ONFTSrc.nextMintId()
+        await ONFTSrc.mint()
 
         // verify the owner of the token is on the source chain
-        let currentOwner = await UniversalONFTSrc.ownerOf(onftTokenId)
-        expect(currentOwner).to.be.equal(owner.address)
+        expect(await ONFTSrc.ownerOf(newId)).to.be.equal(owner.address)
 
-        // approve and send UniversalONFT
-        await UniversalONFTSrc.approve(UniversalONFTSrc.address, onftTokenId)
+        // approve and send ONFT
+        await ONFTSrc.approve(ONFTSrc.address, newId)
         // v1 adapterParams, encoded for version 1 style, and 200k gas quote
-        let adapterParam = ethers.utils.solidityPack(["uint16", "uint256"], [1, 225000])
+        const adapterParam = ethers.utils.solidityPack(["uint16", "uint256"], [1, 225000])
 
-        await UniversalONFTSrc.send(
+        await ONFTSrc.send(
             chainIdDst,
             ethers.utils.solidityPack(["address"], [owner.address]),
-            onftTokenId,
+            newId,
             owner.address,
             "0x000000000000000000000000000000000000dEaD",
             adapterParam
         )
 
         // verify the owner of the token is no longer on the source chain
-        await expect(UniversalONFTSrc.ownerOf(onftTokenId)).to.revertedWith("ERC721: owner query for nonexistent token")
+        await expect(ONFTSrc.ownerOf(newId)).to.revertedWith("ERC721: owner query for nonexistent token")
 
         // verify the owner of the token is on the destination chain
-        currentOwner = await UniversalONFTDst.ownerOf(onftTokenId)
-        expect(currentOwner).to.not.equal(owner)
+        expect(await ONFTDst.ownerOf(newId)).to.not.equal(owner)
 
         // hit the max mint on the source chain
-        await expect(UniversalONFTSrc.mint()).to.revertedWith("ONFT: Max Mint limit reached")
+        await expect(ONFTSrc.mint()).to.revertedWith("ONFT: Max Mint limit reached")
     })
 })

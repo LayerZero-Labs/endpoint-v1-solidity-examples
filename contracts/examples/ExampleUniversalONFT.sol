@@ -50,5 +50,5 @@ import "../token/onft/extension/UniversalONFT.sol";
 ///  Each contract deployed to a chain should carefully set a `_startMintIndex` and a `_maxMint`
 ///  value to set a range of allowed mintable nftIds (so that no two chains can mint the same id!)
 contract ExampleUniversalONFT is UniversalONFT {
-    constructor(address _layerZeroEndpoint, uint _startMintIndex, uint _maxMint) UniversalONFT("ExampleUniversalONFT", "ONFT", _layerZeroEndpoint, _startMintIndex, _maxMint) {}
+    constructor(address _layerZeroEndpoint, uint _startMintId, uint _endMintId) UniversalONFT("ExampleUniversalONFT", "ONFT", _layerZeroEndpoint, _startMintId, _endMintId) {}
 }
