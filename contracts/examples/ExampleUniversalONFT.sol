@@ -51,15 +51,4 @@ import "../token/onft/extension/UniversalONFT.sol";
 ///  value to set a range of allowed mintable nftIds (so that no two chains can mint the same id!)
 contract ExampleUniversalONFT is UniversalONFT {
     constructor(address _layerZeroEndpoint, uint _startMintIndex, uint _maxMint) UniversalONFT("ExampleUniversalONFT", "ONFT", _layerZeroEndpoint, _startMintIndex, _maxMint) {}
-
-//    function send(uint16 _dstChainId, uint _nftId, bytes memory _adapterParam) public payable {
-//        this.send(
-//            _dstChainId, // destination chainId
-//            abi.encodePacked(msg.sender), // destination address in bytes
-//            _nftId, // omniChainNFT_tokenId
-//            payable(msg.sender), // refund address
-//            address(0x0), // future parameter
-//            _adapterParam // adapterParams
-//        );
-//    }
 }
