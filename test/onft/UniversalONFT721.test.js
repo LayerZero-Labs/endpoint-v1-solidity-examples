@@ -1,7 +1,7 @@
 const { expect } = require("chai")
 const { ethers } = require("hardhat")
 
-describe("UniversalONFT: ", function () {
+describe("UniversalONFT721: ", function () {
     const chainIdSrc = 1
     const chainIdDst = 2
     const name = "UniversalONFT"
@@ -13,7 +13,7 @@ describe("UniversalONFT: ", function () {
         owner = (await ethers.getSigners())[0]
 
         LZEndpointMock = await ethers.getContractFactory("LZEndpointMock")
-        ONFT = await ethers.getContractFactory("UniversalONFT")
+        ONFT = await ethers.getContractFactory("UniversalONFT721")
         ONFTSrcIds = [1, 1] // [startID, endID]... only allowed to mint one ONFT
         ONFTDstIds = [2, 2] // [startID, endID]... only allowed to mint one ONFT
     })

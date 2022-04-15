@@ -50,7 +50,7 @@ npx hardhat --network rinkeby oftSend --target-network fuji --qty 42
 ```
  Pro-tip: Check the ERC20 transactions tab of the destination chain block explorer and await your tokens!
 
-# OmnichainNonFungibleToken (ONFT)
+# OmnichainNonFungibleToken721 (ONFT721)
 
 This ONFT contract allows minting of `nftId`s on separate chains. To ensure two chains can not mint the same `nfId` each contract on each chain is only allowed to mint`nftIds` in certain ranges.
 Check `constants/onftArgs.json` for the specific test configuration used in this demo.
@@ -60,8 +60,8 @@ Check `constants/onftArgs.json` for the specific test configuration used in this
 
 1. Deploy two contracts:
 ```angular2html
- npx hardhat --network bsc-testnet deploy --tags ExampleUniversalONFT
- npx hardhat --network fuji deploy --tags ExampleUniversalONFT
+ npx hardhat --network bsc-testnet deploy --tags ExampleUniversalONFT721
+ npx hardhat --network fuji deploy --tags ExampleUniversalONFT721
 ```
 2. Set the "trusted remotes", so each contract can send & receive messages from one another, and `only` one another.
 ```angular2html

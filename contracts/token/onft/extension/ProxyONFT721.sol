@@ -5,9 +5,9 @@ pragma solidity ^0.8.0;
 import "../../../lzApp/NonblockingLzApp.sol";
 import "@openzeppelin/contracts/token/ERC721/IERC721.sol";
 import "@openzeppelin/contracts/token/ERC721/IERC721Receiver.sol";
-import "../IONFT.sol";
+import "../IONFT721.sol";
 
-contract ProxyONFT is NonblockingLzApp, IERC721Receiver {
+contract ProxyONFT721 is NonblockingLzApp, IERC721Receiver {
     IERC721 public immutable token;
 
     bytes4 private constant SELECTOR = bytes4(keccak256(bytes("isApprovedOrOwner(address,uint256)")));
