@@ -68,11 +68,6 @@ describe("OFT: ", function () {
         })
 
         it("getLengthOfQueue() - cant send another msg if payload is blocked", async function () {
-            expect(await lzEndpointDstMock.hasStoredPayload(chainIdSrc, OFTSrc.address)).to.equal(true)
-
-            // no tokens were sent
-            expect(await OFTDst.balanceOf(owner.address)).to.be.equal(0)
-
             // queue is empty
             expect(await lzEndpointDstMock.getLengthOfQueue(chainIdSrc, OFTSrc.address)).to.equal(0)
 

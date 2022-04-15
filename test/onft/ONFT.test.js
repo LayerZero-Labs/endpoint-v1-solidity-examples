@@ -21,8 +21,8 @@ describe.skip("ONFT: ", function () {
         lzEndpointDstMock = await LZEndpointMock.deploy(chainIdDst)
 
         // create two ONFT instances
-        ONFTSrc = await ONFT.deploy(name, symbol, lzEndpointSrcMock.address,)
-        ONFTDst = await ONFT.deploy(name, symbol, lzEndpointDstMock.address,)
+        ONFTSrc = await ONFT.deploy(name, symbol, lzEndpointSrcMock.address)
+        ONFTDst = await ONFT.deploy(name, symbol, lzEndpointDstMock.address)
 
         lzEndpointSrcMock.setDestLzEndpoint(ONFTDst.address, lzEndpointDstMock.address)
         lzEndpointDstMock.setDestLzEndpoint(ONFTSrc.address, lzEndpointSrcMock.address)
