@@ -30,11 +30,13 @@ contract ONFT1155 is IONFT1155, NonblockingLzApp, ERC1155 {
     }
 
     function _send(address _from, uint16 _dstChainId, bytes memory _toAddress, uint _tokenId, uint _amount, address payable _refundAddress, address _zroPaymentAddress, bytes calldata _adapterParam) internal virtual {
-        require(isApprovedForAll(_msgSender(), _msgSender()), "ERC1155: transfer caller is not owner nor approved");
+        require(_msgSender() == _from || isApprovedForAll(_from, _msgSender()), "ERC1155: transfer caller is not owner nor approved");
         _beforeSend(_from, _dstChainId, _toAddress, _tokenId, _amount);
 
-        uint[1] memory tokenIds = [_tokenId];
-        uint[1] memory amounts = [_amount];
+        uint[] memory tokenIds = new uint[](1);
+        uint[] memory amounts= new uint[](1);
+        tokenIds[0] = _tokenId;
+        amounts[0] = _amount;
 
         bytes memory payload = abi.encode(_toAddress, tokenIds, amounts);
         _lzSend(_dstChainId, payload, _refundAddress, _zroPaymentAddress, _adapterParam);
@@ -46,7 +48,7 @@ contract ONFT1155 is IONFT1155, NonblockingLzApp, ERC1155 {
 
     function _sendBatch(address _from, uint16 _dstChainId, bytes memory _toAddress, uint[] memory _tokenIds, uint[] memory _amounts, address payable _refundAddress, address _zroPaymentAddress, bytes calldata _adapterParam) internal virtual {
         require(_tokenIds.length == _amounts.length, "ONFT1155: ids and amounts must be same length");
-        require(isApprovedForAll(_msgSender(), _msgSender()), "ERC1155: transfer caller is not owner nor approved");
+        require(_msgSender() == _from || isApprovedForAll(_msgSender(), _msgSender()), "ERC1155: transfer caller is not owner nor approved");
         _beforeSendBatch(_from, _dstChainId, _toAddress, _tokenIds, _amounts);
 
         bytes memory payload = abi.encode(_toAddress, _tokenIds, _amounts);
@@ -94,10 +96,10 @@ contract ONFT1155 is IONFT1155, NonblockingLzApp, ERC1155 {
     function _beforeReceive(uint16 /* _srcChainId */, bytes memory /* _srcAddress */, bytes memory /* _payload */) internal virtual {}
 
     function _afterReceive(uint16 /* _srcChainId */, address _toAddress, uint _tokenId, uint _amount) internal virtual {
-        _mint(_toAddress, _tokenId, _amount, "");
+        _mint(_toAddress, _tokenId, _amount, "0x");
     }
 
     function _afterReceiveBatch(uint16 /* _srcChainId */, address _toAddress, uint[] memory _tokenIds, uint[] memory _amounts) internal virtual {
-        _mintBatch(_toAddress, _tokenIds, _amounts, "");
+        _mintBatch(_toAddress, _tokenIds, _amounts, "0x");
     }
 }

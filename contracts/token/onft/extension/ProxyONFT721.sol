@@ -34,8 +34,8 @@ contract ProxyONFT721 is NonblockingLzApp, IERC721Receiver {
     }
 
     function _send(address _from, uint16 _dstChainId, bytes memory _toAddress, uint _tokenId, address payable _refundAddress, address _zroPaymentAddress, bytes calldata _adapterParam) internal virtual {
-        (bool isApproved, bytes memory data) = address(token).call(abi.encodeWithSelector(SELECTOR, _msgSender(), _tokenId));
-        require(isApproved, "ERC721: transfer caller is not owner nor approved");
+//        (bool isApproved, bytes memory data) = address(token).call(abi.encodeWithSelector(SELECTOR, _msgSender(), _tokenId));
+//        require(isApproved, "ERC721: transfer caller is not owner nor approved");
         _beforeSend(_from, _dstChainId, _toAddress, _tokenId);
 
         bytes memory payload = abi.encode(_toAddress, _tokenId);
