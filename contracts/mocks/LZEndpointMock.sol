@@ -6,8 +6,6 @@ pragma abicoder v2;
 import "../interfaces/ILayerZeroReceiver.sol";
 import "../interfaces/ILayerZeroEndpoint.sol";
 
-import "hardhat/console.sol";
-
 /*
 mocking multi endpoint connection.
 - send() will short circuit to lzReceive() directly
