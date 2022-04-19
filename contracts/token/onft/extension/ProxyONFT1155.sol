@@ -39,6 +39,10 @@ contract ProxyONFT1155 is NonblockingLzApp, IERC1155Receiver {
         _send(_msgSender(), _dstChainId, _toAddress, _tokenId, _amount, _refundAddress, _zroPaymentAddress, _adapterParam);
     }
 
+    function sendBatch(uint16 _dstChainId, bytes calldata _toAddress, uint[] memory _tokenIds, uint[] memory _amounts, address payable _refundAddress, address _zroPaymentAddress, bytes calldata _adapterParam) external payable virtual {
+        _sendBatch(_msgSender(), _dstChainId, _toAddress, _tokenIds, _amounts, _refundAddress, _zroPaymentAddress, _adapterParam);
+    }
+
     function _send(address _from, uint16 _dstChainId, bytes memory _toAddress, uint _tokenId, uint _amount, address payable _refundAddress, address _zroPaymentAddress, bytes calldata _adapterParam) internal virtual {
 //        (bool isApproved, /*bytes memory data*/) = address(token).call(abi.encodeWithSelector(SELECTOR, _msgSender(), _from));
 //        require(isApproved, "ERC1155: transfer caller is not owner nor approved");

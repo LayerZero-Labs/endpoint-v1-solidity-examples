@@ -30,6 +30,7 @@ function getMnemonic(networkName) {
   if (!mnemonic || mnemonic === '') {
     return 'test test test test test test test test test test test junk'
   }
+
   return mnemonic
 }
 
