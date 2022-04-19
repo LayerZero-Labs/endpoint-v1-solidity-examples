@@ -111,10 +111,20 @@ task("sendProxyONFT1155", "send a tokenid and quantity", require("./sendProxyONF
     .addParam("targetNetwork", "the destination chainId")
     .addParam("tokenId", "the NFT tokenId")
     .addParam("quantity", "the quantity of NFT tokenId to send")
-    .addParam("msgValue", "the lz message value, ie: '0.02' ")
+    // .addParam("msgValue", "the lz message value, ie: '0.02' ")
 
 task("sendONFT1155", "send a tokenid and quantity", require("./sendONFT1155"))
     .addParam("targetNetwork", "the destination chainId")
     .addParam("tokenId", "the NFT tokenId")
     .addParam("quantity", "the quantity of NFT tokenId to send")
     .addParam("msgValue", "the lz message value, ie: '0.02' ")
+
+task("batchSendProxyONFT1155", "send a tokenid and quantity", require("./batchSendProxyONFT1155"))
+    .addParam("targetNetwork", "the destination chainId")
+    .addParam("tokenIds", "the NFT tokenId")
+    .addParam("quantities", "the quantity of NFT tokenId to send")
+
+task("batchSendONFT1155", "send a tokenid and quantity", require("./batchSendONFT1155"))
+    .addParam("targetNetwork", "the destination chainId")
+    .addParam("tokenIds", "the NFT tokenId")
+    .addParam("quantities", "the quantity of NFT tokenId to send")
