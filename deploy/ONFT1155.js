@@ -11,7 +11,7 @@ module.exports = async function ({ deployments, getNamedAccounts }) {
 
     await deploy("ONFT1155", {
         from: deployer,
-        args: ["test.com", lzEndpointAddress],
+        args: ["ipfs:/", lzEndpointAddress],
         log: true,
         waitConfirmations: 1,
     })
