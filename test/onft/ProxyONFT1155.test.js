@@ -1,7 +1,7 @@
 const { expect } = require("chai")
 const { ethers } = require("hardhat")
 
-describe.only("ProxyONFT1155: ", function () {
+describe("ProxyONFT1155: ", function () {
     const chainId_A = 1
     const chainId_B = 2
     const chainId_C = 3
@@ -166,5 +166,53 @@ describe.only("ProxyONFT1155: ", function () {
 
         // proxy no longer owns
         checkTokenBalance(await ERC1155Src.balanceOfBatch(listOfProxyA, tokenIds), emptyAmounts)
+    })
+
+    it("estimateSendFee()", async function () {
+        const tokenId = 123
+        const amount = 11
+        const nativeFee = 123
+        const zroFee = 666
+
+        await lzEndpointMockA.setEstimatedFees(nativeFee, zroFee)
+
+        // mint large batch of tokens
+        await ERC1155Src.mint(warlock.address, tokenId, amount)
+
+        // approve the proxy to swap your tokens
+        await ERC1155Src.connect(warlock).setApprovalForAll(ProxyONFT_A.address, true)
+
+        // estimate the fees
+        const fees = await ProxyONFT_A.estimateSendFee(chainId_B, warlock.address, tokenId, amount, false, "0x")
+
+        // reverts with not enough native
+        await expect(ProxyONFT_A.connect(warlock).send(chainId_B, warlock.address, tokenId, amount, warlock.address, ethers.constants.AddressZero, "0x", {value: fees.nativeFee.sub(1)})).to.be.reverted
+
+        // does not revert with correct amount
+        await expect(ProxyONFT_A.connect(warlock).send(chainId_B, warlock.address, tokenId, amount, warlock.address, ethers.constants.AddressZero, "0x", {value: fees.nativeFee})).to.not.reverted
+    })
+
+    it("estimateSendBatchFee()", async function () {
+        const tokenIds = [123, 456, 7890, 101112131415]
+        const amounts = [1, 33, 22, 1234566]
+        const nativeFee = 123
+        const zroFee = 666
+
+        await lzEndpointMockA.setEstimatedFees(nativeFee, zroFee)
+
+        // mint large batch of tokens
+        await ERC1155Src.mintBatch(warlock.address, tokenIds, amounts)
+
+        // approve the proxy to swap your tokens
+        await ERC1155Src.connect(warlock).setApprovalForAll(ProxyONFT_A.address, true)
+
+        // estimate the fees
+        const fees = await ProxyONFT_A.estimateSendBatchFee(chainId_B, warlock.address, tokenIds, amounts, false, "0x")
+
+        // reverts with not enough native
+        await expect(ProxyONFT_A.connect(warlock).sendBatch(chainId_B, warlock.address, tokenIds, amounts, warlock.address, ethers.constants.AddressZero, "0x", {value: fees.nativeFee.sub(1)})).to.be.reverted
+
+        // does not revert with correct amount
+        await expect(ProxyONFT_A.connect(warlock).sendBatch(chainId_B, warlock.address, tokenIds, amounts, warlock.address, ethers.constants.AddressZero, "0x", {value: fees.nativeFee})).to.not.reverted
     })
 })

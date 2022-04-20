@@ -14,22 +14,17 @@ contract ProxyONFT1155 is IProxyONFT1155, NonblockingLzApp, IERC1155Receiver {
         token = IERC1155(_proxyToken);
     }
 
-    function estimateSendFee(uint16 _dstChainId, bytes calldata _toAddress, uint _tokenId, uint _amount, bool _useZro, bytes calldata _adapterParams) public view override virtual returns (uint nativeFee, uint zroFee) {
+    function estimateSendFee(uint16 _dstChainId, bytes calldata _toAddress, uint /*_tokenId*/, uint /*_amount*/, bool _useZro, bytes calldata _adapterParams) public view override virtual returns (uint nativeFee, uint zroFee) {
         uint[] memory tokenIds = new uint[](1);
         uint[] memory amounts= new uint[](1);
-        tokenIds[0] = _tokenId;
-        amounts[0] = _amount;
+        tokenIds[0] = 0;
+        amounts[0] = 0;
 
         bytes memory payload = abi.encode(_toAddress, tokenIds, amounts);
         return lzEndpoint.estimateFees(_dstChainId, address(this), payload, _useZro, _adapterParams);
     }
 
     function estimateSendBatchFee(uint16 _dstChainId, bytes calldata _toAddress, uint[] memory _tokenIds, uint[] memory _amounts, bool _useZro, bytes calldata _adapterParams) public view override virtual returns (uint nativeFee, uint zroFee) {
-        bytes memory payload = abi.encode(_toAddress, _tokenIds, _amounts);
-        return lzEndpoint.estimateFees(_dstChainId, address(this), payload, _useZro, _adapterParams);
-    }
-
-    function estimateSendFee(uint16 _dstChainId, bytes calldata _toAddress, bool _useZro, uint[] memory _tokenIds, uint[] memory _amounts, bytes calldata _adapterParams) public view virtual returns (uint nativeFee, uint zroFee) {
         bytes memory payload = abi.encode(_toAddress, _tokenIds, _amounts);
         return lzEndpoint.estimateFees(_dstChainId, address(this), payload, _useZro, _adapterParams);
     }

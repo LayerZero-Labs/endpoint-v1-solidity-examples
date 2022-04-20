@@ -13,18 +13,18 @@ contract ONFT1155 is IONFT1155, NonblockingLzApp, ERC1155 {
 
     constructor(string memory uri_, address _lzEndpoint) ERC1155(uri_) NonblockingLzApp(_lzEndpoint) {}
 
-    function estimateSendFee(uint16 _dstChainId, bytes calldata _toAddress, uint _tokenId, uint _amount, bool _useZro, bytes calldata _adapterParams) public view override virtual returns (uint nativeFee, uint zroFee) {
+    function estimateSendFee(uint16 _dstChainId, bytes calldata /*_toAddress*/, uint /*_tokenId*/, uint /*_amount*/, bool _useZro, bytes calldata _adapterParams) public view override virtual returns (uint nativeFee, uint zroFee) {
         uint[] memory tokenIds = new uint[](1);
         uint[] memory amounts= new uint[](1);
-        tokenIds[0] = _tokenId;
-        amounts[0] = _amount;
+        tokenIds[0] = 0;
+        amounts[0] = 0;
 
-        bytes memory payload = abi.encode(_toAddress, tokenIds, amounts);
+        bytes memory payload = abi.encode(address(0x0), tokenIds, amounts);
         return lzEndpoint.estimateFees(_dstChainId, address(this), payload, _useZro, _adapterParams);
     }
 
-    function estimateSendBatchFee(uint16 _dstChainId, bytes calldata _toAddress, uint[] memory _tokenIds, uint[] memory _amounts, bool _useZro, bytes calldata _adapterParams) public view override virtual returns (uint nativeFee, uint zroFee) {
-        bytes memory payload = abi.encode(_toAddress, _tokenIds, _amounts);
+    function estimateSendBatchFee(uint16 _dstChainId, bytes calldata /*_toAddress*/, uint[] memory _tokenIds, uint[] memory _amounts, bool _useZro, bytes calldata _adapterParams) public view override virtual returns (uint nativeFee, uint zroFee) {
+        bytes memory payload = abi.encode(address(0x0), _tokenIds, _amounts);
         return lzEndpoint.estimateFees(_dstChainId, address(this), payload, _useZro, _adapterParams);
     }
 

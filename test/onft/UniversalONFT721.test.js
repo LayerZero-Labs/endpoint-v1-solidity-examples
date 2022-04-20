@@ -49,7 +49,7 @@ describe("UniversalONFT721: ", function () {
 
         await ONFTSrc.send(
             chainIdDst,
-            ethers.utils.solidityPack(["address"], [owner.address]),
+            owner.address,
             newId,
             owner.address,
             "0x000000000000000000000000000000000000dEaD",
