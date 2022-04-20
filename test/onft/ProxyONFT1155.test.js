@@ -27,7 +27,7 @@ describe("ProxyONFT1155: ", function () {
 
         // make an ERC1155 to mock a previous deploy
         ERC1155Src = await ERC1155.deploy(uri)
-        // // generate a proxy to allow it to go ONFT
+        // generate a proxy to allow it to go ONFT
         ProxyONFT_A = await ProxyONFT.deploy(lzEndpointMockA.address, ERC1155Src.address)
 
         // create ONFT on dstChains

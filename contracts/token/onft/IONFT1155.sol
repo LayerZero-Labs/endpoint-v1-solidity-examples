@@ -2,49 +2,66 @@
 
 pragma solidity ^0.8.0;
 
-import "@openzeppelin/contracts/token/ERC1155/IERC1155.sol";
-
 /**
  * @dev Interface of the ONFT standard
  */
-interface IONFT1155 is IERC1155 {
-    /**
-     * @dev send token `_tokenId` to (`_dstChainId`, `_toAddress`)
-     * `_toAddress` can be any size depending on the `dstChainId`.
-     * `_zroPaymentAddress` set to address(0x0) if not paying in ZRO (LayerZero Token)
-     * `_adapterParam` is a flexible bytes array to indicate messaging adapter services
-     */
-    function send(uint16 _dstChainId, bytes calldata _toAddress, uint _tokenId, uint amount, address payable _refundAddress, address _zroPaymentAddress, bytes calldata _adapterParam) external payable;
-    function sendBatch(uint16 _dstChainId, bytes calldata _toAddress, uint[] memory _tokenIds, uint[] memory amounts, address payable _refundAddress, address _zroPaymentAddress, bytes calldata _adapterParam) external payable;
-
-    /**
-     * @dev send token `_tokenId` to (`_dstChainId`, `_toAddress`) from `_from`
-     * `_toAddress` can be any size depending on the `dstChainId`.
-     * `_zroPaymentAddress` set to address(0x0) if not paying in ZRO (LayerZero Token)
-     * `_adapterParam` is a flexible bytes array to indicate messaging adapter services
-     */
-    function sendFrom(address _from, uint16 _dstChainId, bytes calldata _toAddress, uint _tokenId, uint _amount, address payable _refundAddress, address _zroPaymentAddress, bytes calldata _adapterParam) external payable;
-    function sendBatchFrom(address _from, uint16 _dstChainId, bytes calldata _toAddress, uint[] memory _tokenIds, uint[] memory _amounts, address payable _refundAddress, address _zroPaymentAddress, bytes calldata _adapterParam) external payable;
-
-    /**
-     * @dev estimate LayerZero fees for sending token
-     * `_toAddress` can be any size depending on the `dstChainId`.
-     * `_useZro` if paying in ZRO (LayerZero Token)
-     * `_adapterParam` is a flexible bytes array to indicate messaging adapter services
-     */
-    function estimateSendFee(uint16 _dstChainId, bytes calldata _toAddress, uint _tokenId, uint _amount, bool _useZro, bytes calldata _adapterParams) external view returns (uint nativeFee, uint zroFee);
-    function estimateSendBatchFee(uint16 _dstChainId, bytes calldata _toAddress, uint[] memory _tokenIds, uint[] memory _amounts, bool _useZro, bytes calldata _adapterParams) external view returns (uint nativeFee, uint zroFee);
-
-    /**
-     * @dev Emitted when `_tokenId` are moved from the `_sender` to (`_dstChainId`, `_toAddress`)
-     * `_nonce` is the outbound nonce from
-     */
+interface IONFT1155 {
     event SendToChain(address indexed _sender, uint16 indexed _dstChainId, bytes indexed _toAddress, uint _tokenId, uint _amount, uint64 _nonce);
     event SendBatchToChain(address indexed _sender, uint16 indexed _dstChainId, bytes indexed _toAddress, uint[] _tokenIds, uint[] _amounts, uint64 _nonce);
-
-    /**
-     * @dev Emitted when `_tokenId` are sent from `_srcChainId` to the `_toAddress` at this chain. `_nonce` is the inbound nonce.
-     */
     event ReceiveFromChain(uint16 _srcChainId, address _toAddress, uint _tokenId, uint _amount, uint64 _nonce);
     event ReceiveBatchFromChain(uint16 _srcChainId, address _toAddress, uint[] _tokenIds, uint[] _amounts, uint64 _nonce);
+
+    // _dstChainId - L0 defined chain id to send tokens too
+    // _toAddress - dynamic bytes array which contains the address to whom you are sending tokens to on the dstChain
+    // _tokenId - token Id to transfer
+    // _amount - amount of the tokens to transfer
+    // _refundAddress - address on src that will receive refund for any overpayment of L0 fees
+    // _zroPaymentAddress - if paying in zro, pass the address to use. using 0x0 indicates not paying fees in zro
+    // _adapterParam - flexible bytes array to indicate messaging adapter services in L0
+    function send(uint16 _dstChainId, bytes calldata _toAddress, uint _tokenId, uint amount, address payable _refundAddress, address _zroPaymentAddress, bytes calldata _adapterParam) external payable;
+
+    // _dstChainId - L0 defined chain id to send tokens too
+    // _toAddress - dynamic bytes array which contains the address to whom you are sending tokens to on the dstChain
+    // _tokenIds - token Ids to transfer
+    // _amounts - amounts of the tokens to transfer
+    // _refundAddress - address on src that will receive refund for any overpayment of L0 fees
+    // _zroPaymentAddress - if paying in zro, pass the address to use. using 0x0 indicates not paying fees in zro
+    // _adapterParam - flexible bytes array to indicate messaging adapter services in L0
+    function sendBatch(uint16 _dstChainId, bytes calldata _toAddress, uint[] memory _tokenIds, uint[] memory amounts, address payable _refundAddress, address _zroPaymentAddress, bytes calldata _adapterParam) external payable;
+
+    // _from - address where tokens should be deducted from on behalf of
+    // _dstChainId - L0 defined chain id to send tokens too
+    // _toAddress - dynamic bytes array which contains the address to whom you are sending tokens to on the dstChain
+    // _tokenId - token Id to transfer
+    // _amount - amount of the tokens to transfer
+    // _refundAddress - address on src that will receive refund for any overpayment of L0 fees
+    // _zroPaymentAddress - if paying in zro, pass the address to use. using 0x0 indicates not paying fees in zro
+    // _adapterParam - flexible bytes array to indicate messaging adapter services in L0
+    function sendFrom(address _from, uint16 _dstChainId, bytes calldata _toAddress, uint _tokenId, uint _amount, address payable _refundAddress, address _zroPaymentAddress, bytes calldata _adapterParam) external payable;
+
+    // _from - address where tokens should be deducted from on behalf of
+    // _dstChainId - L0 defined chain id to send tokens too
+    // _toAddress - dynamic bytes array which contains the address to whom you are sending tokens to on the dstChain
+    // _tokenIds - token Ids to transfer
+    // _amounts - amounts of the tokens to transfer
+    // _refundAddress - address on src that will receive refund for any overpayment of L0 fees
+    // _zroPaymentAddress - if paying in zro, pass the address to use. using 0x0 indicates not paying fees in zro
+    // _adapterParam - flexible bytes array to indicate messaging adapter services in L0
+    function sendBatchFrom(address _from, uint16 _dstChainId, bytes calldata _toAddress, uint[] memory _tokenIds, uint[] memory _amounts, address payable _refundAddress, address _zroPaymentAddress, bytes calldata _adapterParam) external payable;
+
+    // _dstChainId - L0 defined chain id to send tokens too
+    // _toAddress - dynamic bytes array which contains the address to whom you are sending tokens to on the dstChain
+    // _tokenId - token Id to transfer
+    // _amount - amount of the tokens to transfer
+    // _useZro - indicates to use zro to pay L0 fees
+    // _adapterParam - flexible bytes array to indicate messaging adapter services in L0
+    function estimateSendFee(uint16 _dstChainId, bytes calldata _toAddress, uint _tokenId, uint _amount, bool _useZro, bytes calldata _adapterParams) external view returns (uint nativeFee, uint zroFee);
+
+    // _dstChainId - L0 defined chain id to send tokens too
+    // _toAddress - dynamic bytes array which contains the address to whom you are sending tokens to on the dstChain
+    // _tokenIds - tokens Id to transfer
+    // _amounts - amounts of the tokens to transfer
+    // _useZro - indicates to use zro to pay L0 fees
+    // _adapterParam - flexible bytes array to indicate messaging adapter services in L0
+    function estimateSendBatchFee(uint16 _dstChainId, bytes calldata _toAddress, uint[] memory _tokenIds, uint[] memory _amounts, bool _useZro, bytes calldata _adapterParams) external view returns (uint nativeFee, uint zroFee);
 }
