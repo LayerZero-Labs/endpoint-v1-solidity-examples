@@ -2,12 +2,10 @@
 
 pragma solidity ^0.8.0;
 
-import "@openzeppelin/contracts/token/ERC1155/IERC1155.sol";
-
 /**
  * @dev Interface of the ONFT standard
  */
-interface IONFT1155 is IERC1155 {
+interface IProxyONFT1155 {
     /**
      * @dev send token `_tokenId` to (`_dstChainId`, `_toAddress`)
      * `_toAddress` can be any size depending on the `dstChainId`.

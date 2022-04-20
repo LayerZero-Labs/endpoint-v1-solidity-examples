@@ -13,6 +13,21 @@ contract ONFT1155 is IONFT1155, NonblockingLzApp, ERC1155 {
 
     constructor(string memory uri_, address _lzEndpoint) ERC1155(uri_) NonblockingLzApp(_lzEndpoint) {}
 
+    function estimateSendFee(uint16 _dstChainId, bytes calldata _toAddress, uint _tokenId, uint _amount, bool _useZro, bytes calldata _adapterParams) public view override virtual returns (uint nativeFee, uint zroFee) {
+        uint[] memory tokenIds = new uint[](1);
+        uint[] memory amounts= new uint[](1);
+        tokenIds[0] = _tokenId;
+        amounts[0] = _amount;
+
+        bytes memory payload = abi.encode(_toAddress, tokenIds, amounts);
+        return lzEndpoint.estimateFees(_dstChainId, address(this), payload, _useZro, _adapterParams);
+    }
+
+    function estimateSendBatchFee(uint16 _dstChainId, bytes calldata _toAddress, uint[] memory _tokenIds, uint[] memory _amounts, bool _useZro, bytes calldata _adapterParams) public view override virtual returns (uint nativeFee, uint zroFee) {
+        bytes memory payload = abi.encode(_toAddress, _tokenIds, _amounts);
+        return lzEndpoint.estimateFees(_dstChainId, address(this), payload, _useZro, _adapterParams);
+    }
+
     function sendFrom(address _from, uint16 _dstChainId, bytes calldata _toAddress, uint _tokenId, uint _amount, address payable _refundAddress, address _zroPaymentAddress, bytes calldata _adapterParam) external payable virtual override {
         _send(_from, _dstChainId, _toAddress, _tokenId, _amount, _refundAddress, _zroPaymentAddress, _adapterParam);
     }
