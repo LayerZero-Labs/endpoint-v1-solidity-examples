@@ -1,7 +1,7 @@
 const { expect } = require("chai")
 const { ethers } = require("hardhat")
 
-describe("ProxyONFT1155: ", function () {
+describe.only("ProxyONFT1155: ", function () {
     const chainId_A = 1
     const chainId_B = 2
     const chainId_C = 3
@@ -102,8 +102,69 @@ describe("ProxyONFT1155: ", function () {
         expect(await ERC1155Src.balanceOf(ProxyONFT_A.address, tokenId)).to.be.equal(0)
     })
 
-    // todo
-    it.skip("sendBatch()", async function () {
+    it("sendBatch()", async function () {
+        const tokenIds = [123, 456, 7890, 101112131415]
+        const amounts = [1, 33, 22, 1234566]
+        const emptyAmounts = [0, 0, 0, 0]
+        const listOfOwner = tokenIds.map(x => owner.address)
+        const listOfWarlock = tokenIds.map(x => warlock.address)
+        const listOfProxyA = tokenIds.map(x => ProxyONFT_A.address)
 
+        function checkTokenBalance(balances, expectedBalances) {
+            expect(balances.length).to.equal(expectedBalances.length)
+            for (let i = 0; i < balances.length; i ++) {
+                expect(balances[i].toNumber()).to.equal(expectedBalances[i])
+            }
+        }
+
+        // mint large batch of tokens
+        await ERC1155Src.mintBatch(owner.address, tokenIds, amounts)
+
+        // verify the owner owns tokens
+        checkTokenBalance(await ERC1155Src.balanceOfBatch(listOfOwner, tokenIds), amounts)
+
+        // tokens don't exist on other chain
+        checkTokenBalance(await ONFT_B.balanceOfBatch(listOfOwner, tokenIds), emptyAmounts)
+
+        // can transfer tokens on srcChain as regular erC1155
+        await ERC1155Src.safeBatchTransferFrom(owner.address, warlock.address, tokenIds, amounts, "0x")
+        checkTokenBalance(await ERC1155Src.balanceOfBatch(listOfWarlock, tokenIds), amounts)
+        checkTokenBalance(await ERC1155Src.balanceOfBatch(listOfOwner, tokenIds), emptyAmounts)
+
+        // approve the proxy to swap your tokens
+        await ERC1155Src.connect(warlock).setApprovalForAll(ProxyONFT_A.address, true)
+
+        // swaps tokens to other chain in seperate batches
+        await ProxyONFT_A.connect(warlock).sendBatch(chainId_B, warlock.address, tokenIds.slice(1), amounts.slice(1), warlock.address, ethers.constants.AddressZero, "0x")
+        await ProxyONFT_A.connect(warlock).sendBatch(chainId_B, warlock.address, tokenIds.slice(0, 1), amounts.slice(0, 1), warlock.address, ethers.constants.AddressZero, "0x")
+
+        // tokens are now owned by the proxy contract, because this is the original nft chain
+        checkTokenBalance(await ERC1155Src.balanceOfBatch(listOfProxyA, tokenIds), amounts)
+        checkTokenBalance(await ERC1155Src.balanceOfBatch(listOfWarlock, tokenIds), emptyAmounts)
+
+        // tokens received on the dst chain
+        checkTokenBalance(await ONFT_B.balanceOfBatch(listOfWarlock, tokenIds), amounts)
+
+        // can send to other onft contract eg. not the original nft contract chain, and a different address
+        // eg. warlock -> owner
+        await ONFT_B.connect(warlock).sendBatch(chainId_C, owner.address, tokenIds, amounts, warlock.address, ethers.constants.AddressZero, "0x")
+
+        // tokens are burned on the sending chain
+        checkTokenBalance(await ONFT_B.balanceOfBatch(listOfOwner, tokenIds), emptyAmounts)
+
+        // tokens received on the dst chain
+        checkTokenBalance(await ONFT_C.balanceOfBatch(listOfOwner, tokenIds), amounts)
+
+        // send it back to the original chain, and original owner
+        await ONFT_C.sendBatch(chainId_A, warlock.address, tokenIds, amounts, warlock.address, ethers.constants.AddressZero, "0x")
+
+        // tokens are burned on the sending chain
+        checkTokenBalance(await ONFT_C.balanceOfBatch(listOfWarlock, tokenIds), emptyAmounts)
+
+        // is received on the original chain
+        checkTokenBalance(await ERC1155Src.balanceOfBatch(listOfWarlock, tokenIds), amounts)
+
+        // proxy no longer owns
+        checkTokenBalance(await ERC1155Src.balanceOfBatch(listOfProxyA, tokenIds), emptyAmounts)
     })
 })

@@ -12,6 +12,10 @@ contract ERC1155Mock is ERC1155 {
         _mint(_to, _tokenId, _amount, "");
     }
 
+    function mintBatch(address _to, uint[] memory _tokenIds, uint[] memory _amounts) public {
+        _mintBatch(_to, _tokenIds, _amounts, "");
+    }
+
     function transfer(address _to, uint _tokenId, uint _amount) public {
         _safeTransferFrom(msg.sender, _to, _tokenId, _amount, "");
     }
