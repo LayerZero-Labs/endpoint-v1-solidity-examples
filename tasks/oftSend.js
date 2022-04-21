@@ -1,6 +1,6 @@
 const CHAIN_ID = require("../constants/chainIds.json")
 const { getDeploymentAddresses } = require("../utils/readStatic")
-const OFT_CONFIG = require("../constants/oftConfig.json");
+const OFT_CONFIG = require("../constants/oftConfig.json")
 
 module.exports = async function (taskArgs, hre) {
     let signers = await ethers.getSigners()
@@ -9,10 +9,14 @@ module.exports = async function (taskArgs, hre) {
     const dstChainId = CHAIN_ID[taskArgs.targetNetwork]
     const qty = ethers.utils.parseEther(taskArgs.qty)
 
-    let srcContractName = 'ExampleOFT'
+    let srcContractName = "ExampleOFT"
     let dstContractName = srcContractName
-    if(taskArgs.targetNetwork == OFT_CONFIG.baseChain){dstContractName = 'ExampleBasedOFT'}
-    if(hre.network.name == OFT_CONFIG.baseChain){srcContractName = 'ExampleBasedOFT'}
+    if (taskArgs.targetNetwork == OFT_CONFIG.baseChain) {
+        dstContractName = "ExampleBasedOFT"
+    }
+    if (hre.network.name == OFT_CONFIG.baseChain) {
+        srcContractName = "ExampleBasedOFT"
+    }
 
     // the destination contract address
     const dstAddr = getDeploymentAddresses(taskArgs.targetNetwork)[dstContractName]

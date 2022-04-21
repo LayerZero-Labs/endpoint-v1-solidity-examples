@@ -51,15 +51,33 @@ contract ONFT721 is IONFT721, NonblockingLzApp, ERC721 {
         emit ReceiveFromChain(_srcChainId, localToAddress, tokenId, _nonce);
     }
 
-    function _beforeSend(address /* _from */, uint16 /* _dstChainId */, bytes memory /* _toAddress */, uint _tokenId) internal virtual {
+    function _beforeSend(
+        address, /* _from */
+        uint16, /* _dstChainId */
+        bytes memory, /* _toAddress */
+        uint _tokenId
+    ) internal virtual {
         _burn(_tokenId);
     }
 
-    function _afterSend(address /* _from */, uint16 /* _dstChainId */, bytes memory /* _toAddress */, uint /* _tokenId */) internal virtual {}
+    function _afterSend(
+        address, /* _from */
+        uint16, /* _dstChainId */
+        bytes memory, /* _toAddress */
+        uint /* _tokenId */
+    ) internal virtual {}
 
-    function _beforeReceive(uint16 /* _srcChainId */, bytes memory /* _srcAddress */, bytes memory /* _payload */) internal virtual {}
+    function _beforeReceive(
+        uint16, /* _srcChainId */
+        bytes memory, /* _srcAddress */
+        bytes memory /* _payload */
+    ) internal virtual {}
 
-    function _afterReceive(uint16 /* _srcChainId */, address _toAddress, uint _tokenId) internal virtual {
+    function _afterReceive(
+        uint16, /* _srcChainId */
+        address _toAddress,
+        uint _tokenId
+    ) internal virtual {
         _safeMint(_toAddress, _tokenId);
     }
 

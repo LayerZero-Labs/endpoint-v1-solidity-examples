@@ -1,6 +1,8 @@
+
 {
   "name": "solidity-examples",
   "version": "0.0.1",
+  "license": "MIT",
   "description": "example contracts",
   "main": "index.js",
   "scripts": {

@@ -38,7 +38,12 @@ contract OFT is NonblockingLzApp, IOFT, ERC20 {
         return lzEndpoint.estimateFees(_dstChainId, address(this), payload, _useZro, _adapterParams);
     }
 
-    function _nonblockingLzReceive(uint16 _srcChainId, bytes memory /*_srcAddress*/, uint64 _nonce, bytes memory _payload) internal virtual override {
+    function _nonblockingLzReceive(
+        uint16 _srcChainId,
+        bytes memory, /*_srcAddress*/
+        uint64 _nonce,
+        bytes memory _payload
+    ) internal virtual override {
         // decode and load the toAddress
         (bytes memory toAddressBytes, uint amount) = abi.decode(_payload, (bytes, uint));
         address toAddress;

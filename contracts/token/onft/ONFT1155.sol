@@ -13,10 +13,17 @@ contract ONFT1155 is IONFT1155, NonblockingLzApp, ERC1155 {
 
     constructor(string memory uri_, address _lzEndpoint) ERC1155(uri_) NonblockingLzApp(_lzEndpoint) {}
 
-    function estimateSendFee(uint16 _dstChainId, bytes calldata /*_toAddress*/, uint /*_tokenId*/, uint /*_amount*/, bool _useZro, bytes calldata _adapterParams) public view override virtual returns (uint nativeFee, uint zroFee) {
+    function estimateSendFee(
+        uint16 _dstChainId,
+        bytes calldata, /*_toAddress*/
+        uint, /*_tokenId*/
+        uint, /*_amount*/
+        bool _useZro,
+        bytes calldata _adapterParams
+    ) public view virtual override returns (uint nativeFee, uint zroFee) {
         // by sending a uint array, we can decode the payload on the other side the same way regardless if its a batch
         uint[] memory tokenIds = new uint[](1);
-        uint[] memory amounts= new uint[](1);
+        uint[] memory amounts = new uint[](1);
         tokenIds[0] = 0;
         amounts[0] = 0;
         bytes memory payload = abi.encode(address(0x0), tokenIds, amounts);
@@ -24,7 +31,14 @@ contract ONFT1155 is IONFT1155, NonblockingLzApp, ERC1155 {
         return lzEndpoint.estimateFees(_dstChainId, address(this), payload, _useZro, _adapterParams);
     }
 
-    function estimateSendBatchFee(uint16 _dstChainId, bytes calldata /*_toAddress*/, uint[] memory _tokenIds, uint[] memory _amounts, bool _useZro, bytes calldata _adapterParams) public view override virtual returns (uint nativeFee, uint zroFee) {
+    function estimateSendBatchFee(
+        uint16 _dstChainId,
+        bytes calldata, /*_toAddress*/
+        uint[] memory _tokenIds,
+        uint[] memory _amounts,
+        bool _useZro,
+        bytes calldata _adapterParams
+    ) public view virtual override returns (uint nativeFee, uint zroFee) {
         bytes memory payload = abi.encode(address(0x0), _tokenIds, _amounts);
         return lzEndpoint.estimateFees(_dstChainId, address(this), payload, _useZro, _adapterParams);
     }
@@ -53,7 +67,7 @@ contract ONFT1155 is IONFT1155, NonblockingLzApp, ERC1155 {
 
         // by sending a uint array, we can decode the payload on the other side the same way regardless if its a batch
         uint[] memory tokenIds = new uint[](1);
-        uint[] memory amounts= new uint[](1);
+        uint[] memory amounts = new uint[](1);
         tokenIds[0] = _tokenId;
         amounts[0] = _amount;
         bytes memory payload = abi.encode(_toAddress, tokenIds, amounts);
@@ -105,25 +119,63 @@ contract ONFT1155 is IONFT1155, NonblockingLzApp, ERC1155 {
         }
     }
 
-    function _beforeSend(address _from, uint16 /* _dstChainId */, bytes memory /* _toAddress */, uint _tokenId, uint _amount) internal virtual {
+    function _beforeSend(
+        address _from,
+        uint16, /* _dstChainId */
+        bytes memory, /* _toAddress */
+        uint _tokenId,
+        uint _amount
+    ) internal virtual {
         _burn(_from, _tokenId, _amount);
     }
 
-    function _beforeSendBatch(address _from, uint16 /* _dstChainId */, bytes memory /* _toAddress */, uint[] memory _tokenIds, uint[] memory _amounts) internal virtual {
+    function _beforeSendBatch(
+        address _from,
+        uint16, /* _dstChainId */
+        bytes memory, /* _toAddress */
+        uint[] memory _tokenIds,
+        uint[] memory _amounts
+    ) internal virtual {
         _burnBatch(_from, _tokenIds, _amounts);
     }
 
-    function _afterSend(address /* _from */, uint16 /* _dstChainId */, bytes memory /* _toAddress */, uint/* _tokenId */, uint /* _amount */) internal virtual {}
+    function _afterSend(
+        address, /* _from */
+        uint16, /* _dstChainId */
+        bytes memory, /* _toAddress */
+        uint, /* _tokenId */
+        uint /* _amount */
+    ) internal virtual {}
 
-    function _afterSendBatch(address /* _from */, uint16 /* _dstChainId */, bytes memory /* _toAddress */, uint[] memory /* _tokenIds */, uint[] memory /* _amounts */) internal virtual {}
+    function _afterSendBatch(
+        address, /* _from */
+        uint16, /* _dstChainId */
+        bytes memory, /* _toAddress */
+        uint[] memory, /* _tokenIds */
+        uint[] memory /* _amounts */
+    ) internal virtual {}
 
-    function _beforeReceive(uint16 /* _srcChainId */, bytes memory /* _srcAddress */, bytes memory /* _payload */) internal virtual {}
+    function _beforeReceive(
+        uint16, /* _srcChainId */
+        bytes memory, /* _srcAddress */
+        bytes memory /* _payload */
+    ) internal virtual {}
 
-    function _afterReceive(uint16 /* _srcChainId */, address _toAddress, uint _tokenId, uint _amount) internal virtual {
+    function _afterReceive(
+        uint16, /* _srcChainId */
+        address _toAddress,
+        uint _tokenId,
+        uint _amount
+    ) internal virtual {
         _mint(_toAddress, _tokenId, _amount, "0x");
     }
 
-    function _afterReceiveBatch(uint16 /* _srcChainId */, address _toAddress, uint[] memory _tokenIds, uint[] memory _amounts) internal virtual {
+    function _afterReceiveBatch(
+        uint16, /* _srcChainId */
+        address _toAddress,
+        uint[] memory _tokenIds,
+        uint[] memory _amounts
+    ) internal virtual {
         _mintBatch(_toAddress, _tokenIds, _amounts, "0x");
     }
 }

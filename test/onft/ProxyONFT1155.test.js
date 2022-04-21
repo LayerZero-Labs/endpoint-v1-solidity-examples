@@ -106,13 +106,13 @@ describe("ProxyONFT1155: ", function () {
         const tokenIds = [123, 456, 7890, 101112131415]
         const amounts = [1, 33, 22, 1234566]
         const emptyAmounts = [0, 0, 0, 0]
-        const listOfOwner = tokenIds.map(x => owner.address)
-        const listOfWarlock = tokenIds.map(x => warlock.address)
-        const listOfProxyA = tokenIds.map(x => ProxyONFT_A.address)
+        const listOfOwner = tokenIds.map((x) => owner.address)
+        const listOfWarlock = tokenIds.map((x) => warlock.address)
+        const listOfProxyA = tokenIds.map((x) => ProxyONFT_A.address)
 
         function checkTokenBalance(balances, expectedBalances) {
             expect(balances.length).to.equal(expectedBalances.length)
-            for (let i = 0; i < balances.length; i ++) {
+            for (let i = 0; i < balances.length; i++) {
                 expect(balances[i].toNumber()).to.equal(expectedBalances[i])
             }
         }
@@ -135,8 +135,24 @@ describe("ProxyONFT1155: ", function () {
         await ERC1155Src.connect(warlock).setApprovalForAll(ProxyONFT_A.address, true)
 
         // swaps tokens to other chain in seperate batches
-        await ProxyONFT_A.connect(warlock).sendBatch(chainId_B, warlock.address, tokenIds.slice(1), amounts.slice(1), warlock.address, ethers.constants.AddressZero, "0x")
-        await ProxyONFT_A.connect(warlock).sendBatch(chainId_B, warlock.address, tokenIds.slice(0, 1), amounts.slice(0, 1), warlock.address, ethers.constants.AddressZero, "0x")
+        await ProxyONFT_A.connect(warlock).sendBatch(
+            chainId_B,
+            warlock.address,
+            tokenIds.slice(1),
+            amounts.slice(1),
+            warlock.address,
+            ethers.constants.AddressZero,
+            "0x"
+        )
+        await ProxyONFT_A.connect(warlock).sendBatch(
+            chainId_B,
+            warlock.address,
+            tokenIds.slice(0, 1),
+            amounts.slice(0, 1),
+            warlock.address,
+            ethers.constants.AddressZero,
+            "0x"
+        )
 
         // tokens are now owned by the proxy contract, because this is the original nft chain
         checkTokenBalance(await ERC1155Src.balanceOfBatch(listOfProxyA, tokenIds), amounts)
@@ -186,10 +202,18 @@ describe("ProxyONFT1155: ", function () {
         const fees = await ProxyONFT_A.estimateSendFee(chainId_B, warlock.address, tokenId, amount, false, "0x")
 
         // reverts with not enough native
-        await expect(ProxyONFT_A.connect(warlock).send(chainId_B, warlock.address, tokenId, amount, warlock.address, ethers.constants.AddressZero, "0x", {value: fees.nativeFee.sub(1)})).to.be.reverted
+        await expect(
+            ProxyONFT_A.connect(warlock).send(chainId_B, warlock.address, tokenId, amount, warlock.address, ethers.constants.AddressZero, "0x", {
+                value: fees.nativeFee.sub(1),
+            })
+        ).to.be.reverted
 
         // does not revert with correct amount
-        await expect(ProxyONFT_A.connect(warlock).send(chainId_B, warlock.address, tokenId, amount, warlock.address, ethers.constants.AddressZero, "0x", {value: fees.nativeFee})).to.not.reverted
+        await expect(
+            ProxyONFT_A.connect(warlock).send(chainId_B, warlock.address, tokenId, amount, warlock.address, ethers.constants.AddressZero, "0x", {
+                value: fees.nativeFee,
+            })
+        ).to.not.reverted
     })
 
     it("estimateSendBatchFee()", async function () {
@@ -210,9 +234,31 @@ describe("ProxyONFT1155: ", function () {
         const fees = await ProxyONFT_A.estimateSendBatchFee(chainId_B, warlock.address, tokenIds, amounts, false, "0x")
 
         // reverts with not enough native
-        await expect(ProxyONFT_A.connect(warlock).sendBatch(chainId_B, warlock.address, tokenIds, amounts, warlock.address, ethers.constants.AddressZero, "0x", {value: fees.nativeFee.sub(1)})).to.be.reverted
+        await expect(
+            ProxyONFT_A.connect(warlock).sendBatch(
+                chainId_B,
+                warlock.address,
+                tokenIds,
+                amounts,
+                warlock.address,
+                ethers.constants.AddressZero,
+                "0x",
+                { value: fees.nativeFee.sub(1) }
+            )
+        ).to.be.reverted
 
         // does not revert with correct amount
-        await expect(ProxyONFT_A.connect(warlock).sendBatch(chainId_B, warlock.address, tokenIds, amounts, warlock.address, ethers.constants.AddressZero, "0x", {value: fees.nativeFee})).to.not.reverted
+        await expect(
+            ProxyONFT_A.connect(warlock).sendBatch(
+                chainId_B,
+                warlock.address,
+                tokenIds,
+                amounts,
+                warlock.address,
+                ethers.constants.AddressZero,
+                "0x",
+                { value: fees.nativeFee }
+            )
+        ).to.not.reverted
     })
 })
