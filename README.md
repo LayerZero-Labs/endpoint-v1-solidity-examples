@@ -1,3 +1,9 @@
+<div align="center">
+    <img alt="LayerZero" src="resources/LayerZeroLogo.png"/>
+</div>
+
+---
+
 # LayerZero Omnichain Contract Examples
 
  ### Install & Run tests
