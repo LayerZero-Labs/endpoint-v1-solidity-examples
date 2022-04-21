@@ -26,11 +26,11 @@ describe("PingPong", function () {
 
         await this.owner.sendTransaction({
             to: this.pingPongA.address,
-            value: ethers.utils.parseEther("0.001"),
+            value: ethers.utils.parseEther("10"),
         })
         await this.owner.sendTransaction({
             to: this.pingPongB.address,
-            value: ethers.utils.parseEther("0.001"),
+            value: ethers.utils.parseEther("10"),
         })
 
         this.layerZeroEndpointMockSrc.setDestLzEndpoint(this.pingPongB.address, this.layerZeroEndpointMockDst.address)

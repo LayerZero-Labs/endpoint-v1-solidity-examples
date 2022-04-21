@@ -2,10 +2,10 @@
 
 pragma solidity ^0.8;
 
-import ".././ONFT.sol";
+import ".././ONFT721.sol";
 
 /// @title Interface of the UniversalONFT standard
-contract UniversalONFT is ONFT {
+contract UniversalONFT721 is ONFT721 {
     uint public nextMintId;
     uint public maxMintId;
 
@@ -15,7 +15,7 @@ contract UniversalONFT is ONFT {
     /// @param _layerZeroEndpoint handles message transmission across chains
     /// @param _startMintId the starting mint number on this chain
     /// @param _endMintId the max number of mints on this chain
-    constructor(string memory _name, string memory _symbol, address _layerZeroEndpoint, uint _startMintId, uint _endMintId) ONFT(_name, _symbol, _layerZeroEndpoint) {
+    constructor(string memory _name, string memory _symbol, address _layerZeroEndpoint, uint _startMintId, uint _endMintId) ONFT721(_name, _symbol, _layerZeroEndpoint) {
         nextMintId = _startMintId;
         maxMintId = _endMintId;
     }

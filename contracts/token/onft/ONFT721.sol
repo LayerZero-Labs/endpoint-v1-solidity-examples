@@ -2,13 +2,13 @@
 
 pragma solidity ^0.8.0;
 
-import "./IONFT.sol";
+import "./IONFT721.sol";
 import "../../lzApp/NonblockingLzApp.sol";
 import "@openzeppelin/contracts/token/ERC721/ERC721.sol";
 
-// NOTE: this ONFT contract has no minting logic.
+// NOTE: this ONFT contract has no public minting logic.
 // must implement your own minting logic in child classes
-contract ONFT is IONFT, NonblockingLzApp, ERC721 {
+contract ONFT721 is IONFT721, NonblockingLzApp, ERC721 {
     string public baseTokenURI;
 
     constructor(string memory _name, string memory _symbol, address _lzEndpoint) ERC721(_name, _symbol) NonblockingLzApp(_lzEndpoint) {}
@@ -43,7 +43,7 @@ contract ONFT is IONFT, NonblockingLzApp, ERC721 {
             localToAddress := mload(add(toAddress, 20))
         }
 
-        // if the toAddress is 0x0, burn it or it will get cached
+        // if the toAddress is 0x0, convert to dead address, or it will get cached
         if (localToAddress == address(0x0)) localToAddress == address(0xdEaD);
 
         _afterReceive(_srcChainId, localToAddress, tokenId);

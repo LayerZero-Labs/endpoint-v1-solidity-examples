@@ -1,4 +1,12 @@
 {
+  "ethereum": 1,
+  "bsc": 2,
+  "avalanche": 6,
+  "polygon": 9,
+  "arbitrum": 10,
+  "optimism": 11,
+  "fantom": 12,
+
   "rinkeby":          10001,
   "bsc-testnet":      10002,
   "fuji":             10006,

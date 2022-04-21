@@ -85,6 +85,8 @@ contract LZEndpointMock is ILayerZeroEndpoint {
 
         require(lzEndpoint != address(0), "LayerZeroMock: destination LayerZero Endpoint not found");
 
+        require(msg.value >= nativeFee * _payload.length, "LayerZeroMock: not enough native for fees");
+
         uint64 nonce;
         {
             nonce = ++outboundNonce[_chainId][msg.sender];
@@ -166,8 +168,8 @@ contract LZEndpointMock is ILayerZeroEndpoint {
     // @param _payload - the custom message to send over LayerZero
     // @param _payInZRO - if false, user app pays the protocol fee in native token
     // @param _adapterParam - parameters for the adapter service, e.g. send some dust native token to dstChain
-    function estimateFees(uint16, address, bytes memory, bool, bytes memory) external view override returns (uint _nativeFee, uint _zroFee) {
-        _nativeFee = nativeFee;
+    function estimateFees(uint16, address, bytes memory _payload, bool, bytes memory) external view override returns (uint _nativeFee, uint _zroFee) {
+        _nativeFee = nativeFee * _payload.length;
         _zroFee = zroFee;
     }
 

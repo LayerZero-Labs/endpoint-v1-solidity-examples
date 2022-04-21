@@ -5,9 +5,9 @@ pragma solidity ^0.8.0;
 import "../../../lzApp/NonblockingLzApp.sol";
 import "@openzeppelin/contracts/token/ERC721/IERC721.sol";
 import "@openzeppelin/contracts/token/ERC721/IERC721Receiver.sol";
-import "../IONFT.sol";
+import "../IONFT721.sol";
 
-contract ProxyONFT is NonblockingLzApp, IERC721Receiver {
+contract ProxyONFT721 is NonblockingLzApp, IERC721Receiver {
     IERC721 public immutable token;
 
     bytes4 private constant SELECTOR = bytes4(keccak256(bytes("isApprovedOrOwner(address,uint256)")));
@@ -34,8 +34,8 @@ contract ProxyONFT is NonblockingLzApp, IERC721Receiver {
     }
 
     function _send(address _from, uint16 _dstChainId, bytes memory _toAddress, uint _tokenId, address payable _refundAddress, address _zroPaymentAddress, bytes calldata _adapterParam) internal virtual {
-        (bool isOwner, bytes memory data) = address(token).call(abi.encodeWithSelector(SELECTOR, _msgSender(), _tokenId));
-        require(isOwner, "ERC721: transfer caller is not owner nor approved");
+//        (bool isApproved, bytes memory data) = address(token).call(abi.encodeWithSelector(SELECTOR, _msgSender(), _tokenId));
+//        require(isApproved, "ERC721: transfer caller is not owner nor approved");
         _beforeSend(_from, _dstChainId, _toAddress, _tokenId);
 
         bytes memory payload = abi.encode(_toAddress, _tokenId);
