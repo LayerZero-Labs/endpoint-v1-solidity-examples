@@ -21,7 +21,7 @@ contract ProxyONFT1155 is IONFT1155, NonblockingLzApp, IERC1155Receiver {
         uint, /*_amount*/
         bool _useZro,
         bytes calldata _adapterParams
-    ) public view virtual override returns (uint nativeFee, uint zroFee) {
+    ) external view virtual override returns (uint nativeFee, uint zroFee) {
         // by sending a uint array, we can decode the payload on the other side the same way regardless if its a batch
         uint[] memory tokenIds = new uint[](1);
         uint[] memory amounts = new uint[](1);
@@ -32,7 +32,7 @@ contract ProxyONFT1155 is IONFT1155, NonblockingLzApp, IERC1155Receiver {
         return lzEndpoint.estimateFees(_dstChainId, address(this), payload, _useZro, _adapterParams);
     }
 
-    function estimateSendBatchFee(uint16 _dstChainId, bytes calldata _toAddress, uint[] memory _tokenIds, uint[] memory _amounts, bool _useZro, bytes calldata _adapterParams) public view virtual override returns (uint nativeFee, uint zroFee) {
+    function estimateSendBatchFee(uint16 _dstChainId, bytes calldata _toAddress, uint[] memory _tokenIds, uint[] memory _amounts, bool _useZro, bytes calldata _adapterParams) external view virtual override returns (uint nativeFee, uint zroFee) {
         bytes memory payload = abi.encode(_toAddress, _tokenIds, _amounts);
         return lzEndpoint.estimateFees(_dstChainId, address(this), payload, _useZro, _adapterParams);
     }

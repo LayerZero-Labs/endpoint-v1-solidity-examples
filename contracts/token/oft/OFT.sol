@@ -32,7 +32,7 @@ contract OFT is NonblockingLzApp, IOFT, ERC20 {
         return globalSupply;
     }
 
-    function estimateSendFee(uint16 _dstChainId, bytes calldata _toAddress, bool _useZro, uint _amount, bytes calldata _adapterParams) public view virtual returns (uint nativeFee, uint zroFee) {
+    function estimateSendFee(uint16 _dstChainId, bytes calldata _toAddress, bool _useZro, uint _amount, bytes calldata _adapterParams) external view virtual returns (uint nativeFee, uint zroFee) {
         // mock the payload for send()
         bytes memory payload = abi.encode(_toAddress, _amount);
         return lzEndpoint.estimateFees(_dstChainId, address(this), payload, _useZro, _adapterParams);

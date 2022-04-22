@@ -19,7 +19,7 @@ contract ProxyONFT721 is NonblockingLzApp, IERC721Receiver {
         token = IERC721(_proxyToken);
     }
 
-    function estimateSendFee(uint16 _dstChainId, bytes calldata _toAddress, bool _useZro, uint _tokenId, bytes calldata _adapterParams) public view virtual returns (uint nativeFee, uint zroFee) {
+    function estimateSendFee(uint16 _dstChainId, bytes calldata _toAddress, bool _useZro, uint _tokenId, bytes calldata _adapterParams) external view virtual returns (uint nativeFee, uint zroFee) {
         // mock the payload for send()
         bytes memory payload = abi.encode(_toAddress, _tokenId);
         return lzEndpoint.estimateFees(_dstChainId, address(this), payload, _useZro, _adapterParams);

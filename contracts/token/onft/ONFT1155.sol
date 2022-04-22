@@ -20,7 +20,7 @@ contract ONFT1155 is IONFT1155, NonblockingLzApp, ERC1155 {
         uint, /*_amount*/
         bool _useZro,
         bytes calldata _adapterParams
-    ) public view virtual override returns (uint nativeFee, uint zroFee) {
+    ) external view virtual override returns (uint nativeFee, uint zroFee) {
         // by sending a uint array, we can decode the payload on the other side the same way regardless if its a batch
         uint[] memory tokenIds = new uint[](1);
         uint[] memory amounts = new uint[](1);
@@ -38,7 +38,7 @@ contract ONFT1155 is IONFT1155, NonblockingLzApp, ERC1155 {
         uint[] memory _amounts,
         bool _useZro,
         bytes calldata _adapterParams
-    ) public view virtual override returns (uint nativeFee, uint zroFee) {
+    ) external view virtual override returns (uint nativeFee, uint zroFee) {
         bytes memory payload = abi.encode(address(0x0), _tokenIds, _amounts);
         return lzEndpoint.estimateFees(_dstChainId, address(this), payload, _useZro, _adapterParams);
     }
