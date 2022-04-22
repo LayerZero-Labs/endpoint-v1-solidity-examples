@@ -13,6 +13,12 @@ contract ONFT721 is IONFT721, NonblockingLzApp, ERC721 {
 
     constructor(string memory _name, string memory _symbol, address _lzEndpoint) ERC721(_name, _symbol) NonblockingLzApp(_lzEndpoint) {}
 
+    function estimateSendFee(uint16 _dstChainId, bytes calldata _toAddress, uint _tokenId, bool _useZro, bytes calldata _adapterParams) external view virtual override returns (uint nativeFee, uint zroFee) {
+        // mock the payload for send()
+        bytes memory payload = abi.encode(_toAddress, _tokenId);
+        return lzEndpoint.estimateFees(_dstChainId, address(this), payload, _useZro, _adapterParams);
+    }
+
     function sendFrom(address _from, uint16 _dstChainId, bytes calldata _toAddress, uint _tokenId, address payable _refundAddress, address _zroPaymentAddress, bytes calldata _adapterParam) external payable virtual override {
         _send(_from, _dstChainId, _toAddress, _tokenId, _refundAddress, _zroPaymentAddress, _adapterParam);
     }

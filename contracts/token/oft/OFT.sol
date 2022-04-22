@@ -15,6 +15,12 @@ contract OFT is NonblockingLzApp, IOFT, ERC20 {
         globalSupply = _globalSupply;
     }
 
+    function estimateSendFee(uint16 _dstChainId, bytes calldata _toAddress, uint _amount, bool _useZro, bytes calldata _adapterParams) external view virtual override returns (uint nativeFee, uint zroFee) {
+        // mock the payload for send()
+        bytes memory payload = abi.encode(_toAddress, _amount);
+        return lzEndpoint.estimateFees(_dstChainId, address(this), payload, _useZro, _adapterParams);
+    }
+
     function send(uint16 _dstChainId, bytes calldata _toAddress, uint _amount, address payable _refundAddress, address _zroPaymentAddress, bytes calldata _adapterParam) public payable virtual override {
         _send(_msgSender(), _dstChainId, _toAddress, _amount, _refundAddress, _zroPaymentAddress, _adapterParam);
     }
@@ -30,12 +36,6 @@ contract OFT is NonblockingLzApp, IOFT, ERC20 {
 
     function getGlobalSupply() public view virtual override returns (uint) {
         return globalSupply;
-    }
-
-    function estimateSendFee(uint16 _dstChainId, bytes calldata _toAddress, bool _useZro, uint _amount, bytes calldata _adapterParams) external view virtual returns (uint nativeFee, uint zroFee) {
-        // mock the payload for send()
-        bytes memory payload = abi.encode(_toAddress, _amount);
-        return lzEndpoint.estimateFees(_dstChainId, address(this), payload, _useZro, _adapterParams);
     }
 
     function _nonblockingLzReceive(
