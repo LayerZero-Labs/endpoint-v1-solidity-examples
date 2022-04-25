@@ -19,4 +19,4 @@ module.exports = async function ({ deployments, getNamedAccounts }) {
     })
 }
 
-module.exports.tags = ["ExampleUniversalONFT"]
+module.exports.tags = ["ExampleUniversalONFT721"]
