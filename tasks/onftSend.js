@@ -5,7 +5,7 @@ module.exports = async function (taskArgs, hre) {
     const owner = signers[0]
     const dstChainId = CHAIN_ID[taskArgs.targetNetwork]
     const tokenId = taskArgs.tokenId
-    const exampleUniversalONFT = await ethers.getContract("ExampleUniversalONFT")
+    const exampleUniversalONFT = await ethers.getContract("ExampleUniversalONFT721")
     console.log(`[source] exampleUniversalONFT.address: ${exampleUniversalONFT.address}`)
 
     let adapterParams = ethers.utils.solidityPack(["uint16", "uint256"], [1, 200000]) // default adapterParams example

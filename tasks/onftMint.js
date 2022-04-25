@@ -1,5 +1,5 @@
 module.exports = async function (taskArgs, hre) {
-    const exampleUniversalONFT = await ethers.getContract("ExampleUniversalONFT")
+    const exampleUniversalONFT = await ethers.getContract("ExampleUniversalONFT721")
     console.log(`[source] exampleUniversalONFT.address: ${exampleUniversalONFT.address}`)
 
     try {
