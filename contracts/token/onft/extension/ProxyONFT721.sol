@@ -5,9 +5,9 @@ pragma solidity ^0.8.0;
 import "../../../lzApp/NonblockingLzApp.sol";
 import "@openzeppelin/contracts/token/ERC721/IERC721.sol";
 import "@openzeppelin/contracts/token/ERC721/IERC721Receiver.sol";
-import "../IONFT.sol";
+import "../IONFT721.sol";
 
-contract ProxyONFT is NonblockingLzApp, IERC721Receiver {
+contract ProxyONFT721 is NonblockingLzApp, IERC721Receiver {
     IERC721 public immutable token;
 
     bytes4 private constant SELECTOR = bytes4(keccak256(bytes("isApprovedOrOwner(address,uint256)")));
@@ -19,7 +19,7 @@ contract ProxyONFT is NonblockingLzApp, IERC721Receiver {
         token = IERC721(_proxyToken);
     }
 
-    function estimateSendFee(uint16 _dstChainId, bytes calldata _toAddress, bool _useZro, uint _tokenId, bytes calldata _adapterParams) public view virtual returns (uint nativeFee, uint zroFee) {
+    function estimateSendFee(uint16 _dstChainId, bytes calldata _toAddress, bool _useZro, uint _tokenId, bytes calldata _adapterParams) external view virtual returns (uint nativeFee, uint zroFee) {
         // mock the payload for send()
         bytes memory payload = abi.encode(_toAddress, _tokenId);
         return lzEndpoint.estimateFees(_dstChainId, address(this), payload, _useZro, _adapterParams);
@@ -34,8 +34,8 @@ contract ProxyONFT is NonblockingLzApp, IERC721Receiver {
     }
 
     function _send(address _from, uint16 _dstChainId, bytes memory _toAddress, uint _tokenId, address payable _refundAddress, address _zroPaymentAddress, bytes calldata _adapterParam) internal virtual {
-        (bool isOwner, bytes memory data) = address(token).call(abi.encodeWithSelector(SELECTOR, _msgSender(), _tokenId));
-        require(isOwner, "ERC721: transfer caller is not owner nor approved");
+        //        (bool isApproved, bytes memory data) = address(token).call(abi.encodeWithSelector(SELECTOR, _msgSender(), _tokenId));
+        //        require(isApproved, "ERC721: transfer caller is not owner nor approved");
         _beforeSend(_from, _dstChainId, _toAddress, _tokenId);
 
         bytes memory payload = abi.encode(_toAddress, _tokenId);
@@ -63,19 +63,37 @@ contract ProxyONFT is NonblockingLzApp, IERC721Receiver {
         emit ReceiveFromChain(_srcChainId, localToAddress, tokenId, _nonce);
     }
 
-    function _beforeSend(address _from, uint16 /* _dstChainId */, bytes memory /* _toAddress */, uint _tokenId) internal virtual {
+    function _beforeSend(
+        address _from,
+        uint16, /* _dstChainId */
+        bytes memory, /* _toAddress */
+        uint _tokenId
+    ) internal virtual {
         token.safeTransferFrom(_from, address(this), _tokenId);
     }
 
-    function _afterSend(address /* _from */, uint16 /* _dstChainId */, bytes memory /* _toAddress */, uint /* _tokenId */) internal virtual {}
+    function _afterSend(
+        address, /* _from */
+        uint16, /* _dstChainId */
+        bytes memory, /* _toAddress */
+        uint /* _tokenId */
+    ) internal virtual {}
 
-    function _beforeReceive(uint16 /* _srcChainId */, bytes memory /* _srcAddress */, bytes memory /* _payload */) internal virtual {}
+    function _beforeReceive(
+        uint16, /* _srcChainId */
+        bytes memory, /* _srcAddress */
+        bytes memory /* _payload */
+    ) internal virtual {}
 
-    function _afterReceive(uint16 /* _srcChainId */, address _toAddress, uint _tokenId) internal virtual {
+    function _afterReceive(
+        uint16, /* _srcChainId */
+        address _toAddress,
+        uint _tokenId
+    ) internal virtual {
         token.safeTransferFrom(address(this), _toAddress, _tokenId);
     }
 
-    function onERC721Received(address, address, uint256, bytes memory) public virtual override returns (bytes4) {
+    function onERC721Received(address, address, uint, bytes memory) public virtual override returns (bytes4) {
         return this.onERC721Received.selector;
     }
 }

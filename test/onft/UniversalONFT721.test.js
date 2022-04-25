@@ -1,7 +1,7 @@
 const { expect } = require("chai")
 const { ethers } = require("hardhat")
 
-describe("UniversalONFT: ", function () {
+describe("UniversalONFT721: ", function () {
     const chainIdSrc = 1
     const chainIdDst = 2
     const name = "UniversalONFT"
@@ -13,7 +13,7 @@ describe("UniversalONFT: ", function () {
         owner = (await ethers.getSigners())[0]
 
         LZEndpointMock = await ethers.getContractFactory("LZEndpointMock")
-        ONFT = await ethers.getContractFactory("UniversalONFT")
+        ONFT = await ethers.getContractFactory("UniversalONFT721")
         ONFTSrcIds = [1, 1] // [startID, endID]... only allowed to mint one ONFT
         ONFTDstIds = [2, 2] // [startID, endID]... only allowed to mint one ONFT
     })
@@ -47,14 +47,7 @@ describe("UniversalONFT: ", function () {
         // v1 adapterParams, encoded for version 1 style, and 200k gas quote
         const adapterParam = ethers.utils.solidityPack(["uint16", "uint256"], [1, 225000])
 
-        await ONFTSrc.send(
-            chainIdDst,
-            ethers.utils.solidityPack(["address"], [owner.address]),
-            newId,
-            owner.address,
-            "0x000000000000000000000000000000000000dEaD",
-            adapterParam
-        )
+        await ONFTSrc.send(chainIdDst, owner.address, newId, owner.address, "0x000000000000000000000000000000000000dEaD", adapterParam)
 
         // verify the owner of the token is no longer on the source chain
         await expect(ONFTSrc.ownerOf(newId)).to.revertedWith("ERC721: owner query for nonexistent token")

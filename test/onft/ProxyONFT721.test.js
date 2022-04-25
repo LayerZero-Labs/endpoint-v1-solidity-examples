@@ -1,7 +1,7 @@
 const { expect } = require("chai")
 const { ethers } = require("hardhat")
 
-describe("ProxyONFT: ", function () {
+describe("ProxyONFT721: ", function () {
     const chainId_A = 1
     const chainId_B = 2
     const chainId_C = 3
@@ -16,8 +16,8 @@ describe("ProxyONFT: ", function () {
         warlock = (await ethers.getSigners())[1]
 
         LZEndpointMock = await ethers.getContractFactory("LZEndpointMock")
-        ONFT = await ethers.getContractFactory("ONFT")
-        ProxyONFT = await ethers.getContractFactory("ProxyONFT")
+        ONFT = await ethers.getContractFactory("ONFT721")
+        ProxyONFT = await ethers.getContractFactory("ProxyONFT721")
         ERC721 = await ethers.getContractFactory("ERC721Mock")
     })
 
@@ -52,7 +52,7 @@ describe("ProxyONFT: ", function () {
         await ONFT_C.setTrustedRemote(chainId_B, ONFT_B.address)
     })
 
-    it("swap()", async function () {
+    it("send()", async function () {
         const tokenId = 123
         await ERC721Src.mint(owner.address, tokenId)
 

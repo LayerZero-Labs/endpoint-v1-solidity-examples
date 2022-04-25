@@ -2,16 +2,22 @@
 
 pragma solidity ^0.8.0;
 
-import "./IONFT.sol";
+import "./IONFT721.sol";
 import "../../lzApp/NonblockingLzApp.sol";
 import "@openzeppelin/contracts/token/ERC721/ERC721.sol";
 
-// NOTE: this ONFT contract has no minting logic.
+// NOTE: this ONFT contract has no public minting logic.
 // must implement your own minting logic in child classes
-contract ONFT is IONFT, NonblockingLzApp, ERC721 {
+contract ONFT721 is IONFT721, NonblockingLzApp, ERC721 {
     string public baseTokenURI;
 
     constructor(string memory _name, string memory _symbol, address _lzEndpoint) ERC721(_name, _symbol) NonblockingLzApp(_lzEndpoint) {}
+
+    function estimateSendFee(uint16 _dstChainId, bytes calldata _toAddress, uint _tokenId, bool _useZro, bytes calldata _adapterParams) external view virtual override returns (uint nativeFee, uint zroFee) {
+        // mock the payload for send()
+        bytes memory payload = abi.encode(_toAddress, _tokenId);
+        return lzEndpoint.estimateFees(_dstChainId, address(this), payload, _useZro, _adapterParams);
+    }
 
     function sendFrom(address _from, uint16 _dstChainId, bytes calldata _toAddress, uint _tokenId, address payable _refundAddress, address _zroPaymentAddress, bytes calldata _adapterParam) external payable virtual override {
         _send(_from, _dstChainId, _toAddress, _tokenId, _refundAddress, _zroPaymentAddress, _adapterParam);
@@ -43,7 +49,7 @@ contract ONFT is IONFT, NonblockingLzApp, ERC721 {
             localToAddress := mload(add(toAddress, 20))
         }
 
-        // if the toAddress is 0x0, burn it or it will get cached
+        // if the toAddress is 0x0, convert to dead address, or it will get cached
         if (localToAddress == address(0x0)) localToAddress == address(0xdEaD);
 
         _afterReceive(_srcChainId, localToAddress, tokenId);
@@ -51,15 +57,33 @@ contract ONFT is IONFT, NonblockingLzApp, ERC721 {
         emit ReceiveFromChain(_srcChainId, localToAddress, tokenId, _nonce);
     }
 
-    function _beforeSend(address /* _from */, uint16 /* _dstChainId */, bytes memory /* _toAddress */, uint _tokenId) internal virtual {
+    function _beforeSend(
+        address, /* _from */
+        uint16, /* _dstChainId */
+        bytes memory, /* _toAddress */
+        uint _tokenId
+    ) internal virtual {
         _burn(_tokenId);
     }
 
-    function _afterSend(address /* _from */, uint16 /* _dstChainId */, bytes memory /* _toAddress */, uint /* _tokenId */) internal virtual {}
+    function _afterSend(
+        address, /* _from */
+        uint16, /* _dstChainId */
+        bytes memory, /* _toAddress */
+        uint /* _tokenId */
+    ) internal virtual {}
 
-    function _beforeReceive(uint16 /* _srcChainId */, bytes memory /* _srcAddress */, bytes memory /* _payload */) internal virtual {}
+    function _beforeReceive(
+        uint16, /* _srcChainId */
+        bytes memory, /* _srcAddress */
+        bytes memory /* _payload */
+    ) internal virtual {}
 
-    function _afterReceive(uint16 /* _srcChainId */, address _toAddress, uint _tokenId) internal virtual {
+    function _afterReceive(
+        uint16, /* _srcChainId */
+        address _toAddress,
+        uint _tokenId
+    ) internal virtual {
         _safeMint(_toAddress, _tokenId);
     }
 

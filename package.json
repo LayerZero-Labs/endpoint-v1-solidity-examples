@@ -1,11 +1,13 @@
+
 {
   "name": "solidity-examples",
   "version": "0.0.1",
+  "license": "MIT",
   "description": "example contracts",
   "main": "index.js",
   "scripts": {
     "test": "npx hardhat test",
-    "prettier": "prettier --write test/**/*.js && prettier --write test/*.js && prettier --write deploy/*.js && prettier --write tasks/*.js && prettier --write contracts/*.sol && prettier --write contracts/**/*.sol && prettier --write contracts/**/**/*.sol && prettier --write contracts/**/**/**/*.sol",
+    "prettier": "prettier --write test/**/*.js && prettier --write test/*/*.js && prettier --write deploy/*.js && prettier --write tasks/*.js && prettier --write contracts/**/*.sol && prettier --write contracts/**/**/*.sol && prettier --write contracts/**/**/**/*.sol",
     "lint": "yarn prettier && solhint 'contracts/*.sol' && solhint 'contracts/**/*.sol' && solhint 'contracts/**/**/*.sol' && solhint 'contracts/**/**/**/*.sol'"
   },
   "dependencies": {

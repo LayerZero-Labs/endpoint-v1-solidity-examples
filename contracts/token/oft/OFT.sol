@@ -15,15 +15,12 @@ contract OFT is NonblockingLzApp, IOFT, ERC20 {
         globalSupply = _globalSupply;
     }
 
-    /**
-     * @dev send `_amount` amount of token to (`_dstChainId`, `_toAddress`)
-     * `_dstChainId` the destination chain identifier
-     * `_toAddress` can be any size depending on the `dstChainId`.
-     * `_amount` the quantity of tokens in wei
-     * `_refundAddress` the address LayerZero refunds if too much message fee is sent
-     * `_zroPaymentAddress` set to address(0x0) if not paying in ZRO (LayerZero Token)
-     * `_adapterParams` is a flexible bytes array to indicate messaging adapter services
-     */
+    function estimateSendFee(uint16 _dstChainId, bytes calldata _toAddress, uint _amount, bool _useZro, bytes calldata _adapterParams) external view virtual override returns (uint nativeFee, uint zroFee) {
+        // mock the payload for send()
+        bytes memory payload = abi.encode(_toAddress, _amount);
+        return lzEndpoint.estimateFees(_dstChainId, address(this), payload, _useZro, _adapterParams);
+    }
+
     function send(uint16 _dstChainId, bytes calldata _toAddress, uint _amount, address payable _refundAddress, address _zroPaymentAddress, bytes calldata _adapterParam) public payable virtual override {
         _send(_msgSender(), _dstChainId, _toAddress, _amount, _refundAddress, _zroPaymentAddress, _adapterParam);
     }
@@ -41,15 +38,9 @@ contract OFT is NonblockingLzApp, IOFT, ERC20 {
         return globalSupply;
     }
 
-    function estimateSendFee(uint16 _dstChainId, bytes calldata _toAddress, bool _useZro, uint _amount, bytes calldata _adapterParams) public view virtual returns (uint nativeFee, uint zroFee) {
-        // mock the payload for send()
-        bytes memory payload = abi.encode(_toAddress, _amount);
-        return lzEndpoint.estimateFees(_dstChainId, address(this), payload, _useZro, _adapterParams);
-    }
-
     function _nonblockingLzReceive(
         uint16 _srcChainId,
-        bytes memory, // _srcAddress
+        bytes memory, /*_srcAddress*/
         uint64 _nonce,
         bytes memory _payload
     ) internal virtual override {
@@ -75,7 +66,6 @@ contract OFT is NonblockingLzApp, IOFT, ERC20 {
         emit SendToChain(_from, _dstChainId, _toAddress, _amount, nonce);
     }
 
-    // on transfer - OFT burns tokens on the source chainanoz
     function _debitFrom(address _from, uint16, bytes memory, uint _amount) internal virtual {
         _burn(_from, _amount);
     }

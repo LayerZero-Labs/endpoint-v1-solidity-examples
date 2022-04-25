@@ -7,7 +7,17 @@ import "@openzeppelin/contracts/token/ERC721/IERC721.sol";
 /**
  * @dev Interface of the ONFT standard
  */
-interface IONFT is IERC721 {
+interface IONFT721 is IERC721 {
+    /**
+     * @dev estimate send token `_tokenId` to (`_dstChainId`, `_toAddress`)
+     * _dstChainId - L0 defined chain id to send tokens too
+     * _toAddress - dynamic bytes array which contains the address to whom you are sending tokens to on the dstChain
+     * _tokenId - token Id to transfer
+     * _useZro - indicates to use zro to pay L0 fees
+     * _adapterParam - flexible bytes array to indicate messaging adapter services in L0
+     */
+    function estimateSendFee(uint16 _dstChainId, bytes calldata _toAddress, uint _tokenId, bool _useZro, bytes calldata _adapterParams) external view returns (uint nativeFee, uint zroFee);
+
     /**
      * @dev send token `_tokenId` to (`_dstChainId`, `_toAddress`)
      * `_toAddress` can be any size depending on the `dstChainId`.

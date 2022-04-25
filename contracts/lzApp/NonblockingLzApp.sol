@@ -30,7 +30,7 @@ abstract contract NonblockingLzApp is LzApp {
 
     function nonblockingLzReceive(uint16 _srcChainId, bytes memory _srcAddress, uint64 _nonce, bytes memory _payload) public virtual {
         // only internal transaction
-        require(_msgSender() == address(this), "LzReceiver: caller must be Bridge.");
+        require(_msgSender() == address(this), "LzReceiver: caller must be LzApp");
         _nonblockingLzReceive(_srcChainId, _srcAddress, _nonce, _payload);
     }
 

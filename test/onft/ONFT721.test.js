@@ -1,7 +1,7 @@
 const { expect } = require("chai")
 const { ethers } = require("hardhat")
 
-describe.skip("ONFT: ", function () {
+describe.skip("ONFT721: ", function () {
     const chainIdSrc = 1
     const chainIdDst = 2
     const name = "OmnichainNonFungibleToken"
@@ -13,7 +13,7 @@ describe.skip("ONFT: ", function () {
         owner = (await ethers.getSigners())[0]
 
         LZEndpointMock = await ethers.getContractFactory("LZEndpointMock")
-        ONFT = await ethers.getContractFactory("ONFT")
+        ONFT = await ethers.getContractFactory("ONFT721")
     })
 
     beforeEach(async function () {

@@ -49,14 +49,16 @@ describe("OFT: ", function () {
             await lzEndpointDstMock.blockNextMsg()
 
             // stores a payload
-            await expect(OFTSrc.send(
-                chainIdDst,
-                ethers.utils.solidityPack(["address"], [owner.address]),
-                sendQty,
-                owner.address,
-                ethers.constants.AddressZero,
-                adapterParam
-            )).to.emit(lzEndpointDstMock, "PayloadStored")
+            await expect(
+                OFTSrc.send(
+                    chainIdDst,
+                    ethers.utils.solidityPack(["address"], [owner.address]),
+                    sendQty,
+                    owner.address,
+                    ethers.constants.AddressZero,
+                    adapterParam
+                )
+            ).to.emit(lzEndpointDstMock, "PayloadStored")
 
             // verify tokens burned on source chain and minted on destination chain
             expect(await OFTSrc.balanceOf(owner.address)).to.be.equal(globalSupply.sub(sendQty))
@@ -72,14 +74,16 @@ describe("OFT: ", function () {
             expect(await lzEndpointDstMock.getLengthOfQueue(chainIdSrc, OFTSrc.address)).to.equal(0)
 
             // now that a msg has been stored, subsequent ones will not revert, but will get added to the queue
-            await expect(OFTSrc.send(
-                chainIdDst,
-                ethers.utils.solidityPack(["address"], [owner.address]),
-                sendQty,
-                owner.address,
-                ethers.constants.AddressZero,
-                adapterParam
-            )).to.not.reverted
+            await expect(
+                OFTSrc.send(
+                    chainIdDst,
+                    ethers.utils.solidityPack(["address"], [owner.address]),
+                    sendQty,
+                    owner.address,
+                    ethers.constants.AddressZero,
+                    adapterParam
+                )
+            ).to.not.reverted
 
             // queue has increased
             expect(await lzEndpointDstMock.getLengthOfQueue(chainIdSrc, OFTSrc.address)).to.equal(1)
@@ -187,8 +191,6 @@ describe("OFT: ", function () {
         })
 
         // todo
-        it.skip("forceResumeReceive() - the queue being emptied is done in the correct fifo order", async function () {
-
-        })
+        it.skip("forceResumeReceive() - the queue being emptied is done in the correct fifo order", async function () {})
     })
 })
