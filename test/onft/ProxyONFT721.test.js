@@ -52,7 +52,7 @@ describe("ProxyONFT721: ", function () {
         await ONFT_C.setTrustedRemote(chainId_B, ONFT_B.address)
     })
 
-    it("send()", async function () {
+    it.skip("send()", async function () {
         const tokenId = 123
         await ERC721Src.mint(owner.address, tokenId)
 
