@@ -1,4 +1,4 @@
-const CHAIN_ID = require('../constants/chainIds.json')
+const CHAIN_ID = require("../constants/chainIds.json")
 
 const TYPE_ORACLE = 6
 
@@ -16,5 +16,5 @@ module.exports = async function (taskArgs, hre) {
         TYPE_ORACLE
     )
 
-    console.log(`✅ Oracle for src (${hre.network.name}) -> dst [${dstChainId}]: ${data.replace('000000000000000000000000','')}`)
+    console.log(`✅ Oracle for src (${hre.network.name}) -> dst [${dstChainId}]: ${data.replace("000000000000000000000000", "")}`)
 }
