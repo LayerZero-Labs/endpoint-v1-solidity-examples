@@ -11,9 +11,9 @@ import "../interfaces/ILayerZeroEndpoint.sol";
  * a generic LzReceiver implementation
  */
 abstract contract LzApp is Ownable, ILayerZeroReceiver, ILayerZeroUserApplicationConfig {
-    ILayerZeroEndpoint internal immutable lzEndpoint;
+    ILayerZeroEndpoint public immutable lzEndpoint;
 
-    mapping(uint16 => bytes) internal trustedRemoteLookup;
+    mapping(uint16 => bytes) public trustedRemoteLookup;
 
     event SetTrustedRemote(uint16 _srcChainId, bytes _srcAddress);
 
@@ -74,11 +74,4 @@ abstract contract LzApp is Ownable, ILayerZeroReceiver, ILayerZeroUserApplicatio
     //--------------------------- VIEW FUNCTION ----------------------------------------
     // interacting with the LayerZero Endpoint and remote contracts
 
-    function getTrustedRemote(uint16 _chainId) external view returns (bytes memory) {
-        return trustedRemoteLookup[_chainId];
-    }
-
-    function getLzEndpoint() external view returns (address) {
-        return address(lzEndpoint);
-    }
 }
