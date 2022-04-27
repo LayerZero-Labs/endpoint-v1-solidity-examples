@@ -6,8 +6,8 @@
 
 # LayerZero Omnichain Contract Examples
 
-* This code is currently un-audited *
-* The code in this repo will be undergoing a formal audit in Q2 2022 -- until they use at your own risk! *
+* This code is currently not audited *
+* The code in this repo will be undergoing a formal audit in Q2 2022 -- until then use at your own risk! *
 
  ### Install & Run tests
 ```shell
