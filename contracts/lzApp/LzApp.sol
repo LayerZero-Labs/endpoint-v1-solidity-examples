@@ -42,8 +42,8 @@ abstract contract LzApp is Ownable, ILayerZeroReceiver, ILayerZeroUserApplicatio
     }
 
     //---------------------------UserApplication config----------------------------------------
-    function getConfig(uint16, uint16 _chainId, address, uint _configType) external view returns (bytes memory) {
-        return lzEndpoint.getConfig(lzEndpoint.getSendVersion(address(this)), _chainId, address(this), _configType);
+    function getConfig(uint16 _version, uint16 _chainId, address, uint _configType) external view returns (bytes memory) {
+        return lzEndpoint.getConfig(_version, _chainId, address(this), _configType);
     }
 
     // generic config for LayerZero user Application
@@ -69,12 +69,11 @@ abstract contract LzApp is Ownable, ILayerZeroReceiver, ILayerZeroUserApplicatio
         emit SetTrustedRemote(_srcChainId, _srcAddress);
     }
 
+    //--------------------------- VIEW FUNCTION ----------------------------------------
+
     function isTrustedRemote(uint16 _srcChainId, bytes calldata _srcAddress) external view returns (bool) {
         bytes memory trustedSource = trustedRemoteLookup[_srcChainId];
         return keccak256(trustedSource) == keccak256(_srcAddress);
     }
-
-    //--------------------------- VIEW FUNCTION ----------------------------------------
-    // interacting with the LayerZero Endpoint and remote contracts
 
 }
