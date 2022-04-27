@@ -16,7 +16,7 @@ abstract contract NonblockingLzApp is LzApp {
 
     event MessageFailed(uint16 _srcChainId, bytes _srcAddress, uint64 _nonce, bytes _payload);
 
-    // overriding the virtual function in LzApp
+    // overriding the virtual function in LzReceiver
     function _blockingLzReceive(uint16 _srcChainId, bytes memory _srcAddress, uint64 _nonce, bytes memory _payload) internal virtual override {
         // try-catch all errors/exceptions
         try this.nonblockingLzReceive(_srcChainId, _srcAddress, _nonce, _payload) {
@@ -28,7 +28,7 @@ abstract contract NonblockingLzApp is LzApp {
         }
     }
 
-    function nonblockingLzReceive(uint16 _srcChainId, bytes memory _srcAddress, uint64 _nonce, bytes memory _payload) public virtual {
+    function nonblockingLzReceive(uint16 _srcChainId, bytes memory _srcAddress, uint64 _nonce, bytes memory _payload) external virtual {
         // only internal transaction
         require(_msgSender() == address(this), "LzReceiver: caller must be LzApp");
         _nonblockingLzReceive(_srcChainId, _srcAddress, _nonce, _payload);
@@ -45,6 +45,6 @@ abstract contract NonblockingLzApp is LzApp {
         // clear the stored message
         failedMessages[_srcChainId][_srcAddress][_nonce] = bytes32(0);
         // execute the message. revert if it fails again
-        this.nonblockingLzReceive(_srcChainId, _srcAddress, _nonce, _payload);
+        _nonblockingLzReceive(_srcChainId, _srcAddress, _nonce, _payload);
     }
 }
