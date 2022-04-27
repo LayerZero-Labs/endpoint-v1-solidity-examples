@@ -102,6 +102,91 @@ describe("ProxyONFT1155: ", function () {
         expect(await ERC1155Src.balanceOf(ProxyONFT_A.address, tokenId)).to.be.equal(0)
     })
 
+    it("send() - reverts if not approved on proxy", async function () {
+        const tokenId = 123
+        const amount = 1
+        await ERC1155Src.mint(owner.address, tokenId, amount)
+
+        await expect(ProxyONFT_A.send(chainId_B, owner.address, tokenId, amount, owner.address, ethers.constants.AddressZero, "0x")).to.be.revertedWith("ERC1155: caller is not owner nor approved")
+    })
+
+    it("send() - reverts if someone else is has approved on the poxy, but not the sender", async function () {
+        const tokenId = 123
+        const amount = 1
+        // mint to both owners
+        await ERC1155Src.mint(owner.address, tokenId, amount)
+        await ERC1155Src.mint(warlock.address, tokenId, amount)
+
+        // approve owner.address to transfer, but not the other
+        await ERC1155Src.setApprovalForAll(ProxyONFT_A.address, true)
+
+        await expect(ProxyONFT_A.connect(warlock).send(chainId_B, warlock.address, tokenId, amount, warlock.address, ethers.constants.AddressZero, "0x")).to.be.revertedWith("ERC1155: caller is not owner nor approved")
+        await expect(ProxyONFT_A.connect(warlock).send(chainId_B, owner.address, tokenId, amount, owner.address, ethers.constants.AddressZero, "0x")).to.be.revertedWith("ERC1155: caller is not owner nor approved")
+    })
+
+    it("sendFrom() - on non proxy", async function () {
+        const tokenId = 123
+        const amount = 1
+        await ERC1155Src.mint(owner.address, tokenId, amount)
+
+        // approve the proxy to swap your token
+        await ERC1155Src.setApprovalForAll(ProxyONFT_A.address, tokenId)
+
+        // swaps token to other chain
+        await ProxyONFT_A.send(chainId_B, owner.address, tokenId, amount, owner.address, ethers.constants.AddressZero, "0x")
+
+        // token received on the dst chain
+        expect(await ONFT_B.balanceOf(owner.address, tokenId)).to.be.equal(amount)
+
+        // approve the other user to send the token
+        await ONFT_B.setApprovalForAll(warlock.address, tokenId)
+
+        // sends across
+        await ONFT_B.connect(warlock).sendFrom(owner.address, chainId_C, warlock.address, tokenId, amount, warlock.address, ethers.constants.AddressZero, "0x")
+
+        // token received on the dst chain
+        expect(await ONFT_C.balanceOf(warlock.address, tokenId)).to.be.equal(amount)
+    })
+
+    it("sendFrom() - reverts if contract is approved, but not the sending user on non proxy", async function () {
+        const tokenId = 123
+        const amount = 1
+        await ERC1155Src.mint(owner.address, tokenId, amount)
+
+        // approve the proxy to swap your token
+        await ERC1155Src.setApprovalForAll(ProxyONFT_A.address, tokenId)
+
+        // swaps token to other chain
+        await ProxyONFT_A.send(chainId_B, owner.address, tokenId, amount, owner.address, ethers.constants.AddressZero, "0x")
+
+        // token received on the dst chain
+        expect(await ONFT_B.balanceOf(owner.address, tokenId)).to.be.equal(amount)
+
+        // approve the proxy to swap your token
+        await ONFT_B.setApprovalForAll(ONFT_B.address, tokenId)
+
+        // reverts because proxy is approved, not the user
+        await expect(ONFT_B.connect(warlock).sendFrom(owner.address, chainId_C, warlock.address, tokenId, amount, warlock.address, ethers.constants.AddressZero, "0x")).to.be.revertedWith("ERC1155: transfer caller is not owner nor approved")
+    })
+
+    it("sendFrom() - reverts if not approved on non proxy chain", async function () {
+        const tokenId = 123
+        const amount = 1
+        await ERC1155Src.mint(owner.address, tokenId, amount)
+
+        // approve the proxy to swap your token
+        await ERC1155Src.setApprovalForAll(ProxyONFT_A.address, tokenId)
+
+        // swaps token to other chain
+        await ProxyONFT_A.send(chainId_B, owner.address, tokenId, amount, owner.address, ethers.constants.AddressZero, "0x")
+
+        // token received on the dst chain
+        expect(await ONFT_B.balanceOf(owner.address, tokenId)).to.be.equal(amount)
+
+        // reverts because not approved
+        await expect(ONFT_B.connect(warlock).sendFrom(owner.address, chainId_C, warlock.address, tokenId, amount, warlock.address, ethers.constants.AddressZero, "0x")).to.be.revertedWith("ERC1155: transfer caller is not owner nor approved")
+    })
+
     it("sendBatch()", async function () {
         const tokenIds = [123, 456, 7890, 101112131415]
         const amounts = [1, 33, 22, 1234566]
@@ -182,6 +267,26 @@ describe("ProxyONFT1155: ", function () {
 
         // proxy no longer owns
         checkTokenBalance(await ERC1155Src.balanceOfBatch(listOfProxyA, tokenIds), emptyAmounts)
+    })
+
+    it("sendBatch() - reverts if not approved", async function () {
+        const tokenIds = [123, 456, 7890, 101112131415]
+        const amounts = [1, 33, 22, 1234566]
+        await ERC1155Src.mintBatch(owner.address, tokenIds, amounts)
+
+        await expect(ProxyONFT_A.connect(warlock).sendBatch(chainId_B, warlock.address, tokenIds, amounts, warlock.address, ethers.constants.AddressZero, "0x")).to.be.revertedWith("ERC1155: transfer caller is not owner nor approved")
+    })
+
+    it("sendBatch() - reverts if mismatched amounts and tokenIds", async function () {
+        const tokenIds = [123, 456, 7890, 101112131415]
+        const amounts = [1, 33, 22, 44]
+        await ERC1155Src.mintBatch(owner.address, tokenIds, amounts)
+
+        // approve the proxy to swap your tokens
+        await ERC1155Src.connect(warlock).setApprovalForAll(ProxyONFT_A.address, true)
+
+        // mismatch the length of ids and amounts
+        await expect(ProxyONFT_A.connect(warlock).sendBatch(chainId_B, warlock.address, tokenIds.slice(1), amounts, warlock.address, ethers.constants.AddressZero, "0x")).to.be.revertedWith("ONFT1155: ids and amounts must be same length")
     })
 
     it("estimateSendFee()", async function () {
