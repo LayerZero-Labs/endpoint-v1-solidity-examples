@@ -40,7 +40,7 @@ contract OFT is NonblockingLzApp, IOFT, ERC20 {
 
     function _nonblockingLzReceive(
         uint16 _srcChainId,
-        bytes memory, /*_srcAddress*/
+        bytes memory _srcAddress,
         uint64 _nonce,
         bytes memory _payload
     ) internal virtual override {
@@ -53,7 +53,7 @@ contract OFT is NonblockingLzApp, IOFT, ERC20 {
 
         _creditTo(_srcChainId, toAddress, amount);
 
-        emit ReceiveFromChain(_srcChainId, toAddress, amount, _nonce);
+        emit ReceiveFromChain(_srcChainId, _srcAddress, toAddress, amount, _nonce);
     }
 
     function _send(address _from, uint16 _dstChainId, bytes memory _toAddress, uint _amount, address payable _refundAddress, address _zroPaymentAddress, bytes calldata _adapterParams) internal virtual {

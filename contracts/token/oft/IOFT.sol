@@ -62,5 +62,5 @@ interface IOFT is IERC20 {
      * @dev Emitted when `_amount` tokens are received from `_srcChainId` into the `_toAddress` on the local chain.
      `_nonce` is the inbound nonce.
      */
-    event ReceiveFromChain(uint16 _srcChainId, address _toAddress, uint _amount, uint64 _nonce);
+    event ReceiveFromChain(uint16 indexed _srcChainId, bytes indexed _srcAddress, address indexed _toAddress, uint _amount, uint64 _nonce);
 }
