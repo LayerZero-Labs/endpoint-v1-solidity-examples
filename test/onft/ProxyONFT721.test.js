@@ -180,7 +180,7 @@ describe("ProxyONFT721: ", function () {
         await expect(ONFT_B.connect(warlock).sendFrom(owner.address, chainId_C, warlock.address, tokenId, warlock.address, ethers.constants.AddressZero, "0x")).to.be.revertedWith("ONFT721: transfer caller is not owner nor approved")
     })
 
-    it("send() - reverts if someone else is has approved, but not the sender", async function () {
+    it("send() - reverts if someone else is approved, but not the sender", async function () {
         const tokenIdA = 123
         const tokenIdB = 456
         // mint to both owners
