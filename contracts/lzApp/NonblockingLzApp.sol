@@ -12,11 +12,11 @@ import "./LzApp.sol";
 abstract contract NonblockingLzApp is LzApp {
     constructor(address _endpoint) LzApp(_endpoint) {}
 
-    mapping(uint16 => mapping(bytes => mapping(uint => bytes32))) public failedMessages;
+    mapping(uint16 => mapping(bytes => mapping(uint64 => bytes32))) public failedMessages;
 
     event MessageFailed(uint16 _srcChainId, bytes _srcAddress, uint64 _nonce, bytes _payload);
 
-    // overriding the virtual function in LzReceiver
+    // overriding the virtual function in LzApp
     function _blockingLzReceive(uint16 _srcChainId, bytes memory _srcAddress, uint64 _nonce, bytes memory _payload) internal virtual override {
         // try-catch all errors/exceptions
         try this.nonblockingLzReceive(_srcChainId, _srcAddress, _nonce, _payload) {
