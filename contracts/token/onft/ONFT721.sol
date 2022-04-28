@@ -84,6 +84,6 @@ contract ONFT721 is IONFT721, NonblockingLzApp, ERC721 {
         address _toAddress,
         uint _tokenId
     ) internal virtual {
-        _mint(_toAddress, _tokenId);
+        _safeMint(_toAddress, _tokenId);
     }
 }
