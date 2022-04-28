@@ -124,6 +124,12 @@ Optionally use this command in a separate terminal to watch the counter incremen
 npx hardhat --network fuji ocPoll    
 ```
 
+# Check your setTrustedRemote's are wired up correctly
+Just use our checkWireUpAll task by running the following command with the correct Contract parameter
+```angular2html
+npx hardhat checkWireUpAll --e testnet --contract OmniCounter
+```
+
 ### See some examples in `/contracts`  🙌
 
 Many of the example contracts make use of LayerZeroEndpointMock.sol which is a nice way to test LayerZero locally!
