@@ -14,7 +14,7 @@ contract PausableOFT is OFT, Pausable {
         uint16, // _dstChainId
         bytes memory, // _toAddress
         uint _amount
-    ) internal override whenNotPaused {
+    ) internal virtual override whenNotPaused {
         _burn(_from, _amount);
     }
 
