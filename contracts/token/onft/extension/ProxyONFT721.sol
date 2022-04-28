@@ -10,8 +10,6 @@ import "../IONFT721.sol";
 contract ProxyONFT721 is NonblockingLzApp, IERC721Receiver {
     IERC721 public immutable token;
 
-    bytes4 private constant SELECTOR = bytes4(keccak256(bytes("isApprovedOrOwner(address,uint256)")));
-
     event SendToChain(address indexed _sender, uint16 indexed _dstChainId, bytes indexed _toAddress, uint _tokenId, uint64 _nonce);
     event ReceiveFromChain(uint16 _srcChainId, address _toAddress, uint _tokenId, uint64 _nonce);
 
@@ -19,23 +17,21 @@ contract ProxyONFT721 is NonblockingLzApp, IERC721Receiver {
         token = IERC721(_proxyToken);
     }
 
-    function estimateSendFee(uint16 _dstChainId, bytes calldata _toAddress, bool _useZro, uint _tokenId, bytes calldata _adapterParams) external view virtual returns (uint nativeFee, uint zroFee) {
+    function estimateSendFee(uint16 _dstChainId, bytes calldata _toAddress, uint _tokenId, bool _useZro, bytes calldata _adapterParams) public view virtual returns (uint nativeFee, uint zroFee) {
         // mock the payload for send()
         bytes memory payload = abi.encode(_toAddress, _tokenId);
         return lzEndpoint.estimateFees(_dstChainId, address(this), payload, _useZro, _adapterParams);
     }
 
-    function send(uint16 _dstChainId, bytes calldata _toAddress, uint _tokenId, address payable _refundAddress, address _zroPaymentAddress, bytes calldata _adapterParam) external payable virtual {
-        _send(_msgSender(), _dstChainId, _toAddress, _tokenId, _refundAddress, _zroPaymentAddress, _adapterParam);
+    function send(uint16 _dstChainId, bytes calldata _toAddress, uint _tokenId, address payable _refundAddress, address _zroPaymentAddress, bytes calldata _adapterParams) public payable virtual {
+        _send(_msgSender(), _dstChainId, _toAddress, _tokenId, _refundAddress, _zroPaymentAddress, _adapterParams);
     }
 
-    function _send(address _from, uint16 _dstChainId, bytes memory _toAddress, uint _tokenId, address payable _refundAddress, address _zroPaymentAddress, bytes calldata _adapterParam) internal virtual {
-        //        (bool isApproved, bytes memory data) = address(token).call(abi.encodeWithSelector(SELECTOR, _msgSender(), _tokenId));
-        //        require(isApproved, "ERC721: transfer caller is not owner nor approved");
+    function _send(address _from, uint16 _dstChainId, bytes memory _toAddress, uint _tokenId, address payable _refundAddress, address _zroPaymentAddress, bytes calldata _adapterParams) internal virtual {
         _beforeSend(_from, _dstChainId, _toAddress, _tokenId);
 
         bytes memory payload = abi.encode(_toAddress, _tokenId);
-        _lzSend(_dstChainId, payload, _refundAddress, _zroPaymentAddress, _adapterParam);
+        _lzSend(_dstChainId, payload, _refundAddress, _zroPaymentAddress, _adapterParams);
 
         uint64 nonce = lzEndpoint.getOutboundNonce(_dstChainId, address(this));
         emit SendToChain(_from, _dstChainId, _toAddress, _tokenId, nonce);
@@ -46,17 +42,17 @@ contract ProxyONFT721 is NonblockingLzApp, IERC721Receiver {
         _beforeReceive(_srcChainId, _srcAddress, _payload);
 
         // decode and load the toAddress
-        (bytes memory toAddress, uint tokenId) = abi.decode(_payload, (bytes, uint));
-        address localToAddress;
+        (bytes memory toAddressBytes, uint tokenId) = abi.decode(_payload, (bytes, uint));
+        address toAddress;
         assembly {
-            localToAddress := mload(add(toAddress, 20))
+            toAddress := mload(add(toAddressBytes, 20))
         }
         // if the toAddress is 0x0, burn it or it will get cached
-        if (localToAddress == address(0x0)) localToAddress == address(0xdEaD);
+        if (toAddress == address(0x0)) toAddress == address(0xdEaD);
 
-        _afterReceive(_srcChainId, localToAddress, tokenId);
+        _afterReceive(_srcChainId, toAddress, tokenId);
 
-        emit ReceiveFromChain(_srcChainId, localToAddress, tokenId, _nonce);
+        emit ReceiveFromChain(_srcChainId, toAddress, tokenId, _nonce);
     }
 
     function _beforeSend(
@@ -90,6 +86,7 @@ contract ProxyONFT721 is NonblockingLzApp, IERC721Receiver {
     }
 
     function onERC721Received(address, address, uint, bytes memory) public virtual override returns (bytes4) {
+        // TODO: to send cross chain tx
         return this.onERC721Received.selector;
     }
 }
