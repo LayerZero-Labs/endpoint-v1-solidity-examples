@@ -43,18 +43,18 @@ contract ONFT721 is IONFT721, NonblockingLzApp, ERC721 {
         _beforeReceive(_srcChainId, _srcAddress, _payload);
 
         // decode and load the toAddress
-        (bytes memory toAddress, uint tokenId) = abi.decode(_payload, (bytes, uint));
-        address localToAddress;
+        (bytes memory toAddressBytes, uint tokenId) = abi.decode(_payload, (bytes, uint));
+        address toAddress;
         assembly {
-            localToAddress := mload(add(toAddress, 20))
+            toAddress := mload(add(toAddressBytes, 20))
         }
 
         // if the toAddress is 0x0, convert to dead address, or it will get cached
-        if (localToAddress == address(0x0)) localToAddress == address(0xdEaD);
+        if (toAddress == address(0x0)) toAddress == address(0xdEaD);
 
-        _afterReceive(_srcChainId, localToAddress, tokenId);
+        _afterReceive(_srcChainId, toAddress, tokenId);
 
-        emit ReceiveFromChain(_srcChainId, localToAddress, tokenId, _nonce);
+        emit ReceiveFromChain(_srcChainId, toAddress, tokenId, _nonce);
     }
 
     function _beforeSend(
@@ -84,6 +84,6 @@ contract ONFT721 is IONFT721, NonblockingLzApp, ERC721 {
         address _toAddress,
         uint _tokenId
     ) internal virtual {
-        _safeMint(_toAddress, _tokenId);
+        _mint(_toAddress, _tokenId);
     }
 }
