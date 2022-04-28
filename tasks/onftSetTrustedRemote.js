@@ -3,9 +3,9 @@ const { getDeploymentAddresses } = require("../utils/readStatic")
 
 module.exports = async function (taskArgs, hre) {
     const dstChainId = CHAIN_ID[taskArgs.targetNetwork]
-    const dstAddr = getDeploymentAddresses(taskArgs.targetNetwork)["ExampleUniversalONFT"]
-    const exampleUniversalONFT = await ethers.getContract("ExampleUniversalONFT")
-    console.log(`[source] exampleUniversalONFT.address: ${exampleUniversalONFT.address}`)
+    const dstAddr = getDeploymentAddresses(taskArgs.targetNetwork)["ExampleUniversalONFT721"]
+    const exampleUniversalONFT = await ethers.getContract("ExampleUniversalONFT721")
+    console.log(`[source] exampleUniversalONFT721.address: ${exampleUniversalONFT.address}`)
 
     // setTrustedRemote() on the local contract, so it can receive message from the source contract
     try {

@@ -29,26 +29,6 @@ interface IONFT1155 {
     // _adapterParam - flexible bytes array to indicate messaging adapter services in L0
     function sendBatch(uint16 _dstChainId, bytes calldata _toAddress, uint[] memory _tokenIds, uint[] memory amounts, address payable _refundAddress, address _zroPaymentAddress, bytes calldata _adapterParam) external payable;
 
-    // _from - address where tokens should be deducted from on behalf of
-    // _dstChainId - L0 defined chain id to send tokens too
-    // _toAddress - dynamic bytes array which contains the address to whom you are sending tokens to on the dstChain
-    // _tokenId - token Id to transfer
-    // _amount - amount of the tokens to transfer
-    // _refundAddress - address on src that will receive refund for any overpayment of L0 fees
-    // _zroPaymentAddress - if paying in zro, pass the address to use. using 0x0 indicates not paying fees in zro
-    // _adapterParam - flexible bytes array to indicate messaging adapter services in L0
-    function sendFrom(address _from, uint16 _dstChainId, bytes calldata _toAddress, uint _tokenId, uint _amount, address payable _refundAddress, address _zroPaymentAddress, bytes calldata _adapterParam) external payable;
-
-    // _from - address where tokens should be deducted from on behalf of
-    // _dstChainId - L0 defined chain id to send tokens too
-    // _toAddress - dynamic bytes array which contains the address to whom you are sending tokens to on the dstChain
-    // _tokenIds - token Ids to transfer
-    // _amounts - amounts of the tokens to transfer
-    // _refundAddress - address on src that will receive refund for any overpayment of L0 fees
-    // _zroPaymentAddress - if paying in zro, pass the address to use. using 0x0 indicates not paying fees in zro
-    // _adapterParam - flexible bytes array to indicate messaging adapter services in L0
-    function sendBatchFrom(address _from, uint16 _dstChainId, bytes calldata _toAddress, uint[] memory _tokenIds, uint[] memory _amounts, address payable _refundAddress, address _zroPaymentAddress, bytes calldata _adapterParam) external payable;
-
     // _dstChainId - L0 defined chain id to send tokens too
     // _toAddress - dynamic bytes array which contains the address to whom you are sending tokens to on the dstChain
     // _tokenId - token Id to transfer
