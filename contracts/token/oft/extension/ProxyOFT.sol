@@ -21,11 +21,7 @@ contract ProxyOFT is NonblockingLzApp {
         _send(_msgSender(), _dstChainId, _toAddress, _amount, _refundAddress, _zroPaymentAddress, _adapterParam);
     }
 
-    function sendFrom(address _from, uint16 _dstChainId, bytes calldata _toAddress, uint _amount, address payable _refundAddress, address _zroPaymentAddress, bytes calldata _adapterParam) public payable virtual {
-        _send(_from, _dstChainId, _toAddress, _amount, _refundAddress, _zroPaymentAddress, _adapterParam);
-    }
-
-    function estimateSendFee(uint16 _dstChainId, bytes calldata _toAddress, bool _useZro, uint _amount, bytes calldata _adapterParams) external view virtual returns (uint nativeFee, uint zroFee) {
+    function estimateSendFee(uint16 _dstChainId, bytes calldata _toAddress, uint _amount, bool _useZro, bytes calldata _adapterParams) external view virtual returns (uint nativeFee, uint zroFee) {
         // mock the payload for send()
         bytes memory payload = abi.encode(_toAddress, _amount);
         return lzEndpoint.estimateFees(_dstChainId, address(this), payload, _useZro, _adapterParams);
