@@ -47,8 +47,6 @@ contract ProxyONFT721 is NonblockingLzApp, IERC721Receiver {
         assembly {
             toAddress := mload(add(toAddressBytes, 20))
         }
-        // if the toAddress is 0x0, burn it or it will get cached
-        if (toAddress == address(0x0)) toAddress == address(0xdEaD);
 
         _afterReceive(_srcChainId, toAddress, tokenId);
 

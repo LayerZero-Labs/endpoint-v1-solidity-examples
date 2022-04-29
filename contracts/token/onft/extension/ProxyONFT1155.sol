@@ -86,8 +86,6 @@ contract ProxyONFT1155 is IONFT1155, NonblockingLzApp, IERC1155Receiver {
         assembly {
             localToAddress := mload(add(toAddress, 20))
         }
-        // if the toAddress is 0x0, convert to dead address, or it will get cached
-        if (localToAddress == address(0x0)) localToAddress == address(0xdEaD);
 
         // mint the tokens on the dst chain
         if (tokenIds.length == 1) {
