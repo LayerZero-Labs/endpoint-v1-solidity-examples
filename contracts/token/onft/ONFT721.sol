@@ -51,7 +51,7 @@ contract ONFT721 is IONFT721, NonblockingLzApp, ERC721 {
 
         _afterReceive(_srcChainId, toAddress, tokenId);
 
-        emit ReceiveFromChain(_srcChainId, toAddress, tokenId, _nonce);
+        emit ReceiveFromChain(_srcChainId, _srcAddress, toAddress, tokenId, _nonce);
     }
 
     function _beforeSend(
