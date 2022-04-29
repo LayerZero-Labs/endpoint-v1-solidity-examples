@@ -62,6 +62,16 @@ task("onftSend", "send an ONFT nftId from one chain to another", require("./onft
     .addParam("targetNetwork", "the chainId to transfer to")
     .addParam("tokenId", "the tokenId of ONFT")
 
+// npx hardhat checkWireUp --e testnet --contract OmniCounter
+task("checkWireUp", "check wire up", require("./checkWireUp"))
+    .addParam("e", "environment testnet/mainet")
+    .addParam("contract", "the contract to delete and redeploy")
+
+// npx hardhat checkWireUpAll --e testnet --contract OmniCounter
+task("checkWireUpAll", "check wire up all", require("./checkWireUpAll"))
+    .addParam("e", "environment testnet/mainet")
+    .addParam("contract", "the contract to delete and redeploy")
+
 //
 task("ocPoll", "poll the counter of the OmniCounter", require("./ocPoll"))
 
