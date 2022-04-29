@@ -9,7 +9,6 @@ import "@openzeppelin/contracts/token/ERC1155/ERC1155.sol";
 // NOTE: this ONFT contract has no public minting logic.
 // must implement your own minting logic in child classes
 contract ONFT1155 is IONFT1155, NonblockingLzApp, ERC1155 {
-    string public baseTokenURI;
 
     constructor(string memory uri_, address _lzEndpoint) ERC1155(uri_) NonblockingLzApp(_lzEndpoint) {}
 
@@ -20,7 +19,7 @@ contract ONFT1155 is IONFT1155, NonblockingLzApp, ERC1155 {
         uint, /*_amount*/
         bool _useZro,
         bytes calldata _adapterParams
-    ) external view virtual override returns (uint nativeFee, uint zroFee) {
+    ) public view virtual override returns (uint nativeFee, uint zroFee) {
         // by sending a uint array, we can decode the payload on the other side the same way regardless if its a batch
         uint[] memory tokenIds = new uint[](1);
         uint[] memory amounts = new uint[](1);
@@ -38,24 +37,24 @@ contract ONFT1155 is IONFT1155, NonblockingLzApp, ERC1155 {
         uint[] memory _amounts,
         bool _useZro,
         bytes calldata _adapterParams
-    ) external view virtual override returns (uint nativeFee, uint zroFee) {
+    ) public view virtual override returns (uint nativeFee, uint zroFee) {
         bytes memory payload = abi.encode(address(0x0), _tokenIds, _amounts);
         return lzEndpoint.estimateFees(_dstChainId, address(this), payload, _useZro, _adapterParams);
     }
 
-    function sendFrom(address _from, uint16 _dstChainId, bytes calldata _toAddress, uint _tokenId, uint _amount, address payable _refundAddress, address _zroPaymentAddress, bytes calldata _adapterParam) external payable virtual {
+    function sendFrom(address _from, uint16 _dstChainId, bytes calldata _toAddress, uint _tokenId, uint _amount, address payable _refundAddress, address _zroPaymentAddress, bytes calldata _adapterParam) public payable virtual override {
         _send(_from, _dstChainId, _toAddress, _tokenId, _amount, _refundAddress, _zroPaymentAddress, _adapterParam);
     }
 
-    function sendBatchFrom(address _from, uint16 _dstChainId, bytes calldata _toAddress, uint[] memory _tokenIds, uint[] memory _amounts, address payable _refundAddress, address _zroPaymentAddress, bytes calldata _adapterParam) external payable virtual {
+    function sendBatchFrom(address _from, uint16 _dstChainId, bytes calldata _toAddress, uint[] memory _tokenIds, uint[] memory _amounts, address payable _refundAddress, address _zroPaymentAddress, bytes calldata _adapterParam) public payable virtual override {
         _sendBatch(_from, _dstChainId, _toAddress, _tokenIds, _amounts, _refundAddress, _zroPaymentAddress, _adapterParam);
     }
 
-    function send(uint16 _dstChainId, bytes calldata _toAddress, uint _tokenId, uint _amount, address payable _refundAddress, address _zroPaymentAddress, bytes calldata _adapterParam) external payable virtual override {
+    function send(uint16 _dstChainId, bytes calldata _toAddress, uint _tokenId, uint _amount, address payable _refundAddress, address _zroPaymentAddress, bytes calldata _adapterParam) public payable virtual override {
         _send(_msgSender(), _dstChainId, _toAddress, _tokenId, _amount, _refundAddress, _zroPaymentAddress, _adapterParam);
     }
 
-    function sendBatch(uint16 _dstChainId, bytes calldata _toAddress, uint[] memory _tokenIds, uint[] memory _amounts, address payable _refundAddress, address _zroPaymentAddress, bytes calldata _adapterParam) external payable virtual override {
+    function sendBatch(uint16 _dstChainId, bytes calldata _toAddress, uint[] memory _tokenIds, uint[] memory _amounts, address payable _refundAddress, address _zroPaymentAddress, bytes calldata _adapterParam) public payable virtual override {
         _sendBatch(_msgSender(), _dstChainId, _toAddress, _tokenIds, _amounts, _refundAddress, _zroPaymentAddress, _adapterParam);
     }
 
@@ -109,10 +108,10 @@ contract ONFT1155 is IONFT1155, NonblockingLzApp, ERC1155 {
         // mint the tokens on the dst chain
         if (tokenIds.length == 1) {
             _afterReceive(_srcChainId, localToAddress, tokenIds[0], amounts[0]);
-            emit ReceiveFromChain(_srcChainId, localToAddress, tokenIds[0], amounts[0], _nonce);
+            emit ReceiveFromChain(_srcChainId, _srcAddress, localToAddress, tokenIds[0], amounts[0], _nonce);
         } else if (tokenIds.length > 1) {
             _afterReceiveBatch(_srcChainId, localToAddress, tokenIds, amounts);
-            emit ReceiveBatchFromChain(_srcChainId, localToAddress, tokenIds, amounts, _nonce);
+            emit ReceiveBatchFromChain(_srcChainId, _srcAddress, localToAddress, tokenIds, amounts, _nonce);
         }
     }
 

@@ -2,12 +2,12 @@
 
 pragma solidity ^0.8.0;
 
+import "../IONFT1155Core.sol";
 import "../../../lzApp/NonblockingLzApp.sol";
 import "@openzeppelin/contracts/token/ERC1155/IERC1155.sol";
 import "@openzeppelin/contracts/token/ERC1155/IERC1155Receiver.sol";
-import "../IONFT1155.sol";
 
-contract ProxyONFT1155 is IONFT1155, NonblockingLzApp, IERC1155Receiver {
+contract ProxyONFT1155 is IONFT1155Core, NonblockingLzApp, IERC1155Receiver {
     IERC1155 public immutable token;
 
     constructor(address _lzEndpoint, address _proxyToken) NonblockingLzApp(_lzEndpoint) {
@@ -17,35 +17,93 @@ contract ProxyONFT1155 is IONFT1155, NonblockingLzApp, IERC1155Receiver {
     function estimateSendFee(
         uint16 _dstChainId,
         bytes calldata _toAddress,
-        uint, /*_tokenId*/
-        uint, /*_amount*/
+        uint _tokenId, 
+        uint _amount, 
         bool _useZro,
         bytes calldata _adapterParams
     ) external view virtual override returns (uint nativeFee, uint zroFee) {
         // by sending a uint array, we can decode the payload on the other side the same way regardless if its a batch
         uint[] memory tokenIds = new uint[](1);
         uint[] memory amounts = new uint[](1);
-        tokenIds[0] = 0;
-        amounts[0] = 0;
+        tokenIds[0] = _tokenId;
+        amounts[0] = _amount;
 
         bytes memory payload = abi.encode(_toAddress, tokenIds, amounts);
         return lzEndpoint.estimateFees(_dstChainId, address(this), payload, _useZro, _adapterParams);
     }
 
-    function estimateSendBatchFee(uint16 _dstChainId, bytes calldata _toAddress, uint[] memory _tokenIds, uint[] memory _amounts, bool _useZro, bytes calldata _adapterParams) external view virtual override returns (uint nativeFee, uint zroFee) {
+    function estimateSendBatchFee(
+        uint16 _dstChainId,
+        bytes calldata _toAddress,
+        uint[] memory _tokenIds,
+        uint[] memory _amounts,
+        bool _useZro,
+        bytes calldata _adapterParams
+    ) public view virtual override returns (uint nativeFee, uint zroFee) {
         bytes memory payload = abi.encode(_toAddress, _tokenIds, _amounts);
         return lzEndpoint.estimateFees(_dstChainId, address(this), payload, _useZro, _adapterParams);
     }
 
-    function send(uint16 _dstChainId, bytes calldata _toAddress, uint _tokenId, uint _amount, address payable _refundAddress, address _zroPaymentAddress, bytes calldata _adapterParam) external payable virtual override {
+    function send(
+        uint16 _dstChainId,
+        bytes calldata _toAddress,
+        uint _tokenId,
+        uint _amount,
+        address payable _refundAddress,
+        address _zroPaymentAddress,
+        bytes calldata _adapterParam
+    ) public payable virtual override {
         _send(_msgSender(), _dstChainId, _toAddress, _tokenId, _amount, _refundAddress, _zroPaymentAddress, _adapterParam);
     }
 
-    function sendBatch(uint16 _dstChainId, bytes calldata _toAddress, uint[] memory _tokenIds, uint[] memory _amounts, address payable _refundAddress, address _zroPaymentAddress, bytes calldata _adapterParam) external payable virtual override {
+    function sendBatch(
+        uint16 _dstChainId,
+        bytes calldata _toAddress,
+        uint[] memory _tokenIds,
+        uint[] memory _amounts,
+        address payable _refundAddress,
+        address _zroPaymentAddress,
+        bytes calldata _adapterParam
+    ) public payable virtual override {
         _sendBatch(_msgSender(), _dstChainId, _toAddress, _tokenIds, _amounts, _refundAddress, _zroPaymentAddress, _adapterParam);
     }
 
-    function _send(address _from, uint16 _dstChainId, bytes memory _toAddress, uint _tokenId, uint _amount, address payable _refundAddress, address _zroPaymentAddress, bytes calldata _adapterParam) internal virtual {
+    function sendFrom(
+        address, /* _from */
+        uint16, /* _dstChainId */
+        bytes calldata, /* _toAddress */
+        uint, /* _tokenId */
+        uint, /* _amount */
+        address payable, /* _refundAddress */
+        address, /* _zroPaymentAddress */
+        bytes calldata /* _adapterParams */
+    ) public payable virtual override {
+        revert("ProxyONFT1155: no implementer");
+    }
+
+    function sendBatchFrom(
+        address, /* _from */
+        uint16, /* _dstChainId */
+        bytes calldata, /* _toAddress */
+        uint[] memory, /* _tokenIds */
+        uint[] memory, /* _amounts */
+        address payable, /* _refundAddress */
+        address, /* _zroPaymentAddress */
+        bytes calldata /* _adapterParams */
+    ) public payable virtual override {
+        revert("ProxyONFT1155: no implementer");
+    }
+
+    function _send(
+        address _from,
+        uint16 _dstChainId,
+        bytes memory _toAddress,
+        uint _tokenId,
+        uint _amount,
+        address payable _refundAddress,
+        address _zroPaymentAddress,
+        bytes calldata _adapterParam
+    ) internal virtual {
         // on the src chain we burn the tokens before sending
         _beforeSend(_from, _dstChainId, _toAddress, _tokenId, _amount);
 
@@ -63,7 +121,16 @@ contract ProxyONFT1155 is IONFT1155, NonblockingLzApp, IERC1155Receiver {
         _afterSend(_from, _dstChainId, _toAddress, _tokenId, _amount);
     }
 
-    function _sendBatch(address _from, uint16 _dstChainId, bytes memory _toAddress, uint[] memory _tokenIds, uint[] memory _amounts, address payable _refundAddress, address _zroPaymentAddress, bytes calldata _adapterParam) internal virtual {
+    function _sendBatch(
+        address _from,
+        uint16 _dstChainId,
+        bytes memory _toAddress,
+        uint[] memory _tokenIds,
+        uint[] memory _amounts,
+        address payable _refundAddress,
+        address _zroPaymentAddress,
+        bytes calldata _adapterParam
+    ) internal virtual {
         require(_tokenIds.length == _amounts.length, "ONFT1155: ids and amounts must be same length");
 
         // on the src chain we burn the tokens before sending
@@ -77,7 +144,12 @@ contract ProxyONFT1155 is IONFT1155, NonblockingLzApp, IERC1155Receiver {
         _afterSendBatch(_from, _dstChainId, _toAddress, _tokenIds, _amounts);
     }
 
-    function _nonblockingLzReceive(uint16 _srcChainId, bytes memory _srcAddress, uint64 _nonce, bytes memory _payload) internal virtual override {
+    function _nonblockingLzReceive(
+        uint16 _srcChainId,
+        bytes memory _srcAddress,
+        uint64 _nonce,
+        bytes memory _payload
+    ) internal virtual override {
         _beforeReceive(_srcChainId, _srcAddress, _payload);
 
         // decode and load the toAddress
@@ -90,10 +162,10 @@ contract ProxyONFT1155 is IONFT1155, NonblockingLzApp, IERC1155Receiver {
         // mint the tokens on the dst chain
         if (tokenIds.length == 1) {
             _afterReceive(_srcChainId, localToAddress, tokenIds[0], amounts[0]);
-            emit ReceiveFromChain(_srcChainId, localToAddress, tokenIds[0], amounts[0], _nonce);
+            emit ReceiveFromChain(_srcChainId, _srcAddress, localToAddress, tokenIds[0], amounts[0], _nonce);
         } else if (tokenIds.length > 1) {
             _afterReceiveBatch(_srcChainId, localToAddress, tokenIds, amounts);
-            emit ReceiveBatchFromChain(_srcChainId, localToAddress, tokenIds, amounts, _nonce);
+            emit ReceiveBatchFromChain(_srcChainId, _srcAddress, localToAddress, tokenIds, amounts, _nonce);
         }
     }
 
@@ -157,11 +229,23 @@ contract ProxyONFT1155 is IONFT1155, NonblockingLzApp, IERC1155Receiver {
         token.safeBatchTransferFrom(address(this), _toAddress, _tokenIds, _amounts, "0x");
     }
 
-    function onERC1155Received(address, address, uint, uint, bytes memory) public virtual override returns (bytes4) {
+    function onERC1155Received(
+        address,
+        address,
+        uint,
+        uint,
+        bytes memory
+    ) public virtual override returns (bytes4) {
         return this.onERC1155Received.selector;
     }
 
-    function onERC1155BatchReceived(address, address, uint[] calldata, uint[] calldata, bytes memory) public virtual override returns (bytes4) {
+    function onERC1155BatchReceived(
+        address,
+        address,
+        uint[] calldata,
+        uint[] calldata,
+        bytes memory
+    ) public virtual override returns (bytes4) {
         return this.onERC1155BatchReceived.selector;
     }
 
