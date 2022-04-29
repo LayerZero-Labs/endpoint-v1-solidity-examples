@@ -52,7 +52,7 @@ contract OFT is NonblockingLzApp, IOFT, ERC20 {
         }
 
         // if the toAddress is 0x0, convert to dead address, or it will get cached
-        if (toAddress == address(0x0)) toAddress == address(0xdEaD);
+        if (toAddress == address(0x0)) toAddress = address(0xdEaD);
 
         _creditTo(_srcChainId, toAddress, amount);
 
