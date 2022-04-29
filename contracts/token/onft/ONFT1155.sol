@@ -83,7 +83,7 @@ contract ONFT1155 is IONFT1155, NonblockingLzApp, ERC1155 {
 
     function _sendBatch(address _from, uint16 _dstChainId, bytes memory _toAddress, uint[] memory _tokenIds, uint[] memory _amounts, address payable _refundAddress, address _zroPaymentAddress, bytes calldata _adapterParam) internal virtual {
         require(_tokenIds.length == _amounts.length, "ONFT1155: ids and amounts must be same length");
-        require(_msgSender() == _from || isApprovedForAll(_msgSender(), _msgSender()), "ERC1155: transfer caller is not owner nor approved");
+        require(_msgSender() == _from || isApprovedForAll(_from, _msgSender()), "ERC1155: transfer caller is not owner nor approved");
 
         // on the src chain we burn the tokens before sending
         _beforeSendBatch(_from, _dstChainId, _toAddress, _tokenIds, _amounts);
