@@ -10,55 +10,54 @@ import "@openzeppelin/contracts/token/ERC1155/ERC1155.sol";
 // must implement your own minting logic in child classes
 contract ONFT1155 is IONFT1155, NonblockingLzApp, ERC1155 {
 
-    constructor(string memory uri_, address _lzEndpoint) ERC1155(uri_) NonblockingLzApp(_lzEndpoint) {}
+    constructor(string memory _uri, address _lzEndpoint) ERC1155(_uri) NonblockingLzApp(_lzEndpoint) {}
 
     function estimateSendFee(
         uint16 _dstChainId,
-        bytes calldata, /*_toAddress*/
-        uint, /*_tokenId*/
-        uint, /*_amount*/
+        bytes calldata _toAddress,
+        uint _tokenId, 
+        uint _amount, 
         bool _useZro,
         bytes calldata _adapterParams
     ) public view virtual override returns (uint nativeFee, uint zroFee) {
         // by sending a uint array, we can decode the payload on the other side the same way regardless if its a batch
         uint[] memory tokenIds = new uint[](1);
         uint[] memory amounts = new uint[](1);
-        tokenIds[0] = 0;
-        amounts[0] = 0;
-        bytes memory payload = abi.encode(address(0x0), tokenIds, amounts);
-
+        tokenIds[0] = _tokenId;
+        amounts[0] = _amount;
+        bytes memory payload = abi.encode(_toAddress, tokenIds, amounts);
         return lzEndpoint.estimateFees(_dstChainId, address(this), payload, _useZro, _adapterParams);
     }
 
     function estimateSendBatchFee(
         uint16 _dstChainId,
-        bytes calldata, /*_toAddress*/
+        bytes calldata _toAddress,
         uint[] memory _tokenIds,
         uint[] memory _amounts,
         bool _useZro,
         bytes calldata _adapterParams
     ) public view virtual override returns (uint nativeFee, uint zroFee) {
-        bytes memory payload = abi.encode(address(0x0), _tokenIds, _amounts);
+        bytes memory payload = abi.encode(_toAddress, _tokenIds, _amounts);
         return lzEndpoint.estimateFees(_dstChainId, address(this), payload, _useZro, _adapterParams);
     }
 
-    function sendFrom(address _from, uint16 _dstChainId, bytes calldata _toAddress, uint _tokenId, uint _amount, address payable _refundAddress, address _zroPaymentAddress, bytes calldata _adapterParam) public payable virtual override {
-        _send(_from, _dstChainId, _toAddress, _tokenId, _amount, _refundAddress, _zroPaymentAddress, _adapterParam);
+    function sendFrom(address _from, uint16 _dstChainId, bytes calldata _toAddress, uint _tokenId, uint _amount, address payable _refundAddress, address _zroPaymentAddress, bytes calldata _adapterParams) public payable virtual override {
+        _send(_from, _dstChainId, _toAddress, _tokenId, _amount, _refundAddress, _zroPaymentAddress, _adapterParams);
     }
 
-    function sendBatchFrom(address _from, uint16 _dstChainId, bytes calldata _toAddress, uint[] memory _tokenIds, uint[] memory _amounts, address payable _refundAddress, address _zroPaymentAddress, bytes calldata _adapterParam) public payable virtual override {
-        _sendBatch(_from, _dstChainId, _toAddress, _tokenIds, _amounts, _refundAddress, _zroPaymentAddress, _adapterParam);
+    function sendBatchFrom(address _from, uint16 _dstChainId, bytes calldata _toAddress, uint[] memory _tokenIds, uint[] memory _amounts, address payable _refundAddress, address _zroPaymentAddress, bytes calldata _adapterParams) public payable virtual override {
+        _sendBatch(_from, _dstChainId, _toAddress, _tokenIds, _amounts, _refundAddress, _zroPaymentAddress, _adapterParams);
     }
 
-    function send(uint16 _dstChainId, bytes calldata _toAddress, uint _tokenId, uint _amount, address payable _refundAddress, address _zroPaymentAddress, bytes calldata _adapterParam) public payable virtual override {
-        _send(_msgSender(), _dstChainId, _toAddress, _tokenId, _amount, _refundAddress, _zroPaymentAddress, _adapterParam);
+    function send(uint16 _dstChainId, bytes calldata _toAddress, uint _tokenId, uint _amount, address payable _refundAddress, address _zroPaymentAddress, bytes calldata _adapterParams) public payable virtual override {
+        _send(_msgSender(), _dstChainId, _toAddress, _tokenId, _amount, _refundAddress, _zroPaymentAddress, _adapterParams);
     }
 
-    function sendBatch(uint16 _dstChainId, bytes calldata _toAddress, uint[] memory _tokenIds, uint[] memory _amounts, address payable _refundAddress, address _zroPaymentAddress, bytes calldata _adapterParam) public payable virtual override {
-        _sendBatch(_msgSender(), _dstChainId, _toAddress, _tokenIds, _amounts, _refundAddress, _zroPaymentAddress, _adapterParam);
+    function sendBatch(uint16 _dstChainId, bytes calldata _toAddress, uint[] memory _tokenIds, uint[] memory _amounts, address payable _refundAddress, address _zroPaymentAddress, bytes calldata _adapterParams) public payable virtual override {
+        _sendBatch(_msgSender(), _dstChainId, _toAddress, _tokenIds, _amounts, _refundAddress, _zroPaymentAddress, _adapterParams);
     }
 
-    function _send(address _from, uint16 _dstChainId, bytes memory _toAddress, uint _tokenId, uint _amount, address payable _refundAddress, address _zroPaymentAddress, bytes calldata _adapterParam) internal virtual {
+    function _send(address _from, uint16 _dstChainId, bytes memory _toAddress, uint _tokenId, uint _amount, address payable _refundAddress, address _zroPaymentAddress, bytes calldata _adapterParams) internal virtual {
         require(_msgSender() == _from || isApprovedForAll(_from, _msgSender()), "ERC1155: transfer caller is not owner nor approved");
 
         // on the src chain we burn the tokens before sending
@@ -72,7 +71,7 @@ contract ONFT1155 is IONFT1155, NonblockingLzApp, ERC1155 {
         bytes memory payload = abi.encode(_toAddress, tokenIds, amounts);
 
         // push the tx to L0
-        _lzSend(_dstChainId, payload, _refundAddress, _zroPaymentAddress, _adapterParam);
+        _lzSend(_dstChainId, payload, _refundAddress, _zroPaymentAddress, _adapterParams);
 
         uint64 nonce = lzEndpoint.getOutboundNonce(_dstChainId, address(this));
         emit SendToChain(_from, _dstChainId, _toAddress, _tokenId, _amount, nonce);
@@ -80,7 +79,7 @@ contract ONFT1155 is IONFT1155, NonblockingLzApp, ERC1155 {
         _afterSend(_from, _dstChainId, _toAddress, _tokenId, _amount);
     }
 
-    function _sendBatch(address _from, uint16 _dstChainId, bytes memory _toAddress, uint[] memory _tokenIds, uint[] memory _amounts, address payable _refundAddress, address _zroPaymentAddress, bytes calldata _adapterParam) internal virtual {
+    function _sendBatch(address _from, uint16 _dstChainId, bytes memory _toAddress, uint[] memory _tokenIds, uint[] memory _amounts, address payable _refundAddress, address _zroPaymentAddress, bytes calldata _adapterParams) internal virtual {
         require(_tokenIds.length == _amounts.length, "ONFT1155: ids and amounts must be same length");
         require(_msgSender() == _from || isApprovedForAll(_msgSender(), _msgSender()), "ERC1155: transfer caller is not owner nor approved");
 
@@ -88,7 +87,7 @@ contract ONFT1155 is IONFT1155, NonblockingLzApp, ERC1155 {
         _beforeSendBatch(_from, _dstChainId, _toAddress, _tokenIds, _amounts);
 
         bytes memory payload = abi.encode(_toAddress, _tokenIds, _amounts);
-        _lzSend(_dstChainId, payload, _refundAddress, _zroPaymentAddress, _adapterParam);
+        _lzSend(_dstChainId, payload, _refundAddress, _zroPaymentAddress, _adapterParams);
 
         uint64 nonce = lzEndpoint.getOutboundNonce(_dstChainId, address(this));
         emit SendBatchToChain(_from, _dstChainId, _toAddress, _tokenIds, _amounts, nonce);

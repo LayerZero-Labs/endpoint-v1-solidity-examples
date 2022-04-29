@@ -18,7 +18,7 @@ interface IONFT1155Core {
     // _refundAddress - address on src that will receive refund for any overpayment of L0 fees
     // _zroPaymentAddress - if paying in zro, pass the address to use. using 0x0 indicates not paying fees in zro
     // _adapterParams - flexible bytes array to indicate messaging adapter services in L0
-    function send(uint16 _dstChainId, bytes calldata _toAddress, uint _tokenId, uint amount, address payable _refundAddress, address _zroPaymentAddress, bytes calldata _adapterParams) external payable;
+    function send(uint16 _dstChainId, bytes calldata _toAddress, uint _tokenId, uint _amount, address payable _refundAddress, address _zroPaymentAddress, bytes calldata _adapterParams) external payable;
 
     // _dstChainId - L0 defined chain id to send tokens too
     // _toAddress - dynamic bytes array which contains the address to whom you are sending tokens to on the dstChain
@@ -27,7 +27,7 @@ interface IONFT1155Core {
     // _refundAddress - address on src that will receive refund for any overpayment of L0 fees
     // _zroPaymentAddress - if paying in zro, pass the address to use. using 0x0 indicates not paying fees in zro
     // _adapterParams - flexible bytes array to indicate messaging adapter services in L0
-    function sendBatch(uint16 _dstChainId, bytes calldata _toAddress, uint[] memory _tokenIds, uint[] memory amounts, address payable _refundAddress, address _zroPaymentAddress, bytes calldata _adapterParams) external payable;
+    function sendBatch(uint16 _dstChainId, bytes calldata _toAddress, uint[] memory _tokenIds, uint[] memory _amounts, address payable _refundAddress, address _zroPaymentAddress, bytes calldata _adapterParams) external payable;
 
     // _from - address where tokens should be deducted from on behalf of
     // _dstChainId - L0 defined chain id to send tokens too
