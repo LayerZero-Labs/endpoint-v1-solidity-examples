@@ -20,13 +20,7 @@ contract ONFT1155 is IONFT1155, NonblockingLzApp, ERC1155 {
         bool _useZro,
         bytes calldata _adapterParams
     ) public view virtual override returns (uint nativeFee, uint zroFee) {
-        // by sending a uint array, we can decode the payload on the other side the same way regardless if its a batch
-        uint[] memory tokenIds = new uint[](1);
-        uint[] memory amounts = new uint[](1);
-        tokenIds[0] = _tokenId;
-        amounts[0] = _amount;
-        bytes memory payload = abi.encode(_toAddress, tokenIds, amounts);
-        return lzEndpoint.estimateFees(_dstChainId, address(this), payload, _useZro, _adapterParams);
+        return estimateSendBatchFee(_dstChainId, _toAddress, _toSingletonArray(_tokenId), _toSingletonArray(_amount), _useZro, _adapterParams);
     }
 
     function estimateSendBatchFee(
@@ -42,7 +36,7 @@ contract ONFT1155 is IONFT1155, NonblockingLzApp, ERC1155 {
     }
 
     function sendFrom(address _from, uint16 _dstChainId, bytes calldata _toAddress, uint _tokenId, uint _amount, address payable _refundAddress, address _zroPaymentAddress, bytes calldata _adapterParams) public payable virtual override {
-        _send(_from, _dstChainId, _toAddress, _tokenId, _amount, _refundAddress, _zroPaymentAddress, _adapterParams);
+        _sendBatch(_from, _dstChainId, _toAddress, _toSingletonArray(_tokenId), _toSingletonArray(_amount), _refundAddress, _zroPaymentAddress, _adapterParams);
     }
 
     function sendBatchFrom(address _from, uint16 _dstChainId, bytes calldata _toAddress, uint[] memory _tokenIds, uint[] memory _amounts, address payable _refundAddress, address _zroPaymentAddress, bytes calldata _adapterParams) public payable virtual override {
@@ -50,52 +44,31 @@ contract ONFT1155 is IONFT1155, NonblockingLzApp, ERC1155 {
     }
 
     function send(uint16 _dstChainId, bytes calldata _toAddress, uint _tokenId, uint _amount, address payable _refundAddress, address _zroPaymentAddress, bytes calldata _adapterParams) public payable virtual override {
-        _send(_msgSender(), _dstChainId, _toAddress, _tokenId, _amount, _refundAddress, _zroPaymentAddress, _adapterParams);
+        _sendBatch(_msgSender(), _dstChainId, _toAddress, _toSingletonArray(_tokenId), _toSingletonArray(_amount), _refundAddress, _zroPaymentAddress, _adapterParams);
     }
 
     function sendBatch(uint16 _dstChainId, bytes calldata _toAddress, uint[] memory _tokenIds, uint[] memory _amounts, address payable _refundAddress, address _zroPaymentAddress, bytes calldata _adapterParams) public payable virtual override {
         _sendBatch(_msgSender(), _dstChainId, _toAddress, _tokenIds, _amounts, _refundAddress, _zroPaymentAddress, _adapterParams);
     }
 
-    function _send(address _from, uint16 _dstChainId, bytes memory _toAddress, uint _tokenId, uint _amount, address payable _refundAddress, address _zroPaymentAddress, bytes calldata _adapterParams) internal virtual {
-        require(_msgSender() == _from || isApprovedForAll(_from, _msgSender()), "ONFT1155: send caller is not owner nor approved");
-
-        // on the src chain we burn the tokens before sending
-        _beforeSend(_from, _dstChainId, _toAddress, _tokenId, _amount);
-
-        // by sending a uint array, we can decode the payload on the other side the same way regardless if its a batch
-        uint[] memory tokenIds = new uint[](1);
-        uint[] memory amounts = new uint[](1);
-        tokenIds[0] = _tokenId;
-        amounts[0] = _amount;
-        bytes memory payload = abi.encode(_toAddress, tokenIds, amounts);
-
-        // push the tx to L0
-        _lzSend(_dstChainId, payload, _refundAddress, _zroPaymentAddress, _adapterParams);
-
-        uint64 nonce = lzEndpoint.getOutboundNonce(_dstChainId, address(this));
-        emit SendToChain(_from, _dstChainId, _toAddress, _tokenId, _amount, nonce);
-
-        _afterSend(_from, _dstChainId, _toAddress, _tokenId, _amount);
-    }
-
     function _sendBatch(address _from, uint16 _dstChainId, bytes memory _toAddress, uint[] memory _tokenIds, uint[] memory _amounts, address payable _refundAddress, address _zroPaymentAddress, bytes calldata _adapterParams) internal virtual {
         require(_msgSender() == _from || isApprovedForAll(_from, _msgSender()), "ONFT1155: transfer caller is not owner nor approved");
 
         // on the src chain we burn the tokens before sending
-        _beforeSendBatch(_from, _dstChainId, _toAddress, _tokenIds, _amounts);
+        _debitFrom(_from, _dstChainId, _toAddress, _tokenIds, _amounts);
 
         bytes memory payload = abi.encode(_toAddress, _tokenIds, _amounts);
         _lzSend(_dstChainId, payload, _refundAddress, _zroPaymentAddress, _adapterParams);
 
         uint64 nonce = lzEndpoint.getOutboundNonce(_dstChainId, address(this));
-        emit SendBatchToChain(_from, _dstChainId, _toAddress, _tokenIds, _amounts, nonce);
-        _afterSendBatch(_from, _dstChainId, _toAddress, _tokenIds, _amounts);
+        if (_tokenIds.length == 1) {
+            emit SendToChain(_from, _dstChainId, _toAddress, _tokenIds[0], _amounts[0], nonce);
+        } else {
+            emit SendBatchToChain(_from, _dstChainId, _toAddress, _tokenIds, _amounts, nonce);
+        }
     }
 
     function _nonblockingLzReceive(uint16 _srcChainId, bytes memory _srcAddress, uint64 _nonce, bytes memory _payload) internal virtual override {
-        _beforeReceive(_srcChainId, _srcAddress, _payload);
-
         // decode and load the toAddress
         (bytes memory toAddress, uint[] memory tokenIds, uint[] memory amounts) = abi.decode(_payload, (bytes, uint[], uint[]));
         address localToAddress;
@@ -104,26 +77,16 @@ contract ONFT1155 is IONFT1155, NonblockingLzApp, ERC1155 {
         }
 
         // mint the tokens on the dst chain
+        _creditTo(_srcChainId, localToAddress, tokenIds, amounts);
+
         if (tokenIds.length == 1) {
-            _afterReceive(_srcChainId, localToAddress, tokenIds[0], amounts[0]);
             emit ReceiveFromChain(_srcChainId, _srcAddress, localToAddress, tokenIds[0], amounts[0], _nonce);
         } else if (tokenIds.length > 1) {
-            _afterReceiveBatch(_srcChainId, localToAddress, tokenIds, amounts);
             emit ReceiveBatchFromChain(_srcChainId, _srcAddress, localToAddress, tokenIds, amounts, _nonce);
         }
     }
 
-    function _beforeSend(
-        address _from,
-        uint16, /* _dstChainId */
-        bytes memory, /* _toAddress */
-        uint _tokenId,
-        uint _amount
-    ) internal virtual {
-        _burn(_from, _tokenId, _amount);
-    }
-
-    function _beforeSendBatch(
+    function _debitFrom(
         address _from,
         uint16, /* _dstChainId */
         bytes memory, /* _toAddress */
@@ -133,43 +96,18 @@ contract ONFT1155 is IONFT1155, NonblockingLzApp, ERC1155 {
         _burnBatch(_from, _tokenIds, _amounts);
     }
 
-    function _afterSend(
-        address, /* _from */
-        uint16, /* _dstChainId */
-        bytes memory, /* _toAddress */
-        uint, /* _tokenId */
-        uint /* _amount */
-    ) internal virtual {}
-
-    function _afterSendBatch(
-        address, /* _from */
-        uint16, /* _dstChainId */
-        bytes memory, /* _toAddress */
-        uint[] memory, /* _tokenIds */
-        uint[] memory /* _amounts */
-    ) internal virtual {}
-
-    function _beforeReceive(
-        uint16, /* _srcChainId */
-        bytes memory, /* _srcAddress */
-        bytes memory /* _payload */
-    ) internal virtual {}
-
-    function _afterReceive(
-        uint16, /* _srcChainId */
-        address _toAddress,
-        uint _tokenId,
-        uint _amount
-    ) internal virtual {
-        _mint(_toAddress, _tokenId, _amount, "0x");
-    }
-
-    function _afterReceiveBatch(
+    function _creditTo(
         uint16, /* _srcChainId */
         address _toAddress,
         uint[] memory _tokenIds,
         uint[] memory _amounts
     ) internal virtual {
         _mintBatch(_toAddress, _tokenIds, _amounts, "0x");
+    }
+
+    function _toSingletonArray(uint256 element) private pure returns (uint256[] memory) {
+        uint256[] memory array = new uint256[](1);
+        array[0] = element;
+        return array;
     }
 }

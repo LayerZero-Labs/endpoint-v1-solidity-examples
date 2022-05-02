@@ -29,19 +29,16 @@ contract ONFT721 is IONFT721, NonblockingLzApp, ERC721 {
     function _send(address _from, uint16 _dstChainId, bytes memory _toAddress, uint _tokenId, address payable _refundAddress, address _zroPaymentAddress, bytes calldata _adapterParams) internal virtual {
         require(_isApprovedOrOwner(_msgSender(), _tokenId), "ONFT721: send caller is not owner nor approved");
         require(ERC721.ownerOf(_tokenId) == _from, "ONFT721: send from incorrect owner");
-        _beforeSend(_from, _dstChainId, _toAddress, _tokenId);
+        _debitFrom(_from, _dstChainId, _toAddress, _tokenId);
 
         bytes memory payload = abi.encode(_toAddress, _tokenId);
         _lzSend(_dstChainId, payload, _refundAddress, _zroPaymentAddress, _adapterParams);
 
         uint64 nonce = lzEndpoint.getOutboundNonce(_dstChainId, address(this));
         emit SendToChain(_from, _dstChainId, _toAddress, _tokenId, nonce);
-        _afterSend(_from, _dstChainId, _toAddress, _tokenId);
     }
 
     function _nonblockingLzReceive(uint16 _srcChainId, bytes memory _srcAddress, uint64 _nonce, bytes memory _payload) internal virtual override {
-        _beforeReceive(_srcChainId, _srcAddress, _payload);
-
         // decode and load the toAddress
         (bytes memory toAddressBytes, uint tokenId) = abi.decode(_payload, (bytes, uint));
         address toAddress;
@@ -49,12 +46,12 @@ contract ONFT721 is IONFT721, NonblockingLzApp, ERC721 {
             toAddress := mload(add(toAddressBytes, 20))
         }
 
-        _afterReceive(_srcChainId, toAddress, tokenId);
+        _creditTo(_srcChainId, toAddress, tokenId);
 
         emit ReceiveFromChain(_srcChainId, _srcAddress, toAddress, tokenId, _nonce);
     }
 
-    function _beforeSend(
+    function _debitFrom(
         address, /* _from */
         uint16, /* _dstChainId */
         bytes memory, /* _toAddress */
@@ -63,20 +60,7 @@ contract ONFT721 is IONFT721, NonblockingLzApp, ERC721 {
         _burn(_tokenId);
     }
 
-    function _afterSend(
-        address, /* _from */
-        uint16, /* _dstChainId */
-        bytes memory, /* _toAddress */
-        uint /* _tokenId */
-    ) internal virtual {}
-
-    function _beforeReceive(
-        uint16, /* _srcChainId */
-        bytes memory, /* _srcAddress */
-        bytes memory /* _payload */
-    ) internal virtual {}
-
-    function _afterReceive(
+    function _creditTo(
         uint16, /* _srcChainId */
         address _toAddress,
         uint _tokenId
