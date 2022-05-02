@@ -35,7 +35,7 @@ contract ProxyOFT is NonblockingLzApp, IOFTCore {
         address, /* _zroPaymentAddress */
         bytes calldata /* _adapterParams */
     ) public payable virtual override {
-        revert("LzSend: no implementer for ProxyOFT");
+        revert("ProxyOFT: no implementer");
     }
 
     function estimateSendFee(
