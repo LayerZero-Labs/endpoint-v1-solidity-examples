@@ -6,6 +6,12 @@ import "../OFT.sol";
 contract BasedOFT is OFT {
     constructor(string memory _name, string memory _symbol, address _lzEndpoint) OFT(_name, _symbol, _lzEndpoint) {}
 
+    function circulatingSupply() public view virtual override returns (uint) {
+        unchecked {
+            return totalSupply() - balanceOf(address(this));
+        }
+    }
+
     function _debitFrom(address _from, uint16, bytes memory, uint _amount) internal virtual override {
         address spender = _msgSender();
         if (_from != spender) _spendAllowance(_from, spender, _amount);

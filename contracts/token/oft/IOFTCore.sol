@@ -43,6 +43,11 @@ interface IOFTCore is IERC165 {
     function sendFrom(address _from, uint16 _dstChainId, bytes calldata _toAddress, uint _amount, address payable _refundAddress, address _zroPaymentAddress, bytes calldata _adapterParams) external payable;
 
     /**
+     * @dev returns the circulating amount of tokens on current chain
+     */
+    function circulatingSupply() external view returns (uint);
+
+    /**
      * @dev Emitted when `_amount` tokens are moved from the `_sender` to (`_dstChainId`, `_toAddress`)
      * `_nonce` is the outbound nonce
      */
