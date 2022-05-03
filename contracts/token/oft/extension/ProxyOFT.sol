@@ -14,7 +14,7 @@ contract ProxyOFT is OFTCore {
         token = IERC20(_proxyToken);
     }
 
-    function sendFrom(address, uint16, bytes calldata, uint, address payable, address, bytes calldata) public payable virtual override {
+    function sendFrom(address, uint16, bytes memory, uint, address payable, address, bytes memory) public payable virtual override {
         revert("ProxyOFT: no implementer");
     }
 

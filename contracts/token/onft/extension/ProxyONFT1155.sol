@@ -17,11 +17,11 @@ contract ProxyONFT1155 is ONFT1155Core, IERC1155Receiver {
         return interfaceId == type(IERC1155Receiver).interfaceId || super.supportsInterface(interfaceId);
     }
 
-    function sendFrom(address, uint16, bytes calldata, uint, uint, address payable, address, bytes calldata) public payable virtual override {
+    function sendFrom(address, uint16, bytes memory, uint, uint, address payable, address, bytes memory) public payable virtual override {
         revert("ProxyONFT1155: no implementer");
     }
 
-    function sendBatchFrom(address, uint16, bytes calldata, uint[] memory, uint[] memory, address payable, address, bytes calldata) public payable virtual override {
+    function sendBatchFrom(address, uint16, bytes memory, uint[] memory, uint[] memory, address payable, address, bytes memory) public payable virtual override {
         revert("ProxyONFT1155: no implementer");
     }
 
@@ -39,7 +39,7 @@ contract ProxyONFT1155 is ONFT1155Core, IERC1155Receiver {
         return this.onERC1155Received.selector;
     }
 
-    function onERC1155BatchReceived(address _operator, address, uint[] calldata, uint[] calldata, bytes memory) public virtual override returns (bytes4) {
+    function onERC1155BatchReceived(address _operator, address, uint[] memory, uint[] memory, bytes memory) public virtual override returns (bytes4) {
         // only allow `this` to tranfser token from others
         if (_operator != address(this)) return bytes4(0);
         return this.onERC1155BatchReceived.selector;
