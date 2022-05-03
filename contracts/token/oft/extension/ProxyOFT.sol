@@ -28,11 +28,7 @@ contract ProxyOFT is OFTCore {
         token.safeTransferFrom(_from, address(this), _amount);
     }
 
-    function _creditTo(
-        uint16, /*_srcChainId*/
-        address _toAddress,
-        uint _amount
-    ) internal virtual override {
+    function _creditTo(uint16, address _toAddress, uint _amount) internal virtual override {
         token.safeTransfer(_toAddress, _amount);
     }
 }
