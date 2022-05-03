@@ -3,11 +3,12 @@
 pragma solidity ^0.8.0;
 
 import "@openzeppelin/contracts/token/ERC721/IERC721.sol";
+import "@openzeppelin/contracts/utils/introspection/IERC165.sol";
 
 /**
  * @dev Interface of the ONFT Core standard
  */
-interface IONFT721Core {
+interface IONFT721Core is IERC165 {
     /**
      * @dev estimate send token `_tokenId` to (`_dstChainId`, `_toAddress`)
      * _dstChainId - L0 defined chain id to send tokens too
