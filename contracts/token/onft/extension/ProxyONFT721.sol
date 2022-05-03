@@ -17,24 +17,11 @@ contract ProxyONFT721 is ONFT721Core, IERC721Receiver {
         // TODO: ERC165
     }
 
-    function sendFrom(
-        address, /* _from */
-        uint16, /* _dstChainId */
-        bytes calldata, /* _toAddress */
-        uint, /* _tokenId */
-        address payable, /* _refundAddress */
-        address, /* _zroPaymentAddress */
-        bytes calldata /* _adapterParams */
-    ) public payable virtual override {
+    function sendFrom(address, uint16, bytes calldata, uint, address payable, address, bytes calldata) public payable virtual override {
         revert("ProxyONFT721: no implementer");
     }
 
-    function _debitFrom(
-        address _from,
-        uint16, /* _dstChainId */
-        bytes memory, /* _toAddress */
-        uint _tokenId
-    ) internal virtual override {
+    function _debitFrom(address _from, uint16, bytes memory, uint _tokenId) internal virtual override {
         token.safeTransferFrom(_from, address(this), _tokenId);
     }
 

@@ -14,24 +14,11 @@ contract ProxyOFT is OFTCore {
         token = IERC20(_proxyToken);
     }
 
-    function sendFrom(
-        address, /* _from */
-        uint16, /* _dstChainId */
-        bytes calldata, /* _toAddress */
-        uint, /* _amount */
-        address payable, /* _refundAddress */
-        address, /* _zroPaymentAddress */
-        bytes calldata /* _adapterParams */
-    ) public payable virtual override {
+    function sendFrom(address, uint16, bytes calldata, uint, address payable, address, bytes calldata) public payable virtual override {
         revert("ProxyOFT: no implementer");
     }
 
-    function _debitFrom(
-        address _from,
-        uint16, /*_dstChainId*/
-        bytes memory, /*_toAddress*/
-        uint _amount
-    ) internal virtual override {
+    function _debitFrom(address _from, uint16, bytes memory, uint _amount) internal virtual override {
         token.safeTransferFrom(_from, address(this), _amount);
     }
 
