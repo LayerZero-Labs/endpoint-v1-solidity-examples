@@ -14,50 +14,20 @@ contract ProxyONFT1155 is IONFT1155Core, NonblockingLzApp, IERC1155Receiver {
         token = IERC1155(_proxyToken);
     }
 
-    function estimateSendFee(
-        uint16 _dstChainId,
-        bytes calldata _toAddress,
-        uint _tokenId, 
-        uint _amount, 
-        bool _useZro,
-        bytes calldata _adapterParams
-    ) public view virtual override returns (uint nativeFee, uint zroFee) {
+    function estimateSendFee(uint16 _dstChainId, bytes calldata _toAddress, uint _tokenId, uint _amount, bool _useZro, bytes calldata _adapterParams) public view virtual override returns (uint nativeFee, uint zroFee) {
         return estimateSendBatchFee(_dstChainId, _toAddress, _toSingletonArray(_tokenId), _toSingletonArray(_amount), _useZro, _adapterParams);
     }
 
-    function estimateSendBatchFee(
-        uint16 _dstChainId,
-        bytes calldata _toAddress,
-        uint[] memory _tokenIds,
-        uint[] memory _amounts,
-        bool _useZro,
-        bytes calldata _adapterParams
-    ) public view virtual override returns (uint nativeFee, uint zroFee) {
+    function estimateSendBatchFee(uint16 _dstChainId, bytes calldata _toAddress, uint[] memory _tokenIds, uint[] memory _amounts, bool _useZro, bytes calldata _adapterParams) public view virtual override returns (uint nativeFee, uint zroFee) {
         bytes memory payload = abi.encode(_toAddress, _tokenIds, _amounts);
         return lzEndpoint.estimateFees(_dstChainId, address(this), payload, _useZro, _adapterParams);
     }
 
-    function send(
-        uint16 _dstChainId,
-        bytes calldata _toAddress,
-        uint _tokenId,
-        uint _amount,
-        address payable _refundAddress,
-        address _zroPaymentAddress,
-        bytes calldata _adapterParams
-    ) public payable virtual override {
+    function send(uint16 _dstChainId, bytes calldata _toAddress, uint _tokenId, uint _amount, address payable _refundAddress, address _zroPaymentAddress, bytes calldata _adapterParams) public payable virtual override {
         _sendBatch(_msgSender(), _dstChainId, _toAddress, _toSingletonArray(_tokenId), _toSingletonArray(_amount), _refundAddress, _zroPaymentAddress, _adapterParams);
     }
 
-    function sendBatch(
-        uint16 _dstChainId,
-        bytes calldata _toAddress,
-        uint[] memory _tokenIds,
-        uint[] memory _amounts,
-        address payable _refundAddress,
-        address _zroPaymentAddress,
-        bytes calldata _adapterParams
-    ) public payable virtual override {
+    function sendBatch(uint16 _dstChainId, bytes calldata _toAddress, uint[] memory _tokenIds, uint[] memory _amounts, address payable _refundAddress, address _zroPaymentAddress, bytes calldata _adapterParams) public payable virtual override {
         _sendBatch(_msgSender(), _dstChainId, _toAddress, _tokenIds, _amounts, _refundAddress, _zroPaymentAddress, _adapterParams);
     }
 
@@ -87,16 +57,7 @@ contract ProxyONFT1155 is IONFT1155Core, NonblockingLzApp, IERC1155Receiver {
         revert("ProxyONFT1155: no implementer");
     }
 
-    function _sendBatch(
-        address _from,
-        uint16 _dstChainId,
-        bytes memory _toAddress,
-        uint[] memory _tokenIds,
-        uint[] memory _amounts,
-        address payable _refundAddress,
-        address _zroPaymentAddress,
-        bytes calldata _adapterParams
-    ) internal virtual {
+    function _sendBatch(address _from, uint16 _dstChainId, bytes memory _toAddress, uint[] memory _tokenIds, uint[] memory _amounts, address payable _refundAddress, address _zroPaymentAddress, bytes calldata _adapterParams) internal virtual {
         // on the src chain we burn the tokens before sending
         _debitFrom(_from, _dstChainId, _toAddress, _tokenIds, _amounts);
 
@@ -111,12 +72,7 @@ contract ProxyONFT1155 is IONFT1155Core, NonblockingLzApp, IERC1155Receiver {
         }
     }
 
-    function _nonblockingLzReceive(
-        uint16 _srcChainId,
-        bytes memory _srcAddress,
-        uint64 _nonce,
-        bytes memory _payload
-    ) internal virtual override {
+    function _nonblockingLzReceive(uint16 _srcChainId, bytes memory _srcAddress, uint64 _nonce, bytes memory _payload) internal virtual override {
         // decode and load the toAddress
         (bytes memory toAddress, uint[] memory tokenIds, uint[] memory amounts) = abi.decode(_payload, (bytes, uint[], uint[]));
         address localToAddress;
@@ -153,25 +109,13 @@ contract ProxyONFT1155 is IONFT1155Core, NonblockingLzApp, IERC1155Receiver {
         token.safeBatchTransferFrom(address(this), _toAddress, _tokenIds, _amounts, "0x");
     }
 
-    function onERC1155Received(
-        address _operator,
-        address,
-        uint,
-        uint,
-        bytes memory
-    ) public virtual override returns (bytes4) {
+    function onERC1155Received(address _operator, address, uint, uint, bytes memory) public virtual override returns (bytes4) {
         // only allow `this` to tranfser token from others
         if (_operator != address(this)) return bytes4(0);
         return this.onERC1155Received.selector;
     }
 
-    function onERC1155BatchReceived(
-        address _operator,
-        address,
-        uint[] calldata,
-        uint[] calldata,
-        bytes memory
-    ) public virtual override returns (bytes4) {
+    function onERC1155BatchReceived(address _operator, address, uint[] calldata, uint[] calldata, bytes memory) public virtual override returns (bytes4) {
         // only allow `this` to tranfser token from others
         if (_operator != address(this)) return bytes4(0);
         return this.onERC1155BatchReceived.selector;
@@ -181,8 +125,8 @@ contract ProxyONFT1155 is IONFT1155Core, NonblockingLzApp, IERC1155Receiver {
         return interfaceId == type(IERC1155Receiver).interfaceId;
     }
 
-    function _toSingletonArray(uint256 element) private pure returns (uint256[] memory) {
-        uint256[] memory array = new uint256[](1);
+    function _toSingletonArray(uint element) private pure returns (uint[] memory) {
+        uint[] memory array = new uint[](1);
         array[0] = element;
         return array;
     }

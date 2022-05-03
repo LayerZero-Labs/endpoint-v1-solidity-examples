@@ -9,28 +9,13 @@ import "@openzeppelin/contracts/token/ERC1155/ERC1155.sol";
 // NOTE: this ONFT contract has no public minting logic.
 // must implement your own minting logic in child classes
 contract ONFT1155 is IONFT1155, NonblockingLzApp, ERC1155 {
-
     constructor(string memory _uri, address _lzEndpoint) ERC1155(_uri) NonblockingLzApp(_lzEndpoint) {}
 
-    function estimateSendFee(
-        uint16 _dstChainId,
-        bytes calldata _toAddress,
-        uint _tokenId, 
-        uint _amount, 
-        bool _useZro,
-        bytes calldata _adapterParams
-    ) public view virtual override returns (uint nativeFee, uint zroFee) {
+    function estimateSendFee(uint16 _dstChainId, bytes calldata _toAddress, uint _tokenId, uint _amount, bool _useZro, bytes calldata _adapterParams) public view virtual override returns (uint nativeFee, uint zroFee) {
         return estimateSendBatchFee(_dstChainId, _toAddress, _toSingletonArray(_tokenId), _toSingletonArray(_amount), _useZro, _adapterParams);
     }
 
-    function estimateSendBatchFee(
-        uint16 _dstChainId,
-        bytes calldata _toAddress,
-        uint[] memory _tokenIds,
-        uint[] memory _amounts,
-        bool _useZro,
-        bytes calldata _adapterParams
-    ) public view virtual override returns (uint nativeFee, uint zroFee) {
+    function estimateSendBatchFee(uint16 _dstChainId, bytes calldata _toAddress, uint[] memory _tokenIds, uint[] memory _amounts, bool _useZro, bytes calldata _adapterParams) public view virtual override returns (uint nativeFee, uint zroFee) {
         bytes memory payload = abi.encode(_toAddress, _tokenIds, _amounts);
         return lzEndpoint.estimateFees(_dstChainId, address(this), payload, _useZro, _adapterParams);
     }
@@ -105,8 +90,8 @@ contract ONFT1155 is IONFT1155, NonblockingLzApp, ERC1155 {
         _mintBatch(_toAddress, _tokenIds, _amounts, "0x");
     }
 
-    function _toSingletonArray(uint256 element) private pure returns (uint256[] memory) {
-        uint256[] memory array = new uint256[](1);
+    function _toSingletonArray(uint element) private pure returns (uint[] memory) {
+        uint[] memory array = new uint[](1);
         array[0] = element;
         return array;
     }

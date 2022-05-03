@@ -46,12 +46,7 @@ contract ProxyONFT721 is ONFT721Core, IERC721Receiver {
         token.safeTransferFrom(address(this), _toAddress, _tokenId);
     }
 
-    function onERC721Received(
-        address _operator,
-        address,
-        uint,
-        bytes memory
-    ) public virtual override returns (bytes4) {
+    function onERC721Received(address _operator, address, uint, bytes memory) public virtual override returns (bytes4) {
         // only allow `this` to tranfser token from others
         if (_operator != address(this)) return bytes4(0);
         return IERC721Receiver.onERC721Received.selector;
