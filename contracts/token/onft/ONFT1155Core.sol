@@ -47,7 +47,7 @@ abstract contract ONFT1155Core is NonblockingLzApp, ERC165, IONFT1155Core {
         uint64 nonce = lzEndpoint.getOutboundNonce(_dstChainId, address(this));
         if (_tokenIds.length == 1) {
             emit SendToChain(_from, _dstChainId, _toAddress, _tokenIds[0], _amounts[0], nonce);
-        } else {
+        } else if (_tokenIds.length > 1)  {
             emit SendBatchToChain(_from, _dstChainId, _toAddress, _tokenIds, _amounts, nonce);
         }
     }
