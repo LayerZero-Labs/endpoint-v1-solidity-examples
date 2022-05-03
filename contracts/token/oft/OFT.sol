@@ -3,12 +3,17 @@
 pragma solidity ^0.8.0;
 
 import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
+import "@openzeppelin/contracts/utils/introspection/IERC165.sol";
 import "./OFTCore.sol";
 import "./IOFT.sol";
 
 // override decimal() function is needed
 contract OFT is OFTCore, ERC20, IOFT {
     constructor(string memory _name, string memory _symbol, address _lzEndpoint) ERC20(_name, _symbol) OFTCore(_lzEndpoint) {}
+
+    function supportsInterface(bytes4 interfaceId) public view virtual override(OFTCore, IERC165) returns (bool) {
+        return interfaceId == type(IOFT).interfaceId || interfaceId == type(IERC20).interfaceId || super.supportsInterface(interfaceId);
+    }
 
     function _debitFrom(address _from, uint16, bytes memory, uint _amount) internal virtual override {
         address spender = _msgSender();
