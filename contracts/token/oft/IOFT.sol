@@ -13,7 +13,6 @@ interface IOFT is IOFTCore, IERC20 {
     //  * @dev returns the type of OFT
     //  */
     // function getType() external returns (uint);
-
     // /**
     //  * @dev returns the total amount of tokens across all chains
     //  */

@@ -21,11 +21,7 @@ contract ProxyONFT721 is ONFT721Core, IERC721Receiver {
         token.safeTransferFrom(_from, address(this), _tokenId);
     }
 
-    function _creditTo(
-        uint16, /* _srcChainId */
-        address _toAddress,
-        uint _tokenId
-    ) internal virtual override {
+    function _creditTo(uint16, address _toAddress, uint _tokenId) internal virtual override {
         token.safeTransferFrom(address(this), _toAddress, _tokenId);
     }
 
