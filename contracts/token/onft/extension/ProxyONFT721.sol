@@ -4,12 +4,16 @@ pragma solidity ^0.8.0;
 
 import "@openzeppelin/contracts/token/ERC721/IERC721.sol";
 import "@openzeppelin/contracts/token/ERC721/IERC721Receiver.sol";
+import "@openzeppelin/contracts/utils/introspection/ERC165Checker.sol";
 import "../ONFT721Core.sol";
 
 contract ProxyONFT721 is ONFT721Core, IERC721Receiver {
+    using ERC165Checker for address;
+
     IERC721 public immutable token;
 
     constructor(address _lzEndpoint, address _proxyToken) ONFT721Core(_lzEndpoint) {
+        require(_proxyToken.supportsInterface(type(IERC721).interfaceId), "ProxyONFT721: invalid ERC721 token");
         token = IERC721(_proxyToken);
     }
 
