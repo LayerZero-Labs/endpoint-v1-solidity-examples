@@ -56,6 +56,6 @@ describe("UniversalONFT721: ", function () {
         expect(await ONFTDst.ownerOf(newId)).to.not.equal(owner)
 
         // hit the max mint on the source chain
-        await expect(ONFTSrc.mint()).to.revertedWith("ONFT: Max Mint limit reached")
+        await expect(ONFTSrc.mint()).to.revertedWith("UniversalONFT721: max mint limit reached")
     })
 })
