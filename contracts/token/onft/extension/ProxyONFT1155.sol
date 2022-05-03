@@ -13,6 +13,10 @@ contract ProxyONFT1155 is ONFT1155Core, IERC1155Receiver {
         token = IERC1155(_proxyToken);
     }
 
+    function supportsInterface(bytes4 interfaceId) public view virtual override(ONFT1155Core, IERC165) returns (bool) {
+        return interfaceId == type(IERC1155Receiver).interfaceId || super.supportsInterface(interfaceId);
+    }
+
     function sendFrom(address, uint16, bytes calldata, uint, uint, address payable, address, bytes calldata) public payable virtual override {
         revert("ProxyONFT1155: no implementer");
     }
@@ -39,10 +43,5 @@ contract ProxyONFT1155 is ONFT1155Core, IERC1155Receiver {
         // only allow `this` to tranfser token from others
         if (_operator != address(this)) return bytes4(0);
         return this.onERC1155BatchReceived.selector;
-    }
-
-    function supportsInterface(bytes4 interfaceId) public view virtual override(IERC165) returns (bool) {
-        // TODO: impl ERC165
-        return interfaceId == type(IERC1155Receiver).interfaceId;
     }
 }

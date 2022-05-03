@@ -11,6 +11,10 @@ import "@openzeppelin/contracts/token/ERC1155/ERC1155.sol";
 contract ONFT1155 is ONFT1155Core, ERC1155, IONFT1155 {
     constructor(string memory _uri, address _lzEndpoint) ERC1155(_uri) ONFT1155Core(_lzEndpoint) {}
 
+    function supportsInterface(bytes4 interfaceId) public view virtual override(ONFT1155Core, ERC1155, IERC165) returns (bool) {
+        return interfaceId == type(IONFT1155).interfaceId || super.supportsInterface(interfaceId);
+    }
+
     function _debitFrom(address _from, uint16, bytes memory, uint[] memory _tokenIds, uint[] memory _amounts) internal virtual override {
         address spender = _msgSender();
         require(spender == _from || isApprovedForAll(_from, spender), "ONFT1155: send caller is not owner nor approved");

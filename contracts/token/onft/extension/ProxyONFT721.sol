@@ -13,6 +13,10 @@ contract ProxyONFT721 is ONFT721Core, IERC721Receiver {
         token = IERC721(_proxyToken);
     }
 
+    function supportsInterface(bytes4 interfaceId) public view virtual override returns (bool) {
+        return interfaceId == type(IERC721Receiver).interfaceId || super.supportsInterface(interfaceId);
+    }
+
     function sendFrom(address, uint16, bytes calldata, uint, address payable, address, bytes calldata) public payable virtual override {
         revert("ProxyONFT721: no implementer");
     }

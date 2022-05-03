@@ -4,10 +4,14 @@ pragma solidity ^0.8.0;
 
 import "./IONFT1155Core.sol";
 import "../../lzApp/NonblockingLzApp.sol";
-import "@openzeppelin/contracts/token/ERC1155/ERC1155.sol";
+import "@openzeppelin/contracts/utils/introspection/ERC165.sol";
 
-abstract contract ONFT1155Core is NonblockingLzApp, IONFT1155Core {
+abstract contract ONFT1155Core is NonblockingLzApp, ERC165, IONFT1155Core {
     constructor(address _lzEndpoint) NonblockingLzApp(_lzEndpoint) {}
+
+    function supportsInterface(bytes4 interfaceId) public view virtual override(ERC165, IERC165) returns (bool) {
+        return interfaceId == type(IONFT1155Core).interfaceId || super.supportsInterface(interfaceId);
+    }
 
     function estimateSendFee(uint16 _dstChainId, bytes calldata _toAddress, uint _tokenId, uint _amount, bool _useZro, bytes calldata _adapterParams) public view virtual override returns (uint nativeFee, uint zroFee) {
         return estimateSendBatchFee(_dstChainId, _toAddress, _toSingletonArray(_tokenId), _toSingletonArray(_amount), _useZro, _adapterParams);
