@@ -2,7 +2,7 @@
 
 pragma solidity ^0.8;
 
-import ".././ONFT721.sol";
+import "../ONFT721.sol";
 
 /// @title Interface of the UniversalONFT standard
 contract UniversalONFT721 is ONFT721 {
