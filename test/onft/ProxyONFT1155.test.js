@@ -102,15 +102,15 @@ describe("ProxyONFT1155: ", function () {
         expect(await ERC1155Src.balanceOf(ProxyONFT_A.address, tokenId)).to.be.equal(0)
     })
 
-    it("send() - reverts if not approved on proxy", async function () {
+    it("sendFrom() - reverts if not approved on proxy", async function () {
         const tokenId = 123
         const amount = 1
         await ERC1155Src.mint(owner.address, tokenId, amount)
 
-        await expect(ProxyONFT_A.send(chainId_B, owner.address, tokenId, amount, owner.address, ethers.constants.AddressZero, "0x")).to.be.revertedWith("ERC1155: transfer caller is not owner nor approved")
+        await expect(ProxyONFT_A.sendFrom(owner.address, chainId_B, owner.address, tokenId, amount, owner.address, ethers.constants.AddressZero, "0x")).to.be.revertedWith("ERC1155: transfer caller is not owner nor approved")
     })
 
-    it("send() - reverts if someone else is has approved on the proxy, but not the sender", async function () {
+    it("sendFrom() - reverts if someone else is has approved on the proxy, but not the sender", async function () {
         const tokenId = 123
         const amount = 1
         // mint to both owners
@@ -120,8 +120,8 @@ describe("ProxyONFT1155: ", function () {
         // approve owner.address to transfer, but not the other
         await ERC1155Src.setApprovalForAll(ProxyONFT_A.address, true)
 
-        await expect(ProxyONFT_A.connect(warlock).send(chainId_B, warlock.address, tokenId, amount, warlock.address, ethers.constants.AddressZero, "0x")).to.be.revertedWith("ERC1155: transfer caller is not owner nor approved")
-        await expect(ProxyONFT_A.connect(warlock).send(chainId_B, owner.address, tokenId, amount, owner.address, ethers.constants.AddressZero, "0x")).to.be.revertedWith("ERC1155: transfer caller is not owner nor approved")
+        await expect(ProxyONFT_A.connect(warlock).sendFrom(warlock.address, chainId_B, warlock.address, tokenId, amount, warlock.address, ethers.constants.AddressZero, "0x")).to.be.revertedWith("ERC1155: transfer caller is not owner nor approved")
+        await expect(ProxyONFT_A.connect(warlock).sendFrom(warlock.address, chainId_B, owner.address, tokenId, amount, owner.address, ethers.constants.AddressZero, "0x")).to.be.revertedWith("ERC1155: transfer caller is not owner nor approved")
     })
 
     it("sendFrom() - on non proxy", async function () {
@@ -133,7 +133,7 @@ describe("ProxyONFT1155: ", function () {
         await ERC1155Src.setApprovalForAll(ProxyONFT_A.address, tokenId)
 
         // swaps token to other chain
-        await ProxyONFT_A.send(chainId_B, owner.address, tokenId, amount, owner.address, ethers.constants.AddressZero, "0x")
+        await ProxyONFT_A.sendFrom(owner.address, chainId_B, owner.address, tokenId, amount, owner.address, ethers.constants.AddressZero, "0x")
 
         // token received on the dst chain
         expect(await ONFT_B.balanceOf(owner.address, tokenId)).to.be.equal(amount)
@@ -157,7 +157,7 @@ describe("ProxyONFT1155: ", function () {
         await ERC1155Src.setApprovalForAll(ProxyONFT_A.address, tokenId)
 
         // swaps token to other chain
-        await ProxyONFT_A.send(chainId_B, owner.address, tokenId, amount, owner.address, ethers.constants.AddressZero, "0x")
+        await ProxyONFT_A.sendFrom(owner.address, chainId_B, owner.address, tokenId, amount, owner.address, ethers.constants.AddressZero, "0x")
 
         // token received on the dst chain
         expect(await ONFT_B.balanceOf(owner.address, tokenId)).to.be.equal(amount)
@@ -178,7 +178,7 @@ describe("ProxyONFT1155: ", function () {
         await ERC1155Src.setApprovalForAll(ProxyONFT_A.address, tokenId)
 
         // swaps token to other chain
-        await ProxyONFT_A.send(chainId_B, owner.address, tokenId, amount, owner.address, ethers.constants.AddressZero, "0x")
+        await ProxyONFT_A.sendFrom(owner.address, chainId_B, owner.address, tokenId, amount, owner.address, ethers.constants.AddressZero, "0x")
 
         // token received on the dst chain
         expect(await ONFT_B.balanceOf(owner.address, tokenId)).to.be.equal(amount)
