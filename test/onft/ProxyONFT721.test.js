@@ -117,7 +117,7 @@ describe("ProxyONFT721: ", function () {
         expect(await ONFT_B.ownerOf(tokenId)).to.be.equal(owner.address)
 
         // reverts because other address does not own it
-        await expect(ONFT_B.connect(warlock).send(chainId_C, warlock.address, tokenId, warlock.address, ethers.constants.AddressZero, "0x")).to.be.revertedWith("ONFT721: transfer caller is not owner nor approved")
+        await expect(ONFT_B.connect(warlock).send(chainId_C, warlock.address, tokenId, warlock.address, ethers.constants.AddressZero, "0x")).to.be.revertedWith("ONFT721: send caller is not owner nor approved")
     })
 
     it("sendFrom()", async function () {
@@ -160,7 +160,7 @@ describe("ProxyONFT721: ", function () {
         await ONFT_B.approve(ONFT_B.address, tokenId)
 
         // reverts because proxy is approved, not the user
-        await expect(ONFT_B.connect(warlock).sendFrom(owner.address, chainId_C, warlock.address, tokenId, warlock.address, ethers.constants.AddressZero, "0x")).to.be.revertedWith("ONFT721: transfer caller is not owner nor approved")
+        await expect(ONFT_B.connect(warlock).sendFrom(owner.address, chainId_C, warlock.address, tokenId, warlock.address, ethers.constants.AddressZero, "0x")).to.be.revertedWith("ONFT721: send caller is not owner nor approved")
     })
 
     it("sendFrom() - reverts if not approved on non proxy chain", async function () {
@@ -177,7 +177,7 @@ describe("ProxyONFT721: ", function () {
         expect(await ONFT_B.ownerOf(tokenId)).to.be.equal(owner.address)
 
         // reverts because not approved
-        await expect(ONFT_B.connect(warlock).sendFrom(owner.address, chainId_C, warlock.address, tokenId, warlock.address, ethers.constants.AddressZero, "0x")).to.be.revertedWith("ONFT721: transfer caller is not owner nor approved")
+        await expect(ONFT_B.connect(warlock).sendFrom(owner.address, chainId_C, warlock.address, tokenId, warlock.address, ethers.constants.AddressZero, "0x")).to.be.revertedWith("ONFT721: send caller is not owner nor approved")
     })
 
     it("send() - reverts if someone else is approved, but not the sender", async function () {

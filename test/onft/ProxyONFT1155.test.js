@@ -107,10 +107,10 @@ describe("ProxyONFT1155: ", function () {
         const amount = 1
         await ERC1155Src.mint(owner.address, tokenId, amount)
 
-        await expect(ProxyONFT_A.send(chainId_B, owner.address, tokenId, amount, owner.address, ethers.constants.AddressZero, "0x")).to.be.revertedWith("ERC1155: caller is not owner nor approved")
+        await expect(ProxyONFT_A.send(chainId_B, owner.address, tokenId, amount, owner.address, ethers.constants.AddressZero, "0x")).to.be.revertedWith("ERC1155: transfer caller is not owner nor approved")
     })
 
-    it("send() - reverts if someone else is has approved on the poxy, but not the sender", async function () {
+    it("send() - reverts if someone else is has approved on the proxy, but not the sender", async function () {
         const tokenId = 123
         const amount = 1
         // mint to both owners
@@ -120,8 +120,8 @@ describe("ProxyONFT1155: ", function () {
         // approve owner.address to transfer, but not the other
         await ERC1155Src.setApprovalForAll(ProxyONFT_A.address, true)
 
-        await expect(ProxyONFT_A.connect(warlock).send(chainId_B, warlock.address, tokenId, amount, warlock.address, ethers.constants.AddressZero, "0x")).to.be.revertedWith("ERC1155: caller is not owner nor approved")
-        await expect(ProxyONFT_A.connect(warlock).send(chainId_B, owner.address, tokenId, amount, owner.address, ethers.constants.AddressZero, "0x")).to.be.revertedWith("ERC1155: caller is not owner nor approved")
+        await expect(ProxyONFT_A.connect(warlock).send(chainId_B, warlock.address, tokenId, amount, warlock.address, ethers.constants.AddressZero, "0x")).to.be.revertedWith("ERC1155: transfer caller is not owner nor approved")
+        await expect(ProxyONFT_A.connect(warlock).send(chainId_B, owner.address, tokenId, amount, owner.address, ethers.constants.AddressZero, "0x")).to.be.revertedWith("ERC1155: transfer caller is not owner nor approved")
     })
 
     it("sendFrom() - on non proxy", async function () {
@@ -166,7 +166,7 @@ describe("ProxyONFT1155: ", function () {
         await ONFT_B.setApprovalForAll(ONFT_B.address, tokenId)
 
         // reverts because proxy is approved, not the user
-        await expect(ONFT_B.connect(warlock).sendFrom(owner.address, chainId_C, warlock.address, tokenId, amount, warlock.address, ethers.constants.AddressZero, "0x")).to.be.revertedWith("ERC1155: transfer caller is not owner nor approved")
+        await expect(ONFT_B.connect(warlock).sendFrom(owner.address, chainId_C, warlock.address, tokenId, amount, warlock.address, ethers.constants.AddressZero, "0x")).to.be.revertedWith("ONFT1155: send caller is not owner nor approved")
     })
 
     it("sendFrom() - reverts if not approved on non proxy chain", async function () {
@@ -184,7 +184,7 @@ describe("ProxyONFT1155: ", function () {
         expect(await ONFT_B.balanceOf(owner.address, tokenId)).to.be.equal(amount)
 
         // reverts because not approved
-        await expect(ONFT_B.connect(warlock).sendFrom(owner.address, chainId_C, warlock.address, tokenId, amount, warlock.address, ethers.constants.AddressZero, "0x")).to.be.revertedWith("ERC1155: transfer caller is not owner nor approved")
+        await expect(ONFT_B.connect(warlock).sendFrom(owner.address, chainId_C, warlock.address, tokenId, amount, warlock.address, ethers.constants.AddressZero, "0x")).to.be.revertedWith("ONFT1155: send caller is not owner nor approved")
     })
 
     it("sendBatch()", async function () {
@@ -286,7 +286,7 @@ describe("ProxyONFT1155: ", function () {
         await ERC1155Src.connect(warlock).setApprovalForAll(ProxyONFT_A.address, true)
 
         // mismatch the length of ids and amounts
-        await expect(ProxyONFT_A.connect(warlock).sendBatch(chainId_B, warlock.address, tokenIds.slice(1), amounts, warlock.address, ethers.constants.AddressZero, "0x")).to.be.revertedWith("ONFT1155: ids and amounts must be same length")
+        await expect(ProxyONFT_A.connect(warlock).sendBatch(chainId_B, warlock.address, tokenIds.slice(1), amounts, warlock.address, ethers.constants.AddressZero, "0x")).to.be.revertedWith("ERC1155: ids and amounts length mismatch'")
     })
 
     it("estimateSendFee()", async function () {
