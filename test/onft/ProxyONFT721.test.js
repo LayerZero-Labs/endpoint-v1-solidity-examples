@@ -96,4 +96,115 @@ describe("ProxyONFT721: ", function () {
         // is received on the original chain
         expect(await ERC721Src.ownerOf(tokenId)).to.be.equal(warlock.address)
     })
+
+    it("send() - reverts if not approved on proxy", async function () {
+        const tokenId = 123
+        await ERC721Src.mint(owner.address, tokenId)
+        await expect(ProxyONFT_A.send(chainId_B, owner.address, tokenId, owner.address, ethers.constants.AddressZero, "0x")).to.be.revertedWith("ERC721: transfer caller is not owner nor approved")
+    })
+
+    it("send() - reverts if not owner on non proxy chain", async function () {
+        const tokenId = 123
+        await ERC721Src.mint(owner.address, tokenId)
+
+        // approve the proxy to swap your token
+        await ERC721Src.approve(ProxyONFT_A.address, tokenId)
+
+        // swaps token to other chain
+        await ProxyONFT_A.send(chainId_B, owner.address, tokenId, owner.address, ethers.constants.AddressZero, "0x")
+
+        // token received on the dst chain
+        expect(await ONFT_B.ownerOf(tokenId)).to.be.equal(owner.address)
+
+        // reverts because other address does not own it
+        await expect(ONFT_B.connect(warlock).send(chainId_C, warlock.address, tokenId, warlock.address, ethers.constants.AddressZero, "0x")).to.be.revertedWith("ONFT721: send caller is not owner nor approved")
+    })
+
+    it("sendFrom()", async function () {
+        const tokenId = 123
+        await ERC721Src.mint(owner.address, tokenId)
+
+        // approve the proxy to swap your token
+        await ERC721Src.approve(ProxyONFT_A.address, tokenId)
+
+        // swaps token to other chain
+        await ProxyONFT_A.send(chainId_B, owner.address, tokenId, owner.address, ethers.constants.AddressZero, "0x")
+
+        // token received on the dst chain
+        expect(await ONFT_B.ownerOf(tokenId)).to.be.equal(owner.address)
+
+        // approve the other user to send the token
+        await ONFT_B.approve(warlock.address, tokenId)
+
+        // sends across
+        await ONFT_B.connect(warlock).sendFrom(owner.address, chainId_C, warlock.address, tokenId, warlock.address, ethers.constants.AddressZero, "0x")
+
+        // token received on the dst chain
+        expect(await ONFT_C.ownerOf(tokenId)).to.be.equal(warlock.address)
+    })
+
+    it("sendFrom() - reverts if contract is approved, but not the sending user", async function () {
+        const tokenId = 123
+        await ERC721Src.mint(owner.address, tokenId)
+
+        // approve the proxy to swap your token
+        await ERC721Src.approve(ProxyONFT_A.address, tokenId)
+
+        // swaps token to other chain
+        await ProxyONFT_A.send(chainId_B, owner.address, tokenId, owner.address, ethers.constants.AddressZero, "0x")
+
+        // token received on the dst chain
+        expect(await ONFT_B.ownerOf(tokenId)).to.be.equal(owner.address)
+
+        // approve the proxy to swap your token
+        await ONFT_B.approve(ONFT_B.address, tokenId)
+
+        // reverts because proxy is approved, not the user
+        await expect(ONFT_B.connect(warlock).sendFrom(owner.address, chainId_C, warlock.address, tokenId, warlock.address, ethers.constants.AddressZero, "0x")).to.be.revertedWith("ONFT721: send caller is not owner nor approved")
+    })
+
+    it("sendFrom() - reverts if not approved on non proxy chain", async function () {
+        const tokenId = 123
+        await ERC721Src.mint(owner.address, tokenId)
+
+        // approve the proxy to swap your token
+        await ERC721Src.approve(ProxyONFT_A.address, tokenId)
+
+        // swaps token to other chain
+        await ProxyONFT_A.send(chainId_B, owner.address, tokenId, owner.address, ethers.constants.AddressZero, "0x")
+
+        // token received on the dst chain
+        expect(await ONFT_B.ownerOf(tokenId)).to.be.equal(owner.address)
+
+        // reverts because not approved
+        await expect(ONFT_B.connect(warlock).sendFrom(owner.address, chainId_C, warlock.address, tokenId, warlock.address, ethers.constants.AddressZero, "0x")).to.be.revertedWith("ONFT721: send caller is not owner nor approved")
+    })
+
+    it("send() - reverts if someone else is approved, but not the sender", async function () {
+        const tokenIdA = 123
+        const tokenIdB = 456
+        // mint to both owners
+        await ERC721Src.mint(owner.address, tokenIdA)
+        await ERC721Src.mint(warlock.address, tokenIdB)
+
+        // approve owner.address to transfer, but not the other
+        await ERC721Src.setApprovalForAll(ProxyONFT_A.address, true)
+
+        await expect(ProxyONFT_A.connect(warlock).send(chainId_B, warlock.address, tokenIdB, warlock.address, ethers.constants.AddressZero, "0x")).to.be.revertedWith("ERC721: transfer caller is not owner nor approved")
+        await expect(ProxyONFT_A.connect(warlock).send(chainId_B, owner.address, tokenIdB, owner.address, ethers.constants.AddressZero, "0x")).to.be.revertedWith("ERC721: transfer caller is not owner nor approved")
+    })
+
+    it("send() - reverts if sender does not own token", async function () {
+        const tokenIdA = 123
+        const tokenIdB = 456
+        // mint to both owners
+        await ERC721Src.mint(owner.address, tokenIdA)
+        await ERC721Src.mint(warlock.address, tokenIdB)
+
+        // approve owner.address to transfer, but not the other
+        await ERC721Src.setApprovalForAll(ProxyONFT_A.address, true)
+
+        await expect(ProxyONFT_A.connect(warlock).send(chainId_B, warlock.address, tokenIdA, warlock.address, ethers.constants.AddressZero, "0x")).to.be.revertedWith("ERC721: transfer from incorrect owner")
+        await expect(ProxyONFT_A.connect(warlock).send(chainId_B, owner.address, tokenIdA, owner.address, ethers.constants.AddressZero, "0x")).to.be.revertedWith("ERC721: transfer from incorrect owner")
+    })
 })
