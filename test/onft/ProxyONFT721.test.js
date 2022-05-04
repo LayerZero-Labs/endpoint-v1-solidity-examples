@@ -52,7 +52,7 @@ describe("ProxyONFT721: ", function () {
         await ONFT_C.setTrustedRemote(chainId_B, ONFT_B.address)
     })
 
-    it("send()", async function () {
+    it("sendFrom()", async function () {
         const tokenId = 123
         await ERC721Src.mint(owner.address, tokenId)
 
@@ -70,7 +70,7 @@ describe("ProxyONFT721: ", function () {
         await ERC721Src.connect(warlock).approve(ProxyONFT_A.address, tokenId)
 
         // swaps token to other chain
-        await ProxyONFT_A.connect(warlock).send(chainId_B, warlock.address, tokenId, warlock.address, ethers.constants.AddressZero, "0x")
+        await ProxyONFT_A.connect(warlock).sendFrom(warlock.address, chainId_B, warlock.address, tokenId, warlock.address, ethers.constants.AddressZero, "0x")
 
         // token is now owned by the proxy contract, because this is the original nft chain
         expect(await ERC721Src.ownerOf(tokenId)).to.equal(ProxyONFT_A.address)
@@ -79,7 +79,7 @@ describe("ProxyONFT721: ", function () {
         expect(await ONFT_B.ownerOf(tokenId)).to.be.equal(warlock.address)
 
         // can send to other onft contract eg. not the original nft contract chain
-        await ONFT_B.connect(warlock).send(chainId_C, warlock.address, tokenId, warlock.address, ethers.constants.AddressZero, "0x")
+        await ONFT_B.connect(warlock).sendFrom(warlock.address, chainId_C, warlock.address, tokenId, warlock.address, ethers.constants.AddressZero, "0x")
 
         // token is burned on the sending chain
         await expect(ONFT_B.ownerOf(tokenId)).to.be.revertedWith("ERC721: operator query for nonexistent token")
@@ -88,7 +88,7 @@ describe("ProxyONFT721: ", function () {
         expect(await ONFT_C.ownerOf(tokenId)).to.be.equal(warlock.address)
 
         // send it back to the original chain
-        await ONFT_C.connect(warlock).send(chainId_A, warlock.address, tokenId, warlock.address, ethers.constants.AddressZero, "0x")
+        await ONFT_C.connect(warlock).sendFrom(warlock.address, chainId_A, warlock.address, tokenId, warlock.address, ethers.constants.AddressZero, "0x")
 
         // token is burned on the sending chain
         await expect(ONFT_C.ownerOf(tokenId)).to.be.revertedWith("ERC721: operator query for nonexistent token")

@@ -21,15 +21,8 @@ contract ProxyONFT1155 is ONFT1155Core, IERC1155Receiver {
         return interfaceId == type(IERC1155Receiver).interfaceId || super.supportsInterface(interfaceId);
     }
 
-    function sendFrom(address, uint16, bytes memory, uint, uint, address payable, address, bytes memory) public payable virtual override {
-        revert("ProxyONFT1155: no implementer");
-    }
-
-    function sendBatchFrom(address, uint16, bytes memory, uint[] memory, uint[] memory, address payable, address, bytes memory) public payable virtual override {
-        revert("ProxyONFT1155: no implementer");
-    }
-
     function _debitFrom(address _from, uint16, bytes memory, uint[] memory _tokenIds, uint[] memory _amounts) internal virtual override {
+        require(_from == _msgSender(), "ProxyONFT1155: owner is not send caller");
         token.safeBatchTransferFrom(_from, address(this), _tokenIds, _amounts, "");
     }
 

@@ -14,10 +14,6 @@ contract ProxyOFT is OFTCore {
         token = IERC20(_proxyToken);
     }
 
-    function sendFrom(address, uint16, bytes memory, uint, address payable, address, bytes memory) public payable virtual override {
-        revert("ProxyOFT: no implementer");
-    }
-
     function circulatingSupply() public view virtual override returns (uint) {
         unchecked {
             return token.totalSupply() - token.balanceOf(address(this));
@@ -25,6 +21,7 @@ contract ProxyOFT is OFTCore {
     }
 
     function _debitFrom(address _from, uint16, bytes memory, uint _amount) internal virtual override {
+        require(_from == _msgSender(), "ProxyOFT: owner is not send caller");
         token.safeTransferFrom(_from, address(this), _amount);
     }
 

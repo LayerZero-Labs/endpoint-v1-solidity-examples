@@ -51,7 +51,7 @@ describe("ProxyONFT1155: ", function () {
         await ONFT_C.setTrustedRemote(chainId_B, ONFT_B.address)
     })
 
-    it("send()", async function () {
+    it("sendFrom()", async function () {
         const tokenId = 123
         const amount = 1
         await ERC1155Src.mint(owner.address, tokenId, amount)
@@ -71,7 +71,7 @@ describe("ProxyONFT1155: ", function () {
         await ERC1155Src.connect(warlock).setApprovalForAll(ProxyONFT_A.address, true)
 
         // swaps token to other chain
-        await ProxyONFT_A.connect(warlock).send(chainId_B, warlock.address, tokenId, amount, warlock.address, ethers.constants.AddressZero, "0x")
+        await ProxyONFT_A.connect(warlock).sendFrom(warlock.address, chainId_B, warlock.address, tokenId, amount, warlock.address, ethers.constants.AddressZero, "0x")
 
         // token is now owned by the proxy contract, because this is the original nft chain
         expect(await ERC1155Src.balanceOf(ProxyONFT_A.address, tokenId)).to.be.equal(amount)
@@ -81,7 +81,7 @@ describe("ProxyONFT1155: ", function () {
         expect(await ONFT_B.balanceOf(warlock.address, tokenId)).to.be.equal(amount)
 
         // can send to other onft contract eg. not the original nft contract chain
-        await ONFT_B.connect(warlock).send(chainId_C, warlock.address, tokenId, amount, warlock.address, ethers.constants.AddressZero, "0x")
+        await ONFT_B.connect(warlock).sendFrom(warlock.address, chainId_C, warlock.address, tokenId, amount, warlock.address, ethers.constants.AddressZero, "0x")
 
         // token is burned on the sending chain
         expect(await ONFT_B.balanceOf(warlock.address, tokenId)).to.be.equal(0)
@@ -90,7 +90,7 @@ describe("ProxyONFT1155: ", function () {
         expect(await ONFT_C.balanceOf(warlock.address, tokenId)).to.be.equal(amount)
 
         // send it back to the original chain
-        await ONFT_C.connect(warlock).send(chainId_A, warlock.address, tokenId, amount, warlock.address, ethers.constants.AddressZero, "0x")
+        await ONFT_C.connect(warlock).sendFrom(warlock.address, chainId_A, warlock.address, tokenId, amount, warlock.address, ethers.constants.AddressZero, "0x")
 
         // token is burned on the sending chain
         expect(await ONFT_C.balanceOf(warlock.address, tokenId)).to.be.equal(0)
@@ -102,7 +102,7 @@ describe("ProxyONFT1155: ", function () {
         expect(await ERC1155Src.balanceOf(ProxyONFT_A.address, tokenId)).to.be.equal(0)
     })
 
-    it("sendBatch()", async function () {
+    it("sendBatchFrom()", async function () {
         const tokenIds = [123, 456, 7890, 101112131415]
         const amounts = [1, 33, 22, 1234566]
         const emptyAmounts = [0, 0, 0, 0]
@@ -135,7 +135,8 @@ describe("ProxyONFT1155: ", function () {
         await ERC1155Src.connect(warlock).setApprovalForAll(ProxyONFT_A.address, true)
 
         // swaps tokens to other chain in seperate batches
-        await ProxyONFT_A.connect(warlock).sendBatch(
+        await ProxyONFT_A.connect(warlock).sendBatchFrom(
+            warlock.address,
             chainId_B,
             warlock.address,
             tokenIds.slice(1),
@@ -144,7 +145,8 @@ describe("ProxyONFT1155: ", function () {
             ethers.constants.AddressZero,
             "0x"
         )
-        await ProxyONFT_A.connect(warlock).sendBatch(
+        await ProxyONFT_A.connect(warlock).sendBatchFrom(
+            warlock.address,
             chainId_B,
             warlock.address,
             tokenIds.slice(0, 1),
@@ -163,7 +165,7 @@ describe("ProxyONFT1155: ", function () {
 
         // can send to other onft contract eg. not the original nft contract chain, and a different address
         // eg. warlock -> owner
-        await ONFT_B.connect(warlock).sendBatch(chainId_C, owner.address, tokenIds, amounts, warlock.address, ethers.constants.AddressZero, "0x")
+        await ONFT_B.connect(warlock).sendBatchFrom(warlock.address, chainId_C, owner.address, tokenIds, amounts, warlock.address, ethers.constants.AddressZero, "0x")
 
         // tokens are burned on the sending chain
         checkTokenBalance(await ONFT_B.balanceOfBatch(listOfOwner, tokenIds), emptyAmounts)
@@ -172,7 +174,7 @@ describe("ProxyONFT1155: ", function () {
         checkTokenBalance(await ONFT_C.balanceOfBatch(listOfOwner, tokenIds), amounts)
 
         // send it back to the original chain, and original owner
-        await ONFT_C.sendBatch(chainId_A, warlock.address, tokenIds, amounts, warlock.address, ethers.constants.AddressZero, "0x")
+        await ONFT_C.sendBatchFrom(owner.address, chainId_A, warlock.address, tokenIds, amounts, warlock.address, ethers.constants.AddressZero, "0x")
 
         // tokens are burned on the sending chain
         checkTokenBalance(await ONFT_C.balanceOfBatch(listOfWarlock, tokenIds), emptyAmounts)
@@ -203,14 +205,14 @@ describe("ProxyONFT1155: ", function () {
 
         // reverts with not enough native
         await expect(
-            ProxyONFT_A.connect(warlock).send(chainId_B, warlock.address, tokenId, amount, warlock.address, ethers.constants.AddressZero, "0x", {
+            ProxyONFT_A.connect(warlock).sendFrom(warlock.address, chainId_B, warlock.address, tokenId, amount, warlock.address, ethers.constants.AddressZero, "0x", {
                 value: fees.nativeFee.sub(1),
             })
         ).to.be.reverted
 
         // does not revert with correct amount
         await expect(
-            ProxyONFT_A.connect(warlock).send(chainId_B, warlock.address, tokenId, amount, warlock.address, ethers.constants.AddressZero, "0x", {
+            ProxyONFT_A.connect(warlock).sendFrom(warlock.address, chainId_B, warlock.address, tokenId, amount, warlock.address, ethers.constants.AddressZero, "0x", {
                 value: fees.nativeFee,
             })
         ).to.not.reverted
@@ -235,7 +237,8 @@ describe("ProxyONFT1155: ", function () {
 
         // reverts with not enough native
         await expect(
-            ProxyONFT_A.connect(warlock).sendBatch(
+            ProxyONFT_A.connect(warlock).sendBatchFrom(
+                warlock.address,
                 chainId_B,
                 warlock.address,
                 tokenIds,
@@ -249,7 +252,8 @@ describe("ProxyONFT1155: ", function () {
 
         // does not revert with correct amount
         await expect(
-            ProxyONFT_A.connect(warlock).sendBatch(
+            ProxyONFT_A.connect(warlock).sendBatchFrom(
+                warlock.address,
                 chainId_B,
                 warlock.address,
                 tokenIds,

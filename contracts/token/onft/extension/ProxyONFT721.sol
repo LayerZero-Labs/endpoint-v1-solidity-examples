@@ -21,11 +21,8 @@ contract ProxyONFT721 is ONFT721Core, IERC721Receiver {
         return interfaceId == type(IERC721Receiver).interfaceId || super.supportsInterface(interfaceId);
     }
 
-    function sendFrom(address, uint16, bytes memory, uint, address payable, address, bytes memory) public payable virtual override {
-        revert("ProxyONFT721: no implementer");
-    }
-
     function _debitFrom(address _from, uint16, bytes memory, uint _tokenId) internal virtual override {
+        require(_from == _msgSender(), "ProxyONFT721: owner is not send caller");
         token.safeTransferFrom(_from, address(this), _tokenId);
     }
 

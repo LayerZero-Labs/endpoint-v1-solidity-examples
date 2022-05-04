@@ -50,7 +50,8 @@ describe("OFT: ", function () {
 
             // stores a payload
             await expect(
-                OFTSrc.send(
+                OFTSrc.sendFrom(
+                    owner.address,
                     chainIdDst,
                     ethers.utils.solidityPack(["address"], [owner.address]),
                     sendQty,
@@ -75,7 +76,8 @@ describe("OFT: ", function () {
 
             // now that a msg has been stored, subsequent ones will not revert, but will get added to the queue
             await expect(
-                OFTSrc.send(
+                OFTSrc.sendFrom(
+                    owner.address,
                     chainIdDst,
                     ethers.utils.solidityPack(["address"], [owner.address]),
                     sendQty,
@@ -119,7 +121,8 @@ describe("OFT: ", function () {
 
             for (let i = 0; i < msgsInQueue; i++) {
                 // first iteration stores a payload, the following get added to queue
-                await OFTSrc.send(
+                await OFTSrc.sendFrom(
+                    owner.address,
                     chainIdDst,
                     ethers.utils.solidityPack(["address"], [owner.address]),
                     sendQty,
@@ -150,7 +153,8 @@ describe("OFT: ", function () {
 
             for (let i = 0; i < msgsInQueue; i++) {
                 // first iteration stores a payload, the following gets added to queue
-                await OFTSrc.send(
+                await OFTSrc.sendFrom(
+                    owner.address,
                     chainIdDst,
                     ethers.utils.solidityPack(["address"], [owner.address]),
                     sendQty,
@@ -174,7 +178,8 @@ describe("OFT: ", function () {
 
             // store a new payload
             await lzEndpointDstMock.blockNextMsg()
-            await OFTSrc.send(
+            await OFTSrc.sendFrom(
+                owner.address,
                 chainIdDst,
                 ethers.utils.solidityPack(["address"], [owner.address]),
                 sendQty,
