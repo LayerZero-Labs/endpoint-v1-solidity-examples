@@ -12,7 +12,7 @@ module.exports = async function (taskArgs, hre) {
 
     try {
         let tx = await (
-            await exampleUniversalONFT.send(dstChainId, owner.address, tokenId, owner.address, ethers.constants.AddressZero, adapterParams, {
+            await exampleUniversalONFT.sendFrom(owner.address, dstChainId, owner.address, tokenId, owner.address, ethers.constants.AddressZero, adapterParams, {
                 value: ethers.utils.parseEther("1"),
             })
         ).wait()
