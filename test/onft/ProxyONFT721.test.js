@@ -52,7 +52,7 @@ describe("ProxyONFT721: ", function () {
         await ONFT_C.setTrustedRemote(chainId_B, ONFT_B.address)
     })
 
-    it("sendFrom()", async function () {
+    it("sendFrom() - your own tokens", async function () {
         const tokenId = 123
         await ERC721Src.mint(owner.address, tokenId)
 
@@ -131,7 +131,7 @@ describe("ProxyONFT721: ", function () {
         await expect(ONFT_B.connect(warlock).sendFrom(warlock.address, chainId_C, warlock.address, tokenId, warlock.address, ethers.constants.AddressZero, "0x")).to.be.revertedWith("ONFT721: send caller is not owner nor approved")
     })
 
-    it("sendFrom()", async function () {
+    it("sendFrom() - on behalf of other user", async function () {
         const tokenId = 123
         await ERC721Src.mint(owner.address, tokenId)
 

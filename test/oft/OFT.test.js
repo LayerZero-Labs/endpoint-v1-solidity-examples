@@ -42,7 +42,7 @@ describe("OFT: ", function () {
 
         beforeEach(async function () {
             // ensure they're both starting with correct amounts
-            // expect(await OFTSrc.balanceOf(owner.address)).to.be.equal(globalSupply)
+            expect(await OFTSrc.balanceOf(owner.address)).to.be.equal(globalSupply)
             expect(await OFTDst.balanceOf(owner.address)).to.be.equal("0")
 
             // block receiving msgs on the dst lzEndpoint to simulate ua reverts which stores a payload
@@ -62,7 +62,7 @@ describe("OFT: ", function () {
             ).to.emit(lzEndpointDstMock, "PayloadStored")
 
             // verify tokens burned on source chain and minted on destination chain
-            // expect(await OFTSrc.balanceOf(owner.address)).to.be.equal(globalSupply.sub(sendQty))
+            expect(await OFTSrc.balanceOf(owner.address)).to.be.equal(globalSupply.sub(sendQty))
             expect(await OFTDst.balanceOf(owner.address)).to.be.equal(0)
         })
 
