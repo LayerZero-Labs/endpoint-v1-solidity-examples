@@ -79,15 +79,17 @@ describe("PausableOFT: ", function () {
         expect(await OFTDst.balanceOf(owner.address)).to.be.equal(sendQty)
 
         // cannot transfer back across chain due to pause
-        await expect(OFTDst.sendFrom(
-            owner.address,
-            chainIdSrc,
-            ethers.utils.solidityPack(["address"], [owner.address]),
-            sendQty,
-            owner.address,
-            ethers.constants.AddressZero,
-            adapterParam
-        )).to.be.revertedWith("Pausable: paused")
+        await expect(
+            OFTDst.sendFrom(
+                owner.address,
+                chainIdSrc,
+                ethers.utils.solidityPack(["address"], [owner.address]),
+                sendQty,
+                owner.address,
+                ethers.constants.AddressZero,
+                adapterParam
+            )
+        ).to.be.revertedWith("Pausable: paused")
 
         // verify tokens were not modified
         expect(await OFTSrc.balanceOf(owner.address)).to.be.equal(globalSupply.sub(sendQty))

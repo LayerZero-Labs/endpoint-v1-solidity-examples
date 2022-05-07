@@ -47,7 +47,15 @@ describe("UniversalONFT721: ", function () {
         // v1 adapterParams, encoded for version 1 style, and 200k gas quote
         const adapterParam = ethers.utils.solidityPack(["uint16", "uint256"], [1, 225000])
 
-        await ONFTSrc.sendFrom(owner.address, chainIdDst, owner.address, newId, owner.address, "0x000000000000000000000000000000000000dEaD", adapterParam)
+        await ONFTSrc.sendFrom(
+            owner.address,
+            chainIdDst,
+            owner.address,
+            newId,
+            owner.address,
+            "0x000000000000000000000000000000000000dEaD",
+            adapterParam
+        )
 
         // verify the owner of the token is no longer on the source chain
         await expect(ONFTSrc.ownerOf(newId)).to.revertedWith("ERC721: owner query for nonexistent token")

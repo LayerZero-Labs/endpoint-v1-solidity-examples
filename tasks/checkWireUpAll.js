@@ -29,11 +29,11 @@ module.exports = async function (taskArgs) {
             try {
                 const checkWireUpCommand = `npx hardhat --network ${network} checkWireUp --e testnet --contract ${taskArgs.contract}`
                 const result = shell.exec(checkWireUpCommand).stdout.replace(/(\r\n|\n|\r|\s)/gm, "")
-                if(result !== '') {
+                if (result !== "") {
                     const resultParsed = JSON.parse(result)
                     trustedRemoteTable[network] = new TrustedRemote()
                     Object.assign(trustedRemoteTable[network], resultParsed)
-                    if(JSON.stringify(trustedRemoteTable[network]).length > 2) {
+                    if (JSON.stringify(trustedRemoteTable[network]).length > 2) {
                         trustedRemoteChecks[network] = new TrustedRemote()
                     }
                 }
@@ -47,19 +47,23 @@ module.exports = async function (taskArgs) {
     // use filled trustedRemoteTable to make trustedRemoteChecks
     const environmentArray = environments[taskArgs.e]
     for (let i = 0; i < environmentArray.length; i++) {
-        if(trustedRemoteTable[environmentArray[i]] === undefined) continue;
+        if (trustedRemoteTable[environmentArray[i]] === undefined) continue
         const envToCamelCase = environmentArray[i].replace(/-./g, (m) => m[1].toUpperCase())
         const actualUaAddress = trustedRemoteTable[environmentArray[i]][envToCamelCase]
-        if(actualUaAddress === undefined) continue;
+        if (actualUaAddress === undefined) continue
         console.log(`${environmentArray[i]}'s actualUaAddress: ${actualUaAddress}`)
         for (let j = 0; j < environmentArray.length; j++) {
-            if(trustedRemoteTable[environmentArray[j]] === undefined) continue;
+            if (trustedRemoteTable[environmentArray[j]] === undefined) continue
             const currentSetRemoteAddress = trustedRemoteTable[environmentArray[j]][envToCamelCase]
-            if(currentSetRemoteAddress !== undefined) {
-                console.log(`${environmentArray[j]}'s currentSetRemoteAddress for ${environmentArray[i]}: ${currentSetRemoteAddress} ${JSON.stringify(actualUaAddress) === JSON.stringify(currentSetRemoteAddress) ?'✅ ':'❌ '}`)
-                if(JSON.stringify(actualUaAddress) === JSON.stringify(currentSetRemoteAddress)) {
+            if (currentSetRemoteAddress !== undefined) {
+                console.log(
+                    `${environmentArray[j]}'s currentSetRemoteAddress for ${environmentArray[i]}: ${currentSetRemoteAddress} ${
+                        JSON.stringify(actualUaAddress) === JSON.stringify(currentSetRemoteAddress) ? "✅ " : "❌ "
+                    }`
+                )
+                if (JSON.stringify(actualUaAddress) === JSON.stringify(currentSetRemoteAddress)) {
                     trustedRemoteChecks[environmentArray[j]][envToCamelCase] = "🟩"
-                } else if(JSON.stringify(actualUaAddress) !== JSON.stringify(currentSetRemoteAddress)) {
+                } else if (JSON.stringify(actualUaAddress) !== JSON.stringify(currentSetRemoteAddress)) {
                     trustedRemoteChecks[environmentArray[j]][envToCamelCase] = "🟥"
                 }
             }

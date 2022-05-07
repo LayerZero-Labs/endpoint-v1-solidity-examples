@@ -70,7 +70,15 @@ describe("ProxyOFT: ", function () {
         await ERC20Src.connect(warlock).approve(ProxyOFT_A.address, tokenAmount)
 
         // swaps token to other chain
-        await ProxyOFT_A.connect(warlock).sendFrom(warlock.address, chainId_B, warlock.address, tokenAmount, warlock.address, ethers.constants.AddressZero, "0x")
+        await ProxyOFT_A.connect(warlock).sendFrom(
+            warlock.address,
+            chainId_B,
+            warlock.address,
+            tokenAmount,
+            warlock.address,
+            ethers.constants.AddressZero,
+            "0x"
+        )
 
         // tokens are now owned by the proxy contract, because this is the original oft chain
         expect(await ERC20Src.balanceOf(warlock.address)).to.equal(0)
@@ -79,7 +87,15 @@ describe("ProxyOFT: ", function () {
         expect(await OFT_B.balanceOf(warlock.address)).to.be.equal(tokenAmount)
 
         // can send to other oft contract eg. not the original oft contract chain
-        await OFT_B.connect(warlock).sendFrom(warlock.address, chainId_C, warlock.address, tokenAmount, warlock.address, ethers.constants.AddressZero, "0x")
+        await OFT_B.connect(warlock).sendFrom(
+            warlock.address,
+            chainId_C,
+            warlock.address,
+            tokenAmount,
+            warlock.address,
+            ethers.constants.AddressZero,
+            "0x"
+        )
 
         // tokens are burned on the sending chain
         expect(await OFT_B.balanceOf(warlock.address)).to.be.equal(0)
@@ -88,7 +104,15 @@ describe("ProxyOFT: ", function () {
         expect(await OFT_C.balanceOf(warlock.address)).to.be.equal(tokenAmount)
 
         // send them back to the original chain
-        await OFT_C.connect(warlock).sendFrom(warlock.address, chainId_A, warlock.address, tokenAmount, warlock.address, ethers.constants.AddressZero, "0x")
+        await OFT_C.connect(warlock).sendFrom(
+            warlock.address,
+            chainId_A,
+            warlock.address,
+            tokenAmount,
+            warlock.address,
+            ethers.constants.AddressZero,
+            "0x"
+        )
 
         // tokens are burned on the sending chain
         expect(await OFT_C.balanceOf(warlock.address)).to.be.equal(0)
@@ -100,7 +124,9 @@ describe("ProxyOFT: ", function () {
     it("sendFrom() - reverts if not approved on proxy", async function () {
         const tokenAmount = 123
         await ERC20Src.mint(owner.address, tokenAmount)
-        await expect(ProxyOFT_A.sendFrom(owner.address, chainId_B, owner.address, tokenAmount, owner.address, ethers.constants.AddressZero, "0x")).to.be.revertedWith("ERC20: insufficient allowance")
+        await expect(
+            ProxyOFT_A.sendFrom(owner.address, chainId_B, owner.address, tokenAmount, owner.address, ethers.constants.AddressZero, "0x")
+        ).to.be.revertedWith("ERC20: insufficient allowance")
     })
 
     it("sendFrom() - reverts if from is not msgSender", async function () {
@@ -111,7 +137,17 @@ describe("ProxyOFT: ", function () {
         await ERC20Src.approve(ProxyOFT_A.address, tokenAmount)
 
         // swaps tokens to other chain
-        await expect(ProxyOFT_A.connect(warlock).sendFrom(owner.address, chainId_B, owner.address, tokenAmount, owner.address, ethers.constants.AddressZero, "0x")).to.be.revertedWith("ProxyOFT: owner is not send caller")
+        await expect(
+            ProxyOFT_A.connect(warlock).sendFrom(
+                owner.address,
+                chainId_B,
+                owner.address,
+                tokenAmount,
+                owner.address,
+                ethers.constants.AddressZero,
+                "0x"
+            )
+        ).to.be.revertedWith("ProxyOFT: owner is not send caller")
     })
 
     it("sendFrom() - reverts if no balance to swap", async function () {
@@ -128,7 +164,17 @@ describe("ProxyOFT: ", function () {
         expect(await OFT_B.balanceOf(owner.address)).to.be.equal(tokenAmount)
 
         // reverts because other address does not own tokens
-        await expect(OFT_B.connect(warlock).sendFrom(warlock.address, chainId_C, warlock.address, tokenAmount, warlock.address, ethers.constants.AddressZero, "0x")).to.be.revertedWith("ERC20: burn amount exceeds balance")
+        await expect(
+            OFT_B.connect(warlock).sendFrom(
+                warlock.address,
+                chainId_C,
+                warlock.address,
+                tokenAmount,
+                warlock.address,
+                ethers.constants.AddressZero,
+                "0x"
+            )
+        ).to.be.revertedWith("ERC20: burn amount exceeds balance")
     })
 
     it("sendFrom() - on behalf of other user", async function () {
@@ -148,7 +194,15 @@ describe("ProxyOFT: ", function () {
         await OFT_B.approve(warlock.address, tokenAmount)
 
         // sends across
-        await OFT_B.connect(warlock).sendFrom(owner.address, chainId_C, warlock.address, tokenAmount, warlock.address, ethers.constants.AddressZero, "0x")
+        await OFT_B.connect(warlock).sendFrom(
+            owner.address,
+            chainId_C,
+            warlock.address,
+            tokenAmount,
+            warlock.address,
+            ethers.constants.AddressZero,
+            "0x"
+        )
 
         // tokens received on the dst chain
         expect(await OFT_C.balanceOf(warlock.address)).to.be.equal(tokenAmount)
@@ -171,7 +225,17 @@ describe("ProxyOFT: ", function () {
         await OFT_B.approve(OFT_B.address, tokenAmount)
 
         // reverts because contract is approved, not the user
-        await expect(OFT_B.connect(warlock).sendFrom(owner.address, chainId_C, warlock.address, tokenAmount, warlock.address, ethers.constants.AddressZero, "0x")).to.be.revertedWith("ERC20: insufficient allowance")
+        await expect(
+            OFT_B.connect(warlock).sendFrom(
+                owner.address,
+                chainId_C,
+                warlock.address,
+                tokenAmount,
+                warlock.address,
+                ethers.constants.AddressZero,
+                "0x"
+            )
+        ).to.be.revertedWith("ERC20: insufficient allowance")
     })
 
     it("sendFrom() - reverts if not approved on non proxy chain", async function () {
@@ -188,7 +252,17 @@ describe("ProxyOFT: ", function () {
         expect(await OFT_B.balanceOf(owner.address)).to.be.equal(tokenAmount)
 
         // reverts because user is not approved
-        await expect(OFT_B.connect(warlock).sendFrom(owner.address, chainId_C, warlock.address, tokenAmount, warlock.address, ethers.constants.AddressZero, "0x")).to.be.revertedWith("ERC20: insufficient allowance")
+        await expect(
+            OFT_B.connect(warlock).sendFrom(
+                owner.address,
+                chainId_C,
+                warlock.address,
+                tokenAmount,
+                warlock.address,
+                ethers.constants.AddressZero,
+                "0x"
+            )
+        ).to.be.revertedWith("ERC20: insufficient allowance")
     })
 
     it("sendFrom() - reverts if someone else is approved, but not the sender", async function () {
@@ -201,8 +275,28 @@ describe("ProxyOFT: ", function () {
         // approve owner.address to transfer, but not the other
         await ERC20Src.approve(ProxyOFT_A.address, tokenAmountA)
 
-        await expect(ProxyOFT_A.connect(warlock).sendFrom(warlock.address, chainId_B, warlock.address, tokenAmountB, warlock.address, ethers.constants.AddressZero, "0x")).to.be.revertedWith("ERC20: insufficient allowance")
-        await expect(ProxyOFT_A.connect(warlock).sendFrom(warlock.address, chainId_B, owner.address, tokenAmountB, owner.address, ethers.constants.AddressZero, "0x")).to.be.revertedWith("ERC20: insufficient allowance")
+        await expect(
+            ProxyOFT_A.connect(warlock).sendFrom(
+                warlock.address,
+                chainId_B,
+                warlock.address,
+                tokenAmountB,
+                warlock.address,
+                ethers.constants.AddressZero,
+                "0x"
+            )
+        ).to.be.revertedWith("ERC20: insufficient allowance")
+        await expect(
+            ProxyOFT_A.connect(warlock).sendFrom(
+                warlock.address,
+                chainId_B,
+                owner.address,
+                tokenAmountB,
+                owner.address,
+                ethers.constants.AddressZero,
+                "0x"
+            )
+        ).to.be.revertedWith("ERC20: insufficient allowance")
     })
 
     it("sendFrom() - reverts if sender does not own token", async function () {
@@ -215,7 +309,27 @@ describe("ProxyOFT: ", function () {
         // approve owner.address to transfer, but not the other
         await ERC20Src.approve(ProxyOFT_A.address, tokenAmountA)
 
-        await expect(ProxyOFT_A.connect(warlock).sendFrom(warlock.address, chainId_B, warlock.address, tokenAmountA, warlock.address, ethers.constants.AddressZero, "0x")).to.be.revertedWith("ERC20: insufficient allowance")
-        await expect(ProxyOFT_A.connect(warlock).sendFrom(warlock.address, chainId_B, owner.address, tokenAmountA, owner.address, ethers.constants.AddressZero, "0x")).to.be.revertedWith("ERC20: insufficient allowance")
+        await expect(
+            ProxyOFT_A.connect(warlock).sendFrom(
+                warlock.address,
+                chainId_B,
+                warlock.address,
+                tokenAmountA,
+                warlock.address,
+                ethers.constants.AddressZero,
+                "0x"
+            )
+        ).to.be.revertedWith("ERC20: insufficient allowance")
+        await expect(
+            ProxyOFT_A.connect(warlock).sendFrom(
+                warlock.address,
+                chainId_B,
+                owner.address,
+                tokenAmountA,
+                owner.address,
+                ethers.constants.AddressZero,
+                "0x"
+            )
+        ).to.be.revertedWith("ERC20: insufficient allowance")
     })
 })
