@@ -46,7 +46,7 @@ describe("BasedOFT: ", function () {
 
     it("sendFrom() - tokens from main to other chain", async function () {
         // ensure they're both allocated initial amounts
-        // expect(await baseOFT.balanceOf(owner.address)).to.equal(globalSupply)
+        expect(await baseOFT.balanceOf(owner.address)).to.equal(globalSupply)
         expect(await otherOFT.balanceOf(owner.address)).to.equal(0)
 
         const amount = ethers.utils.parseUnits("100", 18)
@@ -64,7 +64,7 @@ describe("BasedOFT: ", function () {
         )
 
         // verify tokens burned on source chain and minted on destination chain
-        // expect(await baseOFT.balanceOf(owner.address)).to.be.equal(globalSupply.sub(amount))
+        expect(await baseOFT.balanceOf(owner.address)).to.be.equal(globalSupply.sub(amount))
         expect(await otherOFT.balanceOf(owner.address)).to.be.equal(amount)
     })
 })
