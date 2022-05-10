@@ -8,7 +8,7 @@ const environments = {
 let trustedRemoteTable = {}
 let trustedRemoteChecks = {}
 
-function TrustedRemote() {
+function TrustedRemoteTestnet() {
     this.rinkeby
     this.bscTestnet
     this.fuji
@@ -16,6 +16,16 @@ function TrustedRemote() {
     this.arbitrumRinkeby
     this.optimismKovan
     this.fantomTestnet
+}
+
+function TrustedRemote() {
+    this.ethereum
+    this.bsc
+    this.avalanche
+    this.polygon
+    this.arbitrum
+    this.optimism
+    this.fantom
 }
 
 module.exports = async function (taskArgs) {
@@ -27,14 +37,14 @@ module.exports = async function (taskArgs) {
     await Promise.all(
         networks.map(async (network) => {
             try {
-                const checkWireUpCommand = `npx hardhat --network ${network} checkWireUp --e testnet --contract ${taskArgs.contract}`
+                const checkWireUpCommand = `npx hardhat --network ${network} checkWireUp --e ${taskArgs.e} --contract ${taskArgs.contract}`
                 const result = shell.exec(checkWireUpCommand).stdout.replace(/(\r\n|\n|\r|\s)/gm, "")
                 if (result !== "") {
                     const resultParsed = JSON.parse(result)
-                    trustedRemoteTable[network] = new TrustedRemote()
+                    trustedRemoteTable[network] = taskArgs.e === "mainnet" ? new TrustedRemote() : new TrustedRemoteTestnet();
                     Object.assign(trustedRemoteTable[network], resultParsed)
                     if (JSON.stringify(trustedRemoteTable[network]).length > 2) {
-                        trustedRemoteChecks[network] = new TrustedRemote()
+                        trustedRemoteTable[network] = taskArgs.e === "mainnet" ? new TrustedRemote() : new TrustedRemoteTestnet();
                     }
                 }
             } catch (e) {
