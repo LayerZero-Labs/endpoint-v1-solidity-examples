@@ -14,7 +14,7 @@ describe("OFT: ", function () {
         owner = (await ethers.getSigners())[0]
 
         LZEndpointMock = await ethers.getContractFactory("LZEndpointMock")
-        BasedOFT = await ethers.getContractFactory("BasedOFT")
+        BasedOFT = await ethers.getContractFactory("ExampleBasedOFT")
         OFT = await ethers.getContractFactory("OFT")
     })
 
@@ -23,8 +23,8 @@ describe("OFT: ", function () {
         lzEndpointDstMock = await LZEndpointMock.deploy(chainIdDst)
 
         // create two OmnichainFungibleToken instances
-        OFTSrc = await BasedOFT.deploy(name, symbol, lzEndpointSrcMock.address, globalSupply)
-        OFTDst = await OFT.deploy(name, symbol, lzEndpointDstMock.address, globalSupply)
+        OFTSrc = await BasedOFT.deploy(lzEndpointSrcMock.address, globalSupply)
+        OFTDst = await OFT.deploy(name, symbol, lzEndpointDstMock.address)
 
         // internal bookkeeping for endpoints (not part of a real deploy, just for this test)
         lzEndpointSrcMock.setDestLzEndpoint(OFTDst.address, lzEndpointDstMock.address)
@@ -50,7 +50,8 @@ describe("OFT: ", function () {
 
             // stores a payload
             await expect(
-                OFTSrc.send(
+                OFTSrc.sendFrom(
+                    owner.address,
                     chainIdDst,
                     ethers.utils.solidityPack(["address"], [owner.address]),
                     sendQty,
@@ -75,7 +76,8 @@ describe("OFT: ", function () {
 
             // now that a msg has been stored, subsequent ones will not revert, but will get added to the queue
             await expect(
-                OFTSrc.send(
+                OFTSrc.sendFrom(
+                    owner.address,
                     chainIdDst,
                     ethers.utils.solidityPack(["address"], [owner.address]),
                     sendQty,
@@ -119,7 +121,8 @@ describe("OFT: ", function () {
 
             for (let i = 0; i < msgsInQueue; i++) {
                 // first iteration stores a payload, the following get added to queue
-                await OFTSrc.send(
+                await OFTSrc.sendFrom(
+                    owner.address,
                     chainIdDst,
                     ethers.utils.solidityPack(["address"], [owner.address]),
                     sendQty,
@@ -150,7 +153,8 @@ describe("OFT: ", function () {
 
             for (let i = 0; i < msgsInQueue; i++) {
                 // first iteration stores a payload, the following gets added to queue
-                await OFTSrc.send(
+                await OFTSrc.sendFrom(
+                    owner.address,
                     chainIdDst,
                     ethers.utils.solidityPack(["address"], [owner.address]),
                     sendQty,
@@ -174,7 +178,8 @@ describe("OFT: ", function () {
 
             // store a new payload
             await lzEndpointDstMock.blockNextMsg()
-            await OFTSrc.send(
+            await OFTSrc.sendFrom(
+                owner.address,
                 chainIdDst,
                 ethers.utils.solidityPack(["address"], [owner.address]),
                 sendQty,
@@ -189,8 +194,5 @@ describe("OFT: ", function () {
             // balance after transfer remains the same
             expect(await OFTDst.balanceOf(owner.address)).to.be.equal(sendQty.mul(msgsInQueue))
         })
-
-        // todo
-        it.skip("forceResumeReceive() - the queue being emptied is done in the correct fifo order", async function () {})
     })
 })

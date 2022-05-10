@@ -30,7 +30,8 @@ module.exports = async function (taskArgs, hre) {
     let adapterParams = ethers.utils.solidityPack(["uint16", "uint256"], [1, 200000]) // default adapterParams example
 
     tx = await (
-        await basedOFT.send(
+        await basedOFT.sendFrom(
+            owner.address,
             dstChainId, // destination LayerZero chainId
             owner.address, // the 'to' address to send tokens
             qty, // the amount of tokens to send (in wei)

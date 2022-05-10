@@ -2,7 +2,7 @@
 
 pragma solidity ^0.8;
 
-import ".././ONFT721.sol";
+import "../ONFT721.sol";
 
 /// @title Interface of the UniversalONFT standard
 contract UniversalONFT721 is ONFT721 {
@@ -22,7 +22,7 @@ contract UniversalONFT721 is ONFT721 {
 
     /// @notice Mint your ONFT
     function mint() external payable {
-        require(nextMintId <= maxMintId, "ONFT: Max Mint limit reached");
+        require(nextMintId <= maxMintId, "UniversalONFT721: max mint limit reached");
 
         uint newId = nextMintId;
         nextMintId++;
