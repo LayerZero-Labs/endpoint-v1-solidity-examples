@@ -68,9 +68,12 @@ task("checkWireUp", "check wire up", require("./checkWireUp"))
     .addParam("contract", "the contract to delete and redeploy")
 
 // npx hardhat checkWireUpAll --e testnet --contract OmniCounter
+// npx hardhat checkWireUpAll --e mainnet --contract OFT --proxy-contract ProxyOFT --proxy-chain ethereum
 task("checkWireUpAll", "check wire up all", require("./checkWireUpAll"))
     .addParam("e", "environment testnet/mainet")
-    .addParam("contract", "the contract to delete and redeploy")
+    .addParam("contract", "name of contract")
+    .addOptionalParam("proxyContract", "name of proxy contract")
+    .addOptionalParam("proxyChain", "name of proxy chain")
 
 //
 task("ocPoll", "poll the counter of the OmniCounter", require("./ocPoll"))

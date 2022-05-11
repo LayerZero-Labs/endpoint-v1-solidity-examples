@@ -7,6 +7,7 @@ const environments = {
 
 let trustedRemoteTable = {}
 let trustedRemoteChecks = {}
+const MAX_TRYS = 10
 
 function TrustedRemoteTestnet() {
     this.rinkeby
@@ -28,30 +29,68 @@ function TrustedRemote() {
     this.fantom
 }
 
+function isJsonString(str) {
+    try {
+        JSON.parse(str);
+    } catch (e) {
+        return false;
+    }
+    return true;
+}
+
 module.exports = async function (taskArgs) {
     const networks = environments[taskArgs.e]
     if (!taskArgs.e || networks.length === 0) {
         console.log(`Invalid environment argument: ${taskArgs.e}`)
     }
-    // fill up trustedRemoteTable
+    // loop through all networks and fill up trustedRemoteTable
     await Promise.all(
         networks.map(async (network) => {
-            try {
-                const checkWireUpCommand = `npx hardhat --network ${network} checkWireUp --e ${taskArgs.e} --contract ${taskArgs.contract}`
-                const result = shell.exec(checkWireUpCommand).stdout.replace(/(\r\n|\n|\r|\s)/gm, "")
-                if (result !== "") {
-                    const resultParsed = JSON.parse(result)
-                    trustedRemoteTable[network] = taskArgs.e === "mainnet" ? new TrustedRemote() : new TrustedRemoteTestnet();
-                    Object.assign(trustedRemoteTable[network], resultParsed)
-                    if (JSON.stringify(trustedRemoteTable[network]).length > 2) {
-                        trustedRemoteTable[network] = taskArgs.e === "mainnet" ? new TrustedRemote() : new TrustedRemoteTestnet();
-                    }
+            let result;
+            let resultParsed;
+            let trys = 0
+            while(true) {
+                let checkWireUpCommand;
+                if(network === taskArgs.proxyChain) {
+                    checkWireUpCommand = `npx hardhat --network ${network} checkWireUp --e ${taskArgs.e} --contract ${taskArgs.proxyContract}`
+                } else {
+                    checkWireUpCommand = `npx hardhat --network ${network} checkWireUp --e ${taskArgs.e} --contract ${taskArgs.contract}`
                 }
-            } catch (e) {
-                console.log({ e })
+                // remove spaces and new lines from stdout
+                result = shell.exec(checkWireUpCommand).stdout.replace(/(\r\n|\n|\r|\s)/gm, "")
+                // remove extra words before JSON object, so it can be parsed correctly
+                result = result.substring(result.indexOf("{"));
+                // make sure it is JSON otherwise the network does not have this contract deployed
+                if(!isJsonString(result)) {
+                    trustedRemoteTable[network] = new TrustedRemote()
+                    break;
+                }
+                // parse result into JSON object
+                resultParsed = JSON.parse(result)
+                // make sure all chain ids are set if so we break
+                if(Object.keys(resultParsed).length === networks.length) {
+                    break;
+                }
+                // we will retry a max of 10 times otherwise we throw an error to stop infinite while loop
+                else if(trys === MAX_TRYS) {
+                    throw new Error(`Retired the max amount of times for ${network}`);
+                }
+                // sometimes the returned JSON is missing chains so retry until they are all set properly
+                else {
+                    ++trys;
+                    console.log(`On retry:${trys} for ${network}`)
+                }
+            }
+            trustedRemoteTable[network] = taskArgs.e === "mainnet" ? new TrustedRemote() : new TrustedRemoteTestnet();
+            // assign new pased object to the trustedRemoteTable[network]
+            Object.assign(trustedRemoteTable[network], resultParsed)
+            // if trustedRemoteTable[network] is not empty then set trustedRemoteChecks[network]
+            if (Object.keys(trustedRemoteTable[network]).length > 0) {
+                trustedRemoteChecks[network] = taskArgs.e === "mainnet" ? new TrustedRemote() : new TrustedRemoteTestnet();
             }
         })
     )
+
     console.table(trustedRemoteTable)
 
     // use filled trustedRemoteTable to make trustedRemoteChecks
@@ -74,10 +113,14 @@ module.exports = async function (taskArgs) {
                 if (JSON.stringify(actualUaAddress) === JSON.stringify(currentSetRemoteAddress)) {
                     trustedRemoteChecks[environmentArray[j]][envToCamelCase] = "🟩"
                 } else if (JSON.stringify(actualUaAddress) !== JSON.stringify(currentSetRemoteAddress)) {
+                    console.log({envToCamelCase})
                     trustedRemoteChecks[environmentArray[j]][envToCamelCase] = "🟥"
                 }
             }
         }
     }
+    console.log("Legend")
+    console.log("Set: 🟩")
+    console.log("Not Set: 🟥")
     console.table(trustedRemoteChecks)
 }
