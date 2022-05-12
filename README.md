@@ -121,6 +121,22 @@ Optionally use this command in a separate terminal to watch the counter incremen
 npx hardhat --network fuji ocPoll    
 ```
 
+# StargateSwap.sol
+
+StargateSwap is the simplest form of composing Stargate. You can use Stargate to swap tokens to another chain
+
+1. Deploy both StargateSwap:
+
+```
+npx hardhat --network rinkeby deploy --tags StargateSwap
+npx hardhat --network fuji deploy --tags StargateSwap
+````
+
+2. Send USDC tokens at contract address `0x1717A0D5C8705EE89A8aD6E808268D6A826C97A4` from `rinkeby` to `fuji` using StargateSwap
+```angular2html
+npx hardhat stargateSwap --network rinkeby --qty 1000000 --bridge-token 0x1717A0D5C8705EE89A8aD6E808268D6A826C97A4 --target-network fuji --src-pool-id 1 --dst-pool-id 1
+```
+
 ### See some examples in `/contracts`  🙌
 
 Many of the example contracts make use of LayerZeroEndpointMock.sol which is a nice way to test LayerZero locally!
