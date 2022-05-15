@@ -14,6 +14,7 @@ describe("AdvancedONFT721: ", function () {
 
     before(async function () {
         owner = (await ethers.getSigners())[0]
+        user1 = (await ethers.getSigners())[1]
 
         LZEndpointMock = await ethers.getContractFactory("LZEndpointMock")
         ONFT = await ethers.getContractFactory("AdvancedONFT721")
@@ -29,7 +30,7 @@ describe("AdvancedONFT721: ", function () {
         lzEndpointSrcMock = await LZEndpointMock.deploy(chainIdSrc)
         lzEndpointDstMock = await LZEndpointMock.deploy(chainIdDst)
 
-        // create two UniversalONFT instances
+        // crea te two UniversalONFT instances
         ONFTSrc = await ONFT.deploy(name, symbol, lzEndpointSrcMock.address, ONFTSrcIds[0], ONFTSrcIds[1], maxTokensPerMint, baseURI, hiddenURI)
         ONFTDst = await ONFT.deploy(name, symbol, lzEndpointDstMock.address, ONFTDstIds[0], ONFTDstIds[1], maxTokensPerMint, baseURI, hiddenURI)
 
@@ -63,9 +64,54 @@ describe("AdvancedONFT721: ", function () {
         await expect(ONFTSrc.ownerOf(newId)).to.revertedWith("ERC721: owner query for nonexistent token")
 
         // verify the owner of the token is on the destination chain
-        expect(await ONFTDst.ownerOf(newId)).to.not.equal(owner)
+        expect(await ONFTDst.ownerOf(newId)).to.be.equal(owner.address)
 
         // hit the max mint on the source chain
         await expect(ONFTSrc.publicMint(1)).to.revertedWith("AdvancedONFT721: max mint limit reached")
+    })
+
+    it("does not mint if the private sale is open but the user is not whitelisted", async () => {
+      //activate private sale
+      await ONFTSrc.flipSaleStarted()
+      //try to mint ONFTs
+      await expect(ONFTSrc.mint(1)).to.revertedWith("AdvancedONFT721: You exceeded your token limit.")
+    })
+
+    it("mints multiple tokens if the private sale is open and a user is whitelisted", async () => {
+      //activate private sale
+      await ONFTSrc.flipSaleStarted()
+      //whitelist the owner
+      await ONFTSrc.setAllowList([owner.address])
+      //mint ONFTs
+      await ONFTSrc.mint(2)
+      //inspect the balance
+      expect(await ONFTSrc.balanceOf(owner.address)).to.be.equal(2)
+    })
+
+    it("mints multiple tokens to multiple users if the public sale has started", async () => {
+      //activate public sale
+      await ONFTSrc.flipSaleStarted()
+      await ONFTSrc.flipPublicSaleStarted()
+      //mint ONFTs
+      await ONFTSrc.publicMint(1)
+      await ONFTSrc.connect(user1).publicMint(1)
+      //inspect the balance
+      expect(await ONFTSrc.balanceOf(owner.address)).to.be.equal(1)
+      expect(await ONFTSrc.balanceOf(user1.address)).to.be.equal(1)
+    })
+
+    it("changes baseURI and contractURI after getting deployed", async () => {
+      //reveal metadata
+      await ONFTSrc.flipRevealed()
+      //activate public sale and mint a ONFT
+      await ONFTSrc.flipSaleStarted()
+      await ONFTSrc.flipPublicSaleStarted()
+      await ONFTSrc.publicMint(1)
+      //change URIs
+      await ONFTSrc.setBaseURI("newBaseURI")
+      await ONFTSrc.setContractURI("newContractURI")
+      //inspect the new URIS
+      expect(await ONFTSrc.contractURI()).to.be.equal("newContractURI")
+      expect(await ONFTSrc.tokenURI(1)).to.be.equal("newBaseURI1")
     })
 })
