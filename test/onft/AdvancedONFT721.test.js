@@ -114,4 +114,22 @@ describe("AdvancedONFT721: ", function () {
       expect(await ONFTSrc.contractURI()).to.be.equal("newContractURI")
       expect(await ONFTSrc.tokenURI(1)).to.be.equal("newBaseURI1")
     })
+
+    it("enumerable features: properly reads total supply, tokenOfOwnerByIndex and tokenByIndex", async () => {
+      //activate private sale
+      await ONFTSrc.flipSaleStarted()
+      //whitelist the owner and user1
+      await ONFTSrc.setAllowList([owner.address,user1.address])
+      //mint ONFTs
+      await ONFTSrc.mint(1)
+      await ONFTSrc.connect(user1).mint(1)
+      //inspect the total supply
+      expect(await ONFTSrc.totalSupply()).to.be.equal(2)
+      //inspect tokenIds owned by the owner and user1 (alternative can call ownerOf and iterate through with a for loop)
+      expect(await ONFTSrc.tokenOfOwnerByIndex(owner.address,0)).to.be.equal(1)
+      expect(await ONFTSrc.tokenOfOwnerByIndex(user1.address,0)).to.be.equal(2)
+      //inspect tokenIdsByIndex
+      expect(await ONFTSrc.tokenByIndex(0)).to.be.equal(1)
+      expect(await ONFTSrc.tokenByIndex(1)).to.be.equal(2)
+    })
 })
