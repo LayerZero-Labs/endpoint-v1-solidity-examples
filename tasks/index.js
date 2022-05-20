@@ -148,3 +148,6 @@ task("stargateSwap", "", require('./stargateSwap'))
     .addParam("targetNetwork","")
     .addParam("srcPoolId","")
     .addParam("dstPoolId","")
+
+task("setGasForSwap", "", require('./setGasForSwap'))
+    .addParam("gas","the gas to use for the swap")

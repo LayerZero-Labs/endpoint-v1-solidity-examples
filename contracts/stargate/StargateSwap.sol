@@ -9,11 +9,17 @@ import "../interfaces/IStargateReceiver.sol";
 
 contract StargateSwap is IStargateReceiver {
     address public stargateRouter;      // an IStargateRouter instance
+    uint256 public gasForSwap;
 
     event ReceivedOnDestination(address token, uint qty);
 
     constructor(address _stargateRouter) {
         stargateRouter = _stargateRouter;
+        gasForSwap = 200000;
+    }
+
+    function setGasForSwap(uint256 _gasForSwap) external {
+        gasForSwap = _gasForSwap;
     }
 
     //-----------------------------------------------------------------------------------------------------------------------
@@ -46,7 +52,7 @@ contract StargateSwap is IStargateReceiver {
             payable(msg.sender),                            // refund adddress. if msg.sender pays too much gas, return extra eth
             qty,                                            // total tokens to send to destination chain
             0,                                              // min amount allowed out
-            IStargateRouter.lzTxObj(200000, 0, "0x"),       // default lzTxObj
+            IStargateRouter.lzTxObj(gasForSwap, 0, "0x"),   // default lzTxObj
             abi.encodePacked(destStargateComposed),         // destination address, the sgReceive() implementer
             data                                            // bytes payload
         );
