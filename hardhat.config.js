@@ -1,3 +1,4 @@
+// ray test touch <
 require("dotenv").config();
 
 require('hardhat-contract-sizer');
@@ -74,13 +75,11 @@ module.exports = {
       chainId: 1,
       accounts: accounts(),
     },
-
     avalanche: {
       url: "https://api.avax.network/ext/bc/C/rpc",
       chainId: 43114,
       accounts: accounts(),
     },
-
     rinkeby: {
       url: "https://rinkeby.infura.io/v3/9aa3d95b3bc440fa88ea12eaa4456161", // public infura endpoint
       chainId: 4,
@@ -118,3 +117,4 @@ module.exports = {
     }
   }
 };
+// ray test touch >

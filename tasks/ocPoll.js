@@ -1,3 +1,4 @@
+// ray test touch <
 function sleep(millis) {
     return new Promise((resolve) => setTimeout(resolve, millis))
 }
@@ -13,3 +14,4 @@ module.exports = async function (taskArgs, hre) {
         await sleep(1000)
     }
 }
+// ray test touch >

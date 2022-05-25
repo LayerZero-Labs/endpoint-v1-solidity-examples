@@ -1,3 +1,4 @@
+// ray test touch <
 const CHAIN_ID = require("../constants/chainIds.json")
 
 const environments = {
@@ -42,7 +43,7 @@ module.exports = async function (taskArgs) {
                     trustedRemoteTable[environment][envToCamelCase] = await contract.trustedRemoteLookup(dstChainId)
                 }
             } catch (error) {
-                //catch error because checkWireUpAll is reading console log as input
+                // catch error because checkWireUpAll is reading console log as input
             }
         })
     )
@@ -50,3 +51,4 @@ module.exports = async function (taskArgs) {
         console.log(JSON.stringify(trustedRemoteTable[environment]))
     }
 }
+// ray test touch >

@@ -13,10 +13,12 @@ task("ocGetOracle", "get the Oracle address being used by the OmniCounter", requ
     "the target network name, ie: fuji, or mumbai, etc (from hardhat.config.js)"
 )
 
+// ray test touch <
 //
 task("ocIncrementCounter", "increment the destination OmniCounter", require("./ocIncrementCounter"))
     .addParam("targetNetwork", "the target network name, ie: fuji, or mumbai, etc (from hardhat.config.js)")
     .addOptionalParam("n", "number of tx", 1, types.int)
+// ray test touch >
 
 //
 task("omniCounterIncrementMultiCounter", "increment the destination OmniCounter", require("./omniCounterIncrementMultiCounter")).addParam(
@@ -24,12 +26,14 @@ task("omniCounterIncrementMultiCounter", "increment the destination OmniCounter"
     "target network names, separated by comma (no spaces)"
 )
 
+// ray test touch <
 //
 task(
     "ocSetTrustedRemote",
     "setTrustedRemote(chainId, sourceAddr) to allow the local contract to receive messages from known source contracts",
     require("./ocSetTrustedRemote")
 ).addParam("targetNetwork", "the target network to let this instance receive messages from")
+// ray test touch >
 
 //
 task(
@@ -75,8 +79,10 @@ task("checkWireUpAll", "check wire up all", require("./checkWireUpAll"))
     .addOptionalParam("proxyContract", "name of proxy contract")
     .addOptionalParam("proxyChain", "name of proxy chain")
 
+// ray test touch <
 //
 task("ocPoll", "poll the counter of the OmniCounter", require("./ocPoll"))
+// ray test touch >
 
 //
 task(

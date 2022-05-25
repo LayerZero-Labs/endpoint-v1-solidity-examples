@@ -1,10 +1,11 @@
+// ray test touch <
 const CHAIN_ID = require("../constants/chainIds.json")
 const { getDeploymentAddresses } = require("../utils/readStatic")
 
 module.exports = async function (taskArgs, hre) {
     const dstChainId = CHAIN_ID[taskArgs.targetNetwork]
     const dstAddr = getDeploymentAddresses(taskArgs.targetNetwork)["OmniCounter"]
-    // get local contract instance
+    // get the local contract instance
     const omniCounter = await ethers.getContract("OmniCounter")
     console.log(`[source] omniCounter.address: ${omniCounter.address}`)
 
@@ -21,3 +22,4 @@ module.exports = async function (taskArgs, hre) {
         }
     }
 }
+// ray test touch >

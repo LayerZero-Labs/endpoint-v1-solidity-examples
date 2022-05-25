@@ -1,9 +1,8 @@
+// ray test touch <
 const CHAIN_ID = require("../constants/chainIds.json")
-const { getDeploymentAddresses } = require("../utils/readStatic")
 
 module.exports = async function (taskArgs, hre) {
     const dstChainId = CHAIN_ID[taskArgs.targetNetwork]
-    const dstAddr = getDeploymentAddresses(taskArgs.targetNetwork)["OmniCounter"]
     // get local contract instance
     const omniCounter = await ethers.getContract("OmniCounter")
     console.log(`[source] omniCounter.address: ${omniCounter.address}`)
@@ -26,3 +25,4 @@ module.exports = async function (taskArgs, hre) {
     console.log("")
     console.log(`    $ npx hardhat --network ${taskArgs.targetNetwork} ocPoll`)
 }
+// ray test touch >
