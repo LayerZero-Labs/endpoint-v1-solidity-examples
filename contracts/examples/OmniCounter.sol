@@ -1,3 +1,4 @@
+// ray test touch <
 // SPDX-License-Identifier: MIT
 
 pragma solidity 0.8.4;
@@ -19,3 +20,4 @@ contract OmniCounter is NonblockingLzApp {
         _lzSend(_dstChainId, bytes(""), payable(msg.sender), address(0x0), bytes(""));
     }
 }
+// ray test touch >

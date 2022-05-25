@@ -1,3 +1,4 @@
+// ray test touch <
 const { expect } = require("chai")
 const { ethers } = require("hardhat")
 
@@ -24,7 +25,7 @@ describe("OmniCounter", function () {
     })
 
     it("increment the counter of the destination OmniCounter", async function () {
-        // ensure theyre both starting from 0
+        // ensure they're both starting from 0
         expect(await this.omniCounterA.counter()).to.be.equal(0) // initial value
         expect(await this.omniCounterB.counter()).to.be.equal(0) // initial value
 
@@ -40,3 +41,4 @@ describe("OmniCounter", function () {
         expect(await this.omniCounterB.counter()).to.be.equal(1) // still 1
     })
 })
+// ray test touch >
