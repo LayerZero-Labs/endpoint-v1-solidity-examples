@@ -1,4 +1,3 @@
-// ray test touch <
 require("dotenv").config();
 
 require('hardhat-contract-sizer');
@@ -117,4 +116,3 @@ module.exports = {
     }
   }
 };
-// ray test touch >

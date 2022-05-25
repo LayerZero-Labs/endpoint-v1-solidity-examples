@@ -1,4 +1,3 @@
-// ray test touch <
 const LZ_ENDPOINTS = require("../constants/layerzeroEndpoints.json")
 
 module.exports = async function ({ deployments, getNamedAccounts }) {
@@ -19,4 +18,3 @@ module.exports = async function ({ deployments, getNamedAccounts }) {
 }
 
 module.exports.tags = ["OmniCounter"]
-// ray test touch >

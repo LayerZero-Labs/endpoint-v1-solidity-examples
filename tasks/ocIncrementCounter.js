@@ -1,4 +1,3 @@
-// ray test touch <
 const CHAIN_ID = require("../constants/chainIds.json")
 
 module.exports = async function (taskArgs, hre) {
@@ -25,4 +24,3 @@ module.exports = async function (taskArgs, hre) {
     console.log("")
     console.log(`    $ npx hardhat --network ${taskArgs.targetNetwork} ocPoll`)
 }
-// ray test touch >

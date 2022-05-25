@@ -1,4 +1,3 @@
-// ray test touch <
 const path = require("path")
 const fs = require("fs")
 
@@ -32,4 +31,3 @@ function getDeploymentAddresses(networkName) {
 module.exports = {
     getDeploymentAddresses
 }
-// ray test touch >

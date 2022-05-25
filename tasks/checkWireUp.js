@@ -1,4 +1,3 @@
-// ray test touch <
 const CHAIN_ID = require("../constants/chainIds.json")
 
 const environments = {
@@ -51,4 +50,3 @@ module.exports = async function (taskArgs) {
         console.log(JSON.stringify(trustedRemoteTable[environment]))
     }
 }
-// ray test touch >

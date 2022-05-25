@@ -1,4 +1,3 @@
-// ray test touch <
 const { expect } = require("chai")
 const { ethers } = require("hardhat")
 
@@ -41,4 +40,3 @@ describe("OmniCounter", function () {
         expect(await this.omniCounterB.counter()).to.be.equal(1) // still 1
     })
 })
-// ray test touch >
