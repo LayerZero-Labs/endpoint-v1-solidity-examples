@@ -45,7 +45,6 @@ function accounts(chainKey) {
  * @type import('hardhat/config').HardhatUserConfig
  */
 module.exports = {
-
   solidity: {
     version: "0.8.4",
     settings: {
@@ -65,7 +64,7 @@ module.exports = {
 
   namedAccounts: {
     deployer: {
-      default: 0,    // wallet address 0, of the mnemonic in .env
+      default: 0, // wallet address 0, of the mnemonic in .env
     }
   },
 
@@ -118,5 +117,4 @@ module.exports = {
       accounts: accounts(),
     }
   }
-
 };
