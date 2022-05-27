@@ -4,7 +4,7 @@
   "license": "MIT",
   "files": [
     "artifacts/",
-    "contracts/",
+    "contracts/"
   ],
   "description": "example contracts",
   "main": "index.js",
