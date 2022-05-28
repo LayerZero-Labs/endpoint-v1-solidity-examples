@@ -62,6 +62,32 @@ task("onftSend", "send an ONFT nftId from one chain to another", require("./onft
     .addParam("targetNetwork", "the chainId to transfer to")
     .addParam("tokenId", "the tokenId of ONFT")
 
+//
+task(
+    "aonftSetTrustedRemote",
+    "setTrustedRemote(chainId, sourceAddr) to allow the local contract to send/receive messages from known source contracts",
+    require("./aonftSetTrustedRemote")
+).addParam("targetNetwork", "the target network to let this instance receive messages from")
+
+//
+task(
+    "aonftStartSale",
+    "flipSaleStarted() and fliPublicSaleStarted() to open up the sale ",
+    require("./aonftStartSale")
+)
+
+//
+task(
+    "aonftPublicMint",
+    "publicMint(quantity) to mint a certain amount of ONFTs once the public sale is open ",
+    require("./aonftPublicMint")
+).addParam("quantity","amount of ONFTs that you want to mint")
+
+//
+task("aonftSend", "send an ONFT nftId from one chain to another", require("./aonftSend"))
+    .addParam("targetNetwork", "the chainId to transfer to")
+    .addParam("tokenId", "the tokenId of ONFT")
+
 // npx hardhat checkWireUp --e testnet --contract OmniCounter
 task("checkWireUp", "check wire up", require("./checkWireUp"))
     .addParam("e", "environment testnet/mainet")
