@@ -73,6 +73,25 @@ task(
 task("aonftStartSale", "flipSaleStarted() and fliPublicSaleStarted() to open up the sale ", require("./aonftStartSale"))
 
 //
+task("aonftWithdraw", "withdraw() to withdraw ETH from the contract to the beneficiary ", require("./aonftWithdraw"))
+
+//
+task("aonftReveal", "flipRevealed() to reveal the metadata of the ONFT", require("./aonftReveal"))
+
+//
+task(
+    "aonftSetBeneficiary",
+    "setBeneficiary(beneficiary) to set a new beneficiary for receiving royalties and ETH withdrawals",
+    require("./aonftSetBeneficiary")
+).addParam("beneficiary", "adress of the new beneficiary")
+
+task(
+    "aonftSetPrice",
+    "setPrice(price) to set a new price for the mint",
+    require("./aonftSetPrice")
+).addParam("price", "new price of the mint")
+
+//
 task(
     "aonftPublicMint",
     "publicMint(quantity) to mint a certain amount of ONFTs once the public sale is open ",
