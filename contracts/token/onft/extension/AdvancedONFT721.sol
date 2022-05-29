@@ -10,7 +10,7 @@ import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
 /// @notice this implementation supports: batch mint, payable public and private mint, reveal of metadata and EIP-2981 on-chain royalties
 contract AdvancedONFT721 is ONFT721Enumerable, ReentrancyGuard {
     using Strings for uint;
-    
+
     uint public price = 0;
     uint public nextMintId;
     uint public maxMintId;
@@ -25,7 +25,7 @@ contract AdvancedONFT721 is ONFT721Enumerable, ReentrancyGuard {
     string private baseURI;
     string private hiddenMetadataURI;
 
-    mapping(address => uint256) public _allowList;
+    mapping(address => uint) public _allowList;
 
     bool public _publicSaleStarted;
     bool public _saleStarted;
@@ -51,7 +51,7 @@ contract AdvancedONFT721 is ONFT721Enumerable, ReentrancyGuard {
     }
 
     /// @notice Mint your ONFTs
-    function publicMint(uint256 _nbTokens) external payable {
+    function publicMint(uint _nbTokens) external payable {
         require(_publicSaleStarted == true, "AdvancedONFT721: Public sale has not started yet!");
         require(_saleStarted == true, "AdvancedONFT721: Sale has not started yet!");
         require(_nbTokens != 0, "AdvancedONFT721: Cannot mint 0 tokens!");
@@ -60,15 +60,15 @@ contract AdvancedONFT721 is ONFT721Enumerable, ReentrancyGuard {
         require(_nbTokens * price <= msg.value, "AdvancedONFT721: Inconsistent amount sent!");
 
         //using a local variable, _mint and ++X pattern to save gas
-        uint256 local_nextMintId = nextMintId;
-        for (uint256 i; i < _nbTokens; i++) {
+        uint local_nextMintId = nextMintId;
+        for (uint i; i < _nbTokens; i++) {
             _mint(msg.sender, ++local_nextMintId);
         }
         nextMintId = local_nextMintId;
     }
 
     /// @notice Mint your ONFTs, whitelisted addresses only
-    function mint(uint256 _nbTokens) external payable {
+    function mint(uint _nbTokens) external payable {
         require(_saleStarted == true, "AdvancedONFT721: Sale has not started yet!");
         require(_nbTokens != 0, "AdvancedONFT721: Cannot mint 0 tokens!");
         require(_nbTokens <= maxTokensPerMint, "AdvancedONFT721: You cannot mint more than maxTokensPerMint tokens at once!");
@@ -79,8 +79,8 @@ contract AdvancedONFT721 is ONFT721Enumerable, ReentrancyGuard {
         _allowList[msg.sender] -= _nbTokens;
 
         //using a local variable, _mint and ++X pattern to save gas
-        uint256 local_nextMintId = nextMintId;
-        for (uint256 i; i < _nbTokens; i++) {
+        uint local_nextMintId = nextMintId;
+        for (uint i; i < _nbTokens; i++) {
             _mint(msg.sender, ++local_nextMintId);
         }
         nextMintId = local_nextMintId;
@@ -92,13 +92,13 @@ contract AdvancedONFT721 is ONFT721Enumerable, ReentrancyGuard {
 
     function withdraw() public virtual onlyOwner {
         require(beneficiary != address(0), "AdvancedONFT721: Beneficiary not set!");
-        uint256 _balance = address(this).balance;
+        uint _balance = address(this).balance;
         require(payable(beneficiary).send(_balance));
     }
 
-    function royaltyInfo(uint256, uint256 salePrice) external view returns (address receiver, uint256 royaltyAmount) {
+    function royaltyInfo(uint, uint salePrice) external view returns (address receiver, uint royaltyAmount) {
         receiver = beneficiary;
-        royaltyAmount = salePrice * royaltyBasisPoints / 10000;
+        royaltyAmount = (salePrice * royaltyBasisPoints) / 10000;
     }
 
     function setContractURI(string memory _contractURI) public onlyOwner {
@@ -109,7 +109,7 @@ contract AdvancedONFT721 is ONFT721Enumerable, ReentrancyGuard {
         baseURI = uri;
     }
 
-    function setRoyaltyFee(uint256 _royaltyBasisPoints) external onlyOwner {
+    function setRoyaltyFee(uint _royaltyBasisPoints) external onlyOwner {
         royaltyBasisPoints = _royaltyBasisPoints;
     }
 
@@ -122,7 +122,7 @@ contract AdvancedONFT721 is ONFT721Enumerable, ReentrancyGuard {
     }
 
     function setAllowList(address[] calldata addresses) external onlyOwner {
-        for (uint256 i = 0; i < addresses.length; i++) {
+        for (uint i = 0; i < addresses.length; i++) {
             _allowList[addresses[i]] = maxTokensPerMint;
         }
     }
@@ -144,7 +144,7 @@ contract AdvancedONFT721 is ONFT721Enumerable, ReentrancyGuard {
         return baseURI;
     }
 
-    function tokenURI(uint256 tokenId) public view override(ERC721) returns (string memory) {
+    function tokenURI(uint tokenId) public view override(ERC721) returns (string memory) {
         require(_exists(tokenId), "ERC721Metadata: URI query for nonexistent token");
         if (!revealed) {
             return hiddenMetadataURI;

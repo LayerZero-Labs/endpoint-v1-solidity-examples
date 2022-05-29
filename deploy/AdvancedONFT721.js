@@ -13,7 +13,16 @@ module.exports = async function ({ deployments, getNamedAccounts }) {
 
     await deploy("AdvancedONFT721", {
         from: deployer,
-        args: [aonftArgs.name, aonftArgs.symbol, lzEndpointAddress, aonftArgs.startMintId, aonftArgs.endMintId, aonftArgs.maxTokensPerMint, aonftArgs.baseTokenURI, aonftArgs.hiddenURI],
+        args: [
+            aonftArgs.name,
+            aonftArgs.symbol,
+            lzEndpointAddress,
+            aonftArgs.startMintId,
+            aonftArgs.endMintId,
+            aonftArgs.maxTokensPerMint,
+            aonftArgs.baseTokenURI,
+            aonftArgs.hiddenURI,
+        ],
         log: true,
         waitConfirmations: 1,
     })

@@ -8,6 +8,6 @@ module.exports = async function (taskArgs, hre) {
         console.log(`✅ [${hre.network.name}] publicMint(${taskArgs.quantity})`)
         console.log(` tx: ${tx.transactionHash}`)
     } catch (e) {
-        console.log(e)    
+        console.log(e)
     }
 }

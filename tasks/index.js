@@ -70,18 +70,14 @@ task(
 ).addParam("targetNetwork", "the target network to let this instance receive messages from")
 
 //
-task(
-    "aonftStartSale",
-    "flipSaleStarted() and fliPublicSaleStarted() to open up the sale ",
-    require("./aonftStartSale")
-)
+task("aonftStartSale", "flipSaleStarted() and fliPublicSaleStarted() to open up the sale ", require("./aonftStartSale"))
 
 //
 task(
     "aonftPublicMint",
     "publicMint(quantity) to mint a certain amount of ONFTs once the public sale is open ",
     require("./aonftPublicMint")
-).addParam("quantity","amount of ONFTs that you want to mint")
+).addParam("quantity", "amount of ONFTs that you want to mint")
 
 //
 task("aonftSend", "send an ONFT nftId from one chain to another", require("./aonftSend"))

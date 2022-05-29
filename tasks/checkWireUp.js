@@ -20,21 +20,23 @@ module.exports = async function (taskArgs) {
     const environmentArray = environments[taskArgs.e]
     let trustedRemoteTable = {}
     trustedRemoteTable[environment] = new TrustedRemote()
-    await Promise.all(environmentArray.map(async (env) => {
-        try {
-            const contract = await ethers.getContract(taskArgs.contract)
-            const dstChainId = CHAIN_ID[env]
-            let envToCamelCase = env.replace(/-./g, (m) => m[1].toUpperCase())
-            if(hre.network.name === env) {
-                trustedRemoteTable[environment][envToCamelCase] = await contract.address.toLowerCase()
-            } else {
-                trustedRemoteTable[environment][envToCamelCase] = await contract.trustedRemoteLookup(dstChainId)
+    await Promise.all(
+        environmentArray.map(async (env) => {
+            try {
+                const contract = await ethers.getContract(taskArgs.contract)
+                const dstChainId = CHAIN_ID[env]
+                let envToCamelCase = env.replace(/-./g, (m) => m[1].toUpperCase())
+                if (hre.network.name === env) {
+                    trustedRemoteTable[environment][envToCamelCase] = await contract.address.toLowerCase()
+                } else {
+                    trustedRemoteTable[environment][envToCamelCase] = await contract.trustedRemoteLookup(dstChainId)
+                }
+            } catch (error) {
+                //catch error because checkWireUpAll is reading console log as input
             }
-        } catch (error) {
-            //catch error because checkWireUpAll is reading console log as input
-        }
-    }))
-    if(JSON.stringify(trustedRemoteTable[environment]).length > 2) {
+        })
+    )
+    if (JSON.stringify(trustedRemoteTable[environment]).length > 2) {
         console.log(JSON.stringify(trustedRemoteTable[environment]))
     }
 }

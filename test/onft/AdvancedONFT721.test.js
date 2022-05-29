@@ -11,7 +11,6 @@ describe("AdvancedONFT721: ", function () {
     // AONFT specific variables
     let maxTokensPerMint, baseURI, hiddenURI
 
-
     before(async function () {
         owner = (await ethers.getSigners())[0]
         user1 = (await ethers.getSigners())[1]
@@ -21,9 +20,8 @@ describe("AdvancedONFT721: ", function () {
         ONFTSrcIds = [0, 2] // [startID, endID]... only allowed to mint two ONFTs
         ONFTDstIds = [2, 4] // [startID, endID]... only allowed to mint two ONFTs
         maxTokensPerMint = 2
-        baseURI = ''
-        hiddenURI = ''
-
+        baseURI = ""
+        hiddenURI = ""
     })
 
     beforeEach(async function () {
@@ -47,7 +45,7 @@ describe("AdvancedONFT721: ", function () {
         await ONFTSrc.flipSaleStarted()
         await ONFTSrc.flipPublicSaleStarted()
         // mint ONFTs
-        const newId = await ONFTSrc.nextMintId() + 1
+        const newId = (await ONFTSrc.nextMintId()) + 1
         await ONFTSrc.publicMint(2)
 
         // verify the owner of the token is on the source chain
@@ -58,7 +56,15 @@ describe("AdvancedONFT721: ", function () {
         // v1 adapterParams, encoded for version 1 style, and 250k gas quote
         const adapterParam = ethers.utils.solidityPack(["uint16", "uint256"], [1, 250000])
 
-        await ONFTSrc.sendFrom(owner.address, chainIdDst, owner.address, newId, owner.address, "0x000000000000000000000000000000000000dEaD", adapterParam)
+        await ONFTSrc.sendFrom(
+            owner.address,
+            chainIdDst,
+            owner.address,
+            newId,
+            owner.address,
+            "0x000000000000000000000000000000000000dEaD",
+            adapterParam
+        )
 
         // verify the owner of the token is no longer on the source chain
         await expect(ONFTSrc.ownerOf(newId)).to.revertedWith("ERC721: owner query for nonexistent token")
@@ -71,65 +77,90 @@ describe("AdvancedONFT721: ", function () {
     })
 
     it("does not mint if the private sale is open but the user is not whitelisted", async () => {
-      //activate private sale
-      await ONFTSrc.flipSaleStarted()
-      //try to mint ONFTs
-      await expect(ONFTSrc.mint(1)).to.revertedWith("AdvancedONFT721: You exceeded your token limit.")
+        //activate private sale
+        await ONFTSrc.flipSaleStarted()
+        //try to mint ONFTs
+        await expect(ONFTSrc.mint(1)).to.revertedWith("AdvancedONFT721: You exceeded your token limit.")
     })
 
     it("mints multiple tokens if the private sale is open and a user is whitelisted", async () => {
-      //activate private sale
-      await ONFTSrc.flipSaleStarted()
-      //whitelist the owner
-      await ONFTSrc.setAllowList([owner.address])
-      //mint ONFTs
-      await ONFTSrc.mint(2)
-      //inspect the balance
-      expect(await ONFTSrc.balanceOf(owner.address)).to.be.equal(2)
+        //activate private sale
+        await ONFTSrc.flipSaleStarted()
+        //whitelist the owner
+        await ONFTSrc.setAllowList([owner.address])
+        //mint ONFTs
+        await ONFTSrc.mint(2)
+        //inspect the balance
+        expect(await ONFTSrc.balanceOf(owner.address)).to.be.equal(2)
     })
 
     it("mints multiple tokens to multiple users if the public sale has started", async () => {
-      //activate public sale
-      await ONFTSrc.flipSaleStarted()
-      await ONFTSrc.flipPublicSaleStarted()
-      //mint ONFTs
-      await ONFTSrc.publicMint(1)
-      await ONFTSrc.connect(user1).publicMint(1)
-      //inspect the balance
-      expect(await ONFTSrc.balanceOf(owner.address)).to.be.equal(1)
-      expect(await ONFTSrc.balanceOf(user1.address)).to.be.equal(1)
+        //activate public sale
+        await ONFTSrc.flipSaleStarted()
+        await ONFTSrc.flipPublicSaleStarted()
+        //mint ONFTs
+        await ONFTSrc.publicMint(1)
+        await ONFTSrc.connect(user1).publicMint(1)
+        //inspect the balance
+        expect(await ONFTSrc.balanceOf(owner.address)).to.be.equal(1)
+        expect(await ONFTSrc.balanceOf(user1.address)).to.be.equal(1)
     })
 
     it("changes baseURI and contractURI after getting deployed", async () => {
-      //reveal metadata
-      await ONFTSrc.flipRevealed()
-      //activate public sale and mint a ONFT
-      await ONFTSrc.flipSaleStarted()
-      await ONFTSrc.flipPublicSaleStarted()
-      await ONFTSrc.publicMint(1)
-      //change URIs
-      await ONFTSrc.setBaseURI("newBaseURI")
-      await ONFTSrc.setContractURI("newContractURI")
-      //inspect the new URIS
-      expect(await ONFTSrc.contractURI()).to.be.equal("newContractURI")
-      expect(await ONFTSrc.tokenURI(1)).to.be.equal("newBaseURI1")
+        //reveal metadata
+        await ONFTSrc.flipRevealed()
+        //activate public sale and mint a ONFT
+        await ONFTSrc.flipSaleStarted()
+        await ONFTSrc.flipPublicSaleStarted()
+        await ONFTSrc.publicMint(1)
+        //change URIs
+        await ONFTSrc.setBaseURI("newBaseURI")
+        await ONFTSrc.setContractURI("newContractURI")
+        //inspect the new URIS
+        expect(await ONFTSrc.contractURI()).to.be.equal("newContractURI")
+        expect(await ONFTSrc.tokenURI(1)).to.be.equal("newBaseURI1")
+    })
+
+    it("sets a new price and withdraws the balance to beneficiary after minting", async () => {
+        //activate private sale
+        await ONFTSrc.flipSaleStarted()
+        //set a new price
+        await ONFTSrc.setPrice(ethers.utils.parseEther("0.05"))
+        //whitelist the owner
+        await ONFTSrc.setAllowList([owner.address])
+        //mint ONFTs
+        await ONFTSrc.mint(2, { value: ethers.utils.parseEther("0.10") })
+        //set a beneficiary
+        await ONFTSrc.setBeneficiary((await ethers.getSigners())[2].address)
+        //withdraw ETH from the private sale
+        await ONFTSrc.withdraw()
+        //expect beneficiary balance to increase properly
+        expect(await (await ethers.getSigners())[2].getBalance()).to.be.equal(ethers.utils.parseEther("10000.10"))
+    })
+
+    it("on-chain royalties: properly returns the royalty amount and the beneficiary", async () => {
+        //pass 1 ETH and 1 tokenID as a sample sale info
+        const royalty = await ONFTSrc.royaltyInfo(1, ethers.utils.parseEther("1.0"))
+        expect(royalty.receiver).to.be.equal(owner.address)
+        //keep in mind that the default royalty rate is 500 basis points or 5%
+        expect(royalty.royaltyAmount).to.be.equal(ethers.utils.parseEther("0.05"))
     })
 
     it("enumerable features: properly reads total supply, tokenOfOwnerByIndex and tokenByIndex", async () => {
-      //activate private sale
-      await ONFTSrc.flipSaleStarted()
-      //whitelist the owner and user1
-      await ONFTSrc.setAllowList([owner.address,user1.address])
-      //mint ONFTs
-      await ONFTSrc.mint(1)
-      await ONFTSrc.connect(user1).mint(1)
-      //inspect the total supply
-      expect(await ONFTSrc.totalSupply()).to.be.equal(2)
-      //inspect tokenIds owned by the owner and user1 (alternative can call ownerOf and iterate through with a for loop)
-      expect(await ONFTSrc.tokenOfOwnerByIndex(owner.address,0)).to.be.equal(1)
-      expect(await ONFTSrc.tokenOfOwnerByIndex(user1.address,0)).to.be.equal(2)
-      //inspect tokenIdsByIndex
-      expect(await ONFTSrc.tokenByIndex(0)).to.be.equal(1)
-      expect(await ONFTSrc.tokenByIndex(1)).to.be.equal(2)
+        //activate private sale
+        await ONFTSrc.flipSaleStarted()
+        //whitelist the owner and user1
+        await ONFTSrc.setAllowList([owner.address, user1.address])
+        //mint ONFTs
+        await ONFTSrc.mint(1)
+        await ONFTSrc.connect(user1).mint(1)
+        //inspect the total supply
+        expect(await ONFTSrc.totalSupply()).to.be.equal(2)
+        //inspect tokenIds owned by the owner and user1 (alternative can call ownerOf and iterate through with a for loop)
+        expect(await ONFTSrc.tokenOfOwnerByIndex(owner.address, 0)).to.be.equal(1)
+        expect(await ONFTSrc.tokenOfOwnerByIndex(user1.address, 0)).to.be.equal(2)
+        //inspect tokenIdsByIndex
+        expect(await ONFTSrc.tokenByIndex(0)).to.be.equal(1)
+        expect(await ONFTSrc.tokenByIndex(1)).to.be.equal(2)
     })
 })
