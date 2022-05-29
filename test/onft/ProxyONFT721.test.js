@@ -221,10 +221,10 @@ describe("ProxyONFT721: ", function () {
         // token received on the dst chain
         expect(await ONFT_B.ownerOf(tokenId)).to.be.equal(owner.address)
 
-        // approve the proxy to swap your token
+        // approve the contract to swap your token
         await ONFT_B.approve(ONFT_B.address, tokenId)
 
-        // reverts because proxy is approved, not the user
+        // reverts because contract is approved, not the user
         await expect(
             ONFT_B.connect(warlock).sendFrom(
                 owner.address,
@@ -251,7 +251,7 @@ describe("ProxyONFT721: ", function () {
         // token received on the dst chain
         expect(await ONFT_B.ownerOf(tokenId)).to.be.equal(owner.address)
 
-        // reverts because not approved
+        // reverts because user is not approved
         await expect(
             ONFT_B.connect(warlock).sendFrom(
                 owner.address,

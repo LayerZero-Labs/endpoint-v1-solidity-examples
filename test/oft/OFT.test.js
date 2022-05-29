@@ -194,8 +194,5 @@ describe("OFT: ", function () {
             // balance after transfer remains the same
             expect(await OFTDst.balanceOf(owner.address)).to.be.equal(sendQty.mul(msgsInQueue))
         })
-
-        // todo
-        it.skip("forceResumeReceive() - the queue being emptied is done in the correct fifo order", async function () {})
     })
 })
