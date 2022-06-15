@@ -1,5 +1,6 @@
 const { expect } = require("chai")
 const { ethers } = require("hardhat")
+const { MerkleTree } = require("merkletreejs")
 
 describe("AdvancedONFT721: ", function () {
     const chainIdSrc = 1
@@ -10,10 +11,16 @@ describe("AdvancedONFT721: ", function () {
     let owner, lzEndpointSrcMock, lzEndpointDstMock, ONFTSrc, ONFTDst, LZEndpointMock, ONFT, ONFTSrcIds, ONFTDstIds
     // AONFT specific variables
     let maxTokensPerMint, baseURI, hiddenURI
+    let whitelisted, notWhitelisted, tree
+    let merkleProof, merkleProofUser1, invalidMerkeProof
 
     before(async function () {
+        const signers = await ethers.getSigners()
         owner = (await ethers.getSigners())[0]
         user1 = (await ethers.getSigners())[1]
+
+        whitelisted = signers.slice(0, 5);
+        notWhitelisted = signers.slice(5, 10);
 
         LZEndpointMock = await ethers.getContractFactory("LZEndpointMock")
         ONFT = await ethers.getContractFactory("AdvancedONFT721")
@@ -38,6 +45,25 @@ describe("AdvancedONFT721: ", function () {
         // set each contracts source address so it can send to each other
         await ONFTSrc.setTrustedRemote(chainIdDst, ONFTDst.address) // for A, set B
         await ONFTDst.setTrustedRemote(chainIdSrc, ONFTSrc.address) // for B, set A
+
+        // Generate Merkle Root and setting up to contract
+        const leaves = await Promise.all(
+            whitelisted.map(async (account) => {
+                const address = await account.getAddress();
+                return ethers.utils.keccak256(address);
+            })
+        );
+        tree = new MerkleTree(leaves, ethers.utils.keccak256, {
+            sortPairs: true,
+        });
+        const merkleRoot = tree.getHexRoot();
+
+        // Get Merkle Proof to mint in private sale
+        merkleProof = tree.getHexProof(ethers.utils.keccak256(owner.address))
+        merkleProofUser1 = tree.getHexProof(ethers.utils.keccak256(user1.address))
+        invalidMerkeProof = tree.getHexProof(ethers.utils.keccak256(notWhitelisted[0].address))
+
+        await ONFTSrc.setMerkleRoot(merkleRoot)
     })
 
     it("sendFrom() - mint on the source chain and send ONFT to the destination chain", async function () {
@@ -80,16 +106,14 @@ describe("AdvancedONFT721: ", function () {
         //activate private sale
         await ONFTSrc.flipSaleStarted()
         //try to mint ONFTs
-        await expect(ONFTSrc.mint(1)).to.revertedWith("AdvancedONFT721: You exceeded your token limit.")
+        await expect(ONFTSrc.mint(1, invalidMerkeProof)).to.revertedWith("AdvancedONFT721: Invalid Merkle Proof")
     })
 
     it("mints multiple tokens if the private sale is open and a user is whitelisted", async () => {
         //activate private sale
         await ONFTSrc.flipSaleStarted()
-        //whitelist the owner
-        await ONFTSrc.setAllowList([owner.address])
         //mint ONFTs
-        await ONFTSrc.mint(2)
+        await ONFTSrc.mint(2, merkleProof)
         //inspect the balance
         expect(await ONFTSrc.balanceOf(owner.address)).to.be.equal(2)
     })
@@ -126,10 +150,8 @@ describe("AdvancedONFT721: ", function () {
         await ONFTSrc.flipSaleStarted()
         //set a new price
         await ONFTSrc.setPrice(ethers.utils.parseEther("0.05"))
-        //whitelist the owner
-        await ONFTSrc.setAllowList([owner.address])
         //mint ONFTs
-        await ONFTSrc.mint(2, { value: ethers.utils.parseEther("0.10") })
+        await ONFTSrc.mint(2, merkleProof, { value: ethers.utils.parseEther("0.10") })
         //set a beneficiary
         await ONFTSrc.setBeneficiary((await ethers.getSigners())[2].address)
         //withdraw ETH from the private sale
@@ -149,11 +171,9 @@ describe("AdvancedONFT721: ", function () {
     it("enumerable features: properly reads total supply, tokenOfOwnerByIndex and tokenByIndex", async () => {
         //activate private sale
         await ONFTSrc.flipSaleStarted()
-        //whitelist the owner and user1
-        await ONFTSrc.setAllowList([owner.address, user1.address])
         //mint ONFTs
-        await ONFTSrc.mint(1)
-        await ONFTSrc.connect(user1).mint(1)
+        await ONFTSrc.mint(1, merkleProof)
+        await ONFTSrc.connect(user1).mint(1, merkleProofUser1)
         //inspect the total supply
         expect(await ONFTSrc.totalSupply()).to.be.equal(2)
         //inspect tokenIds owned by the owner and user1 (alternative can call ownerOf and iterate through with a for loop)
