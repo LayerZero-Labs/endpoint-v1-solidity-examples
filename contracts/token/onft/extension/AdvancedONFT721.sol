@@ -4,6 +4,7 @@ pragma solidity ^0.8;
 
 import "../ONFT721Enumerable.sol";
 import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
+import "@openzeppelin/contracts/utils/cryptography/MerkleProof.sol";
 
 /// @title Interface of the AdvancedONFT standard
 /// @author exakoss
@@ -20,12 +21,14 @@ contract AdvancedONFT721 is ONFT721Enumerable, ReentrancyGuard {
     uint royaltyBasisPoints = 500;
     // address for withdrawing money and receiving royalties, separate from owner
     address payable beneficiary;
+    // Merkle Root for WL implementation
+    bytes32 public merkleRoot;
 
     string public contractURI;
     string private baseURI;
     string private hiddenMetadataURI;
 
-    mapping(address => uint) public _allowList;
+    mapping(address => uint) public _boughtCount;
 
     bool public _publicSaleStarted;
     bool public _saleStarted;
@@ -68,15 +71,18 @@ contract AdvancedONFT721 is ONFT721Enumerable, ReentrancyGuard {
     }
 
     /// @notice Mint your ONFTs, whitelisted addresses only
-    function mint(uint _nbTokens) external payable {
+    function mint(uint _nbTokens, bytes32[] calldata _merkleProof) external payable {
         require(_saleStarted == true, "AdvancedONFT721: Sale has not started yet!");
         require(_nbTokens != 0, "AdvancedONFT721: Cannot mint 0 tokens!");
         require(_nbTokens <= maxTokensPerMint, "AdvancedONFT721: You cannot mint more than maxTokensPerMint tokens at once!");
         require(nextMintId + _nbTokens <= maxMintId, "AdvancedONFT721: max mint limit reached");
         require(_nbTokens * price <= msg.value, "AdvancedONFT721: Inconsistent amount sent!");
-        require(_allowList[msg.sender] >= _nbTokens, "AdvancedONFT721: You exceeded your token limit.");
+        require(_boughtCount[msg.sender] + _nbTokens <= maxTokensPerMint, "AdvancedONFT721: You exceeded your token limit.");
 
-        _allowList[msg.sender] -= _nbTokens;
+        bool isWL = MerkleProof.verify(_merkleProof, merkleRoot, keccak256(abi.encodePacked(_msgSender())));
+        require(isWL == true, "AdvancedONFT721: Invalid Merkle Proof");
+
+        _boughtCount[msg.sender] += _nbTokens;
 
         //using a local variable, _mint and ++X pattern to save gas
         uint local_nextMintId = nextMintId;
@@ -84,6 +90,10 @@ contract AdvancedONFT721 is ONFT721Enumerable, ReentrancyGuard {
             _mint(msg.sender, ++local_nextMintId);
         }
         nextMintId = local_nextMintId;
+    }
+
+    function setMerkleRoot(bytes32 _merkleRoot) external onlyOwner {
+        merkleRoot = _merkleRoot;
     }
 
     function setPrice(uint newPrice) external onlyOwner {
@@ -119,12 +129,6 @@ contract AdvancedONFT721 is ONFT721Enumerable, ReentrancyGuard {
 
     function setHiddenMetadataUri(string memory _hiddenMetadataUri) external onlyOwner {
         hiddenMetadataURI = _hiddenMetadataUri;
-    }
-
-    function setAllowList(address[] calldata addresses) external onlyOwner {
-        for (uint i = 0; i < addresses.length; i++) {
-            _allowList[addresses[i]] = maxTokensPerMint;
-        }
     }
 
     function flipRevealed() external onlyOwner {
