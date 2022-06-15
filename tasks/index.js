@@ -103,6 +103,9 @@ task("aonftSend", "send an ONFT nftId from one chain to another", require("./aon
     .addParam("targetNetwork", "the chainId to transfer to")
     .addParam("tokenId", "the tokenId of ONFT")
 
+//
+task("aonftSetWhitelist", "sets a hard-coded allowlist for the private sale", require("./aonftSetWhitelist"))
+
 // npx hardhat checkWireUp --e testnet --contract OmniCounter
 task("checkWireUp", "check wire up", require("./checkWireUp"))
     .addParam("e", "environment testnet/mainet")

@@ -1,5 +1,6 @@
 const LZ_ENDPOINTS = require("../constants/layerzeroEndpoints.json")
-const AONFT_ARGS = require("../constants/advancedOnftArgs.json")
+// const AONFT_ARGS = require("../constants/advancedOnftArgs.json")
+const GREG_ARGS = require("../constants/testGregArgs.json")
 
 module.exports = async function ({ deployments, getNamedAccounts }) {
     const { deploy } = deployments
@@ -7,7 +8,7 @@ module.exports = async function ({ deployments, getNamedAccounts }) {
     console.log(`>>> your address: ${deployer}`)
 
     const lzEndpointAddress = LZ_ENDPOINTS[hre.network.name]
-    const aonftArgs = AONFT_ARGS[hre.network.name]
+    const aonftArgs = GREG_ARGS[hre.network.name]
     console.log({ aonftArgs })
     console.log(`[${hre.network.name}] LayerZero Endpoint address: ${lzEndpointAddress}`)
 
