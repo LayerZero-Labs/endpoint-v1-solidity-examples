@@ -1,20 +1,21 @@
-const { expect } = require("chai")
-const { ethers } = require("hardhat")
+const { expect, assert } = require("chai")
+const { ethers, upgrades } = require("hardhat")
 
-describe("ONFT721: ", function () {
+describe("ONFT721Upgradeable: ", function () {
     const chainId_A = 1
     const chainId_B = 2
     const name = "OmnichainNonFungibleToken"
     const symbol = "ONFT"
 
-    let owner, warlock, lzEndpointMockA, lzEndpointMockB, LZEndpointMock, ONFT, ONFT_A, ONFT_B
+    let owner, warlock, lzEndpointMockA, lzEndpointMockB, LZEndpointMock, ONFT, ONFTv2, ONFT_A, ONFT_B
 
     before(async function () {
         owner = (await ethers.getSigners())[0]
         warlock = (await ethers.getSigners())[1]
 
         LZEndpointMock = await ethers.getContractFactory("LZEndpointMock")
-        ONFT = await ethers.getContractFactory("ONFT721Mock")
+        ONFT = await ethers.getContractFactory("ONFT721UpgradeableMock")
+        ONFTv2 = await ethers.getContractFactory("ONFT721UpgradeableV2Mock")
     })
 
     beforeEach(async function () {
@@ -22,8 +23,14 @@ describe("ONFT721: ", function () {
         lzEndpointMockB = await LZEndpointMock.deploy(chainId_B)
 
         // generate a proxy to allow it to go ONFT
-        ONFT_A = await ONFT.deploy(name, symbol, lzEndpointMockA.address)
-        ONFT_B = await ONFT.deploy(name, symbol, lzEndpointMockB.address)
+        ONFT_A = await upgrades.deployProxy(
+            ONFT,
+            [name, symbol, lzEndpointMockA.address],
+        );
+        ONFT_B = await upgrades.deployProxy(
+            ONFT,
+            [name, symbol, lzEndpointMockB.address],
+        );
 
         // wire the lz endpoints to guide msgs back and forth
         lzEndpointMockA.setDestLzEndpoint(ONFT_B.address, lzEndpointMockB.address)
@@ -34,6 +41,20 @@ describe("ONFT721: ", function () {
         await ONFT_B.setTrustedRemote(chainId_A, ONFT_A.address)
     })
 
+    it("upgrade smart contract to new version", async function () {
+        expect(await ONFT_A.testOne()).to.be.equal("abc")
+        // await expectThrow(ONFT_A.testTwo())
+        try {
+            await ONFT_A.testTwo();
+        }
+        catch (err) {
+            expect(err.message).to.be.equal("ONFT_A.testTwo is not a function")
+        }
+
+        const ONFTv2_A = await upgrades.upgradeProxy(ONFT_A.address, ONFTv2);
+        expect(await ONFTv2_A.testTwo()).to.be.equal("123")
+    })
+
     it("sendFrom() - your own tokens", async function () {
         const tokenId = 123
         await ONFT_A.mint(owner.address, tokenId)
@@ -41,12 +62,16 @@ describe("ONFT721: ", function () {
         // verify the owner of the token is on the source chain
         expect(await ONFT_A.ownerOf(tokenId)).to.be.equal(owner.address)
 
+
         // token doesn't exist on other chain
-        await expect(ONFT_B.ownerOf(tokenId)).to.be.revertedWith("ERC721: operator query for nonexistent token")
+        await expect(ONFT_B.ownerOf(tokenId)).to.be.revertedWith("ERC721: owner query for nonexistent token")
+
 
         // can transfer token on srcChain as regular erC721
         await ONFT_A.transferFrom(owner.address, warlock.address, tokenId)
+
         expect(await ONFT_A.ownerOf(tokenId)).to.be.equal(warlock.address)
+
 
         // approve the proxy to swap your token
         await ONFT_A.connect(warlock).approve(ONFT_A.address, tokenId)
@@ -63,7 +88,7 @@ describe("ONFT721: ", function () {
         )
 
         // token is burnt
-        await expect(ONFT_A.ownerOf(tokenId)).to.be.revertedWith("ERC721: operator query for nonexistent token")
+        await expect(ONFT_A.ownerOf(tokenId)).to.be.revertedWith("ERC721: owner query for nonexistent token")
 
         // token received on the dst chain
         expect(await ONFT_B.ownerOf(tokenId)).to.be.equal(warlock.address)
@@ -80,7 +105,7 @@ describe("ONFT721: ", function () {
         )
 
         // token is burned on the sending chain
-        await expect(ONFT_B.ownerOf(tokenId)).to.be.revertedWith("ERC721: operator query for nonexistent token")
+        await expect(ONFT_B.ownerOf(tokenId)).to.be.revertedWith("ERC721: owner query for nonexistent token")
     })
 
     it("sendFrom() - reverts if not owner on non proxy chain", async function () {
