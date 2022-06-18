@@ -10,11 +10,15 @@ import "./IONFT721Upgradeable.sol";
 
 // NOTE: this ONFT contract has no public minting logic.
 // must implement your own minting logic in child classes
-contract ONFT721Upgradeable is ONFT721CoreUpgradeable, ERC721Upgradeable, IONFT721Upgradeable {
+contract ONFT721Upgradeable is Initializable, ONFT721CoreUpgradeable, ERC721Upgradeable, IONFT721Upgradeable {
 
-    function initializeONFT721Upgradeable(string memory _name, string memory _symbol, address _lzEndpoint) public initializer {
-        ERC721Upgradeable.__ERC721_init(_name, _symbol);
-        ONFT721CoreUpgradeable.initializeONFT721CoreUpgradeable(_lzEndpoint);
+    function __ONFT721Upgradeable_init(string memory _name, string memory _symbol, address _lzEndpoint) public onlyInitializing {
+        __ONFT721Upgradeable_init_unchained(_name, _symbol, _lzEndpoint);
+    }
+
+    function __ONFT721Upgradeable_init_unchained(string memory _name, string memory _symbol, address _lzEndpoint) public onlyInitializing {
+        __ERC721_init_unchained(_name, _symbol);
+        __LzAppUpgradeable_init_unchained(_lzEndpoint);
     }
 
     function supportsInterface(bytes4 interfaceId) public view virtual override(ONFT721CoreUpgradeable, ERC721Upgradeable, IERC165Upgradeable) returns (bool) {

@@ -7,11 +7,11 @@ import "@openzeppelin/contracts-upgradeable/utils/introspection/IERC165Upgradeab
 import "../../lzApp/NonblockingLzAppUpgradeable.sol";
 import "./IONFT721CoreUpgradeable.sol";
 
-abstract contract ONFT721CoreUpgradeable is NonblockingLzAppUpgradeable, ERC165Upgradeable, IONFT721CoreUpgradeable {
+abstract contract ONFT721CoreUpgradeable is Initializable, NonblockingLzAppUpgradeable, ERC165Upgradeable, IONFT721CoreUpgradeable {
 
-    function initializeONFT721CoreUpgradeable(address _endpoint) public initializer {
-        NonblockingLzAppUpgradeable.initializeNonblockingLzApp(_endpoint);
-    }
+    function __ONFT721CoreUpgradeable_init() public onlyInitializing {}
+
+    function __ONFT721CoreUpgradeable_init_unchained() public onlyInitializing {}
 
     function supportsInterface(bytes4 interfaceId) public view virtual override(ERC165Upgradeable, IERC165Upgradeable) returns (bool) {
         return interfaceId == type(IONFT721CoreUpgradeable).interfaceId || super.supportsInterface(interfaceId);

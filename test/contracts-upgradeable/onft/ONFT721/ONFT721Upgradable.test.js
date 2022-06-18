@@ -15,7 +15,6 @@ describe("ONFT721Upgradeable: ", function () {
 
         LZEndpointMock = await ethers.getContractFactory("LZEndpointMock")
         ONFT = await ethers.getContractFactory("ONFT721UpgradeableMock")
-        ONFTv2 = await ethers.getContractFactory("ONFT721UpgradeableV2Mock")
     })
 
     beforeEach(async function () {
@@ -39,20 +38,6 @@ describe("ONFT721Upgradeable: ", function () {
         // set each contracts source address so it can send to each other
         await ONFT_A.setTrustedRemote(chainId_B, ONFT_B.address)
         await ONFT_B.setTrustedRemote(chainId_A, ONFT_A.address)
-    })
-
-    it("upgrade smart contract to new version", async function () {
-        expect(await ONFT_A.testOne()).to.be.equal("abc")
-        // await expectThrow(ONFT_A.testTwo())
-        try {
-            await ONFT_A.testTwo();
-        }
-        catch (err) {
-            expect(err.message).to.be.equal("ONFT_A.testTwo is not a function")
-        }
-
-        const ONFTv2_A = await upgrades.upgradeProxy(ONFT_A.address, ONFTv2);
-        expect(await ONFTv2_A.testTwo()).to.be.equal("123")
     })
 
     it("sendFrom() - your own tokens", async function () {

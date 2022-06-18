@@ -10,17 +10,19 @@ import "../interfaces/ILayerZeroEndpointUpgradeable.sol";
 /*
  * a generic LzReceiver implementation
  */
-abstract contract LzAppUpgradeable is OwnableUpgradeable, ILayerZeroReceiverUpgradeable, ILayerZeroUserApplicationConfigUpgradeable {
+abstract contract LzAppUpgradeable is Initializable, OwnableUpgradeable, ILayerZeroReceiverUpgradeable, ILayerZeroUserApplicationConfigUpgradeable {
     ILayerZeroEndpointUpgradeable public lzEndpoint;
 
     mapping(uint16 => bytes) public trustedRemoteLookup;
 
-    string public constant testOne = "abc";
-
     event SetTrustedRemote(uint16 _srcChainId, bytes _srcAddress);
 
-    function initializeLzApp(address _endpoint) public initializer {
-        OwnableUpgradeable.__Ownable_init();
+    function __LzAppUpgradeable_init(address _endpoint) public onlyInitializing {
+        __LzAppUpgradeable_init_unchained(_endpoint);
+    }
+
+    function __LzAppUpgradeable_init_unchained(address _endpoint) public onlyInitializing {
+        __Ownable_init_unchained();
         lzEndpoint = ILayerZeroEndpointUpgradeable(_endpoint);
     }
 

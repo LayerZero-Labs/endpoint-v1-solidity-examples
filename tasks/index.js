@@ -115,8 +115,6 @@ task("ping", "call ping to start the pingPong with the target network", require(
 
 task("getSigners", "show the signers of the current mnemonic", require("./getSigners")).addOptionalParam("n", "how many to show", 3, types.int)
 
-task("getTest", "get test", require("./getTest"))
-
 task("approveERC1155", "approve it to transfer my nfts", require("./approveERC1155")).addParam("addr", "the address to approve")
 
 task("sendProxyONFT1155", "send a tokenid and quantity", require("./sendProxyONFT1155"))

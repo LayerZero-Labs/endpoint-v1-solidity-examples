@@ -9,11 +9,11 @@ import "./LzAppUpgradeable.sol";
  * this abstract class try-catch all fail messages and store locally for future retry. hence, non-blocking
  * NOTE: if the srcAddress is not configured properly, it will still block the message pathway from (srcChainId, srcAddress)
  */
-abstract contract NonblockingLzAppUpgradeable is LzAppUpgradeable {
+abstract contract NonblockingLzAppUpgradeable is Initializable, LzAppUpgradeable {
 
-    function initializeNonblockingLzApp(address _endpoint) public initializer {
-        LzAppUpgradeable.initializeLzApp(_endpoint);
-    }
+    function __NonblockingLzAppUpgradeable_init() public onlyInitializing {}
+
+    function __NonblockingLzAppUpgradeable_init_unchained() public onlyInitializing {}
 
     mapping(uint16 => mapping(bytes => mapping(uint64 => bytes32))) public failedMessages;
 
