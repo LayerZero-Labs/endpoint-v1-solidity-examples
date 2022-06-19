@@ -3,7 +3,7 @@
     "name": "Gregs (ETH)",
     "symbol": "GREG",
     "startMintId": 0,
-    "endMintId": 750,
+    "endMintId": 500,
     "maxTokensPerMint": 5,
     "baseTokenURI": "ETHTokenURI",
     "hiddenURI": "https://gateway.pinata.cloud/ipfs/QmdKa2BDar2Gws866ENUgXojmKXBSdyNm4KKfWHsRE4hrv"
@@ -11,8 +11,8 @@
   "bsc-testnet": {
     "name": "Gregs (BSC)",
     "symbol": "GREG",
-    "startMintId": 750,
-    "endMintId": 1500,
+    "startMintId": 3050,
+    "endMintId": 3900,
     "maxTokensPerMint": 5,
     "baseTokenURI": "BSCTokenURI",
     "hiddenURI": "https://gateway.pinata.cloud/ipfs/QmdKa2BDar2Gws866ENUgXojmKXBSdyNm4KKfWHsRE4hrv"
@@ -20,8 +20,8 @@
   "fuji": {
     "name": "Gregs (AVAX)",
     "symbol": "GREG",
-    "startMintId": 1500,
-    "endMintId": 2250,
+    "startMintId": 2200,
+    "endMintId": 3050,
     "maxTokensPerMint": 5,
     "baseTokenURI": "AVAXTokenURI",
     "hiddenURI": "https://gateway.pinata.cloud/ipfs/QmdKa2BDar2Gws866ENUgXojmKXBSdyNm4KKfWHsRE4hrv"
@@ -29,8 +29,8 @@
   "mumbai": {
     "name": "Gregs (POLY)",
     "symbol": "GREG",
-    "startMintId": 2250,
-    "endMintId": 3000,
+    "startMintId": 1350,
+    "endMintId": 2200,
     "maxTokensPerMint": 5,
     "baseTokenURI": "POLYTokenURI",
     "hiddenURI": "https://gateway.pinata.cloud/ipfs/QmdKa2BDar2Gws866ENUgXojmKXBSdyNm4KKfWHsRE4hrv"
@@ -38,8 +38,8 @@
   "arbitrum-rinkeby": {
     "name": "Gregs (ARB)",
     "symbol": "GREG",
-    "startMintId": 3000,
-    "endMintId": 3500,
+    "startMintId": 500,
+    "endMintId": 1350,
     "maxTokensPerMint": 5,
     "baseTokenURI": "ARBTokenURI",
     "hiddenURI": "https://gateway.pinata.cloud/ipfs/QmdKa2BDar2Gws866ENUgXojmKXBSdyNm4KKfWHsRE4hrv"
@@ -47,8 +47,8 @@
   "fantom-testnet": {
     "name": "Gregs (FTM)",
     "symbol": "GREG",
-    "startMintId": 3500,
-    "endMintId": 4000,
+    "startMintId": 4200,
+    "endMintId": 4500,
     "maxTokensPerMint": 5,
     "baseTokenURI": "FTMTokenURI",
     "hiddenURI": "https://gateway.pinata.cloud/ipfs/QmdKa2BDar2Gws866ENUgXojmKXBSdyNm4KKfWHsRE4hrv"
@@ -56,8 +56,8 @@
   "optimism-kovan": {
     "name": "Gregs (OP)",
     "symbol": "GREG",
-    "startMintId": 4000,
-    "endMintId": 4500,
+    "startMintId": 3900,
+    "endMintId": 4200,
     "maxTokensPerMint": 5,
     "baseTokenURI": "OPTokenURI",
     "hiddenURI": "https://gateway.pinata.cloud/ipfs/QmdKa2BDar2Gws866ENUgXojmKXBSdyNm4KKfWHsRE4hrv"
