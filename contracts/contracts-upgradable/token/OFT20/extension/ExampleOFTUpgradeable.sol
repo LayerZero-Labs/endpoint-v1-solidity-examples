@@ -2,7 +2,7 @@
 
 pragma solidity ^0.8.0;
 
-import "../OFT20/OFT20Upgradeable.sol";
+import "../OFT20Upgradeable.sol";
 
 contract ExampleOFT20Upgradeable is Initializable, OFT20Upgradeable {
 
