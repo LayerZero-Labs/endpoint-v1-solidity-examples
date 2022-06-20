@@ -2,17 +2,17 @@
 
 pragma solidity ^0.8.0;
 
-import "./IOFTCore20Upgradeable.sol";
+import "./IOFT20CoreUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/utils/introspection/ERC165Upgradeable.sol";
 import "../../lzApp/NonblockingLzAppUpgradeable.sol";
 
-abstract contract OFTCore20Upgradeable is Initializable, NonblockingLzAppUpgradeable, ERC165Upgradeable, IOFTCore20Upgradeable {
+abstract contract OFT20CoreUpgradeable is Initializable, NonblockingLzAppUpgradeable, ERC165Upgradeable, IOFT20CoreUpgradeable {
     function __OFTCore20Upgradeable_init() public onlyInitializing {}
 
     function __OFTCore20Upgradeable_init_unchained() public onlyInitializing {}
 
     function supportsInterface(bytes4 interfaceId) public view virtual override(ERC165Upgradeable, IERC165Upgradeable) returns (bool) {
-        return interfaceId == type(IOFTCore20Upgradeable).interfaceId || super.supportsInterface(interfaceId);
+        return interfaceId == type(IOFT20CoreUpgradeable).interfaceId || super.supportsInterface(interfaceId);
     }
 
     function estimateSendFee(uint16 _dstChainId, bytes memory _toAddress, uint _amount, bool _useZro, bytes memory _adapterParams) public view virtual override returns (uint nativeFee, uint zroFee) {

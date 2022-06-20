@@ -5,11 +5,11 @@ pragma solidity ^0.8.0;
 import "@openzeppelin/contracts-upgradeable/token/ERC20/ERC20Upgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/token/ERC20/IERC20Upgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/utils/introspection/IERC165Upgradeable.sol";
-import "./OFTCore20Upgradeable.sol";
+import "./OFT20CoreUpgradeable.sol";
 import "./IOFT20Upgradeable.sol";
 
 // override decimal() function is needed
-contract OFT20Upgradeable is Initializable, OFTCore20Upgradeable, ERC20Upgradeable, IOFT20Upgradeable {
+contract OFT20Upgradeable is Initializable, OFT20CoreUpgradeable, ERC20Upgradeable, IOFT20Upgradeable {
 
     function __OFT20Upgradeable_init(string memory _name, string memory _symbol, address _lzEndpoint) public onlyInitializing {
         __OFT20Upgradeable_init_unchained(_name, _symbol, _lzEndpoint);
@@ -20,7 +20,7 @@ contract OFT20Upgradeable is Initializable, OFTCore20Upgradeable, ERC20Upgradeab
         __LzAppUpgradeable_init_unchained(_lzEndpoint);
     }
 
-    function supportsInterface(bytes4 interfaceId) public view virtual override(OFTCore20Upgradeable, IERC165Upgradeable) returns (bool) {
+    function supportsInterface(bytes4 interfaceId) public view virtual override(OFT20CoreUpgradeable, IERC165Upgradeable) returns (bool) {
         return interfaceId == type(IOFT20Upgradeable).interfaceId || interfaceId == type(IERC20Upgradeable).interfaceId || super.supportsInterface(interfaceId);
     }
 

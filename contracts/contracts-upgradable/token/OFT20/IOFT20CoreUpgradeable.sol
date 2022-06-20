@@ -7,7 +7,7 @@ import "@openzeppelin/contracts-upgradeable/utils/introspection/IERC165Upgradeab
 /**
  * @dev Interface of the IOFT core standard
  */
-interface IOFTCore20Upgradeable is IERC165Upgradeable {
+interface IOFT20CoreUpgradeable is IERC165Upgradeable {
     /**
      * @dev estimate send token `_tokenId` to (`_dstChainId`, `_toAddress`)
      * _dstChainId - L0 defined chain id to send tokens too
