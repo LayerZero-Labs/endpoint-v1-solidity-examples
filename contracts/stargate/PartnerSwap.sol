@@ -20,7 +20,7 @@ contract PartnerSwap is ReentrancyGuard {
         address feeCollector;
     }
 
-    event PartnerSwapId(bytes16 partnerId, uint256 feeNumerator, uint256 partnerFee);
+    event PartnerSwapId(bytes16 indexed partnerId, uint256 feeNumerator, uint256 partnerFee);
 
     constructor(address _stargateRouter, address _stargateEthRouter, address _factory) {
         stargateRouter = IStargateRouter(_stargateRouter);
