@@ -10,12 +10,13 @@ contract OFT20UpgradeableMock is OFT20Upgradeable {
         __OFT20UpgradeableMock_init(_name, _symbol, _initialSupply, _lzEndpoint);
     }
 
-    function __OFT20UpgradeableMock_init(string memory _name, string memory _symbol, uint _initialSupply, address _lzEndpoint) public onlyInitializing {
-        __OFT20Upgradeable_init_unchained(_name, _symbol, _lzEndpoint);
+    function __OFT20UpgradeableMock_init(string memory _name, string memory _symbol, uint _initialSupply, address _lzEndpoint) internal onlyInitializing {
+        __Ownable_init();
+        __OFT20Upgradeable_init(_name, _symbol, _lzEndpoint);
         __OFT20UpgradeableMock_init_unchained(_name, _symbol, _initialSupply, _lzEndpoint);
     }
 
-    function __OFT20UpgradeableMock_init_unchained(string memory _name, string memory _symbol, uint _initialSupply, address _lzEndpoint) public onlyInitializing {
+    function __OFT20UpgradeableMock_init_unchained(string memory _name, string memory _symbol, uint _initialSupply, address _lzEndpoint) internal onlyInitializing {
         _mint(_msgSender(), _initialSupply);
     }
 

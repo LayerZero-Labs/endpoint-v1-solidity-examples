@@ -32,7 +32,6 @@ describe("OFT20Upgradeable: ", function () {
             [name, symbol, 0, lzEndpointDstMock.address],
         );
 
-
         // internal bookkeeping for endpoints (not part of a real deploy, just for this test)
         lzEndpointSrcMock.setDestLzEndpoint(OFTDst.address, lzEndpointDstMock.address)
         lzEndpointDstMock.setDestLzEndpoint(OFTSrc.address, lzEndpointSrcMock.address)

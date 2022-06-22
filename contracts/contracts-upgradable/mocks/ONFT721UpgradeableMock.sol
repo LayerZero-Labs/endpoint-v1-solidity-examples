@@ -10,12 +10,12 @@ contract ONFT721UpgradeableMock is ONFT721Upgradeable {
         __ONFT721UpgradeableMock_init(_name, _symbol, _lzEndpoint);
     }
 
-    function __ONFT721UpgradeableMock_init(string memory _name, string memory _symbol, address _lzEndpoint) public onlyInitializing {
-        __ONFT721Upgradeable_init_unchained(_name, _symbol, _lzEndpoint);
-        __ONFT721UpgradeableMock_init_unchained(_name, _symbol, _lzEndpoint);
+    function __ONFT721UpgradeableMock_init(string memory _name, string memory _symbol, address _lzEndpoint) internal onlyInitializing {
+        __Ownable_init();
+        __ONFT721Upgradeable_init(_name, _symbol, _lzEndpoint);
     }
 
-    function __ONFT721UpgradeableMock_init_unchained(string memory _name, string memory _symbol, address _lzEndpoint) public onlyInitializing {
+    function __ONFT721UpgradeableMock_init_unchained(string memory _name, string memory _symbol, address _lzEndpoint) internal onlyInitializing {
     }
 
     function mint(address _tokenOwner, uint _newId) external payable {

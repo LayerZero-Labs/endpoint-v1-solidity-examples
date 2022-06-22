@@ -17,12 +17,11 @@ abstract contract LzAppUpgradeable is Initializable, OwnableUpgradeable, ILayerZ
 
     event SetTrustedRemote(uint16 _srcChainId, bytes _srcAddress);
 
-    function __LzAppUpgradeable_init(address _endpoint) public onlyInitializing {
+    function __LzAppUpgradeable_init(address _endpoint) internal onlyInitializing {
         __LzAppUpgradeable_init_unchained(_endpoint);
     }
 
-    function __LzAppUpgradeable_init_unchained(address _endpoint) public onlyInitializing {
-        __Ownable_init_unchained();
+    function __LzAppUpgradeable_init_unchained(address _endpoint) internal onlyInitializing {
         lzEndpoint = ILayerZeroEndpointUpgradeable(_endpoint);
     }
 

@@ -7,9 +7,14 @@ import "@openzeppelin/contracts-upgradeable/utils/introspection/ERC165Upgradeabl
 import "../../lzApp/NonblockingLzAppUpgradeable.sol";
 
 abstract contract OFT20CoreUpgradeable is Initializable, NonblockingLzAppUpgradeable, ERC165Upgradeable, IOFT20CoreUpgradeable {
-    function __OFTCore20Upgradeable_init() public onlyInitializing {}
 
-    function __OFTCore20Upgradeable_init_unchained() public onlyInitializing {}
+    function __OFT20CoreUpgradeable_init(address _endpoint) internal onlyInitializing {
+        __OFT20CoreUpgradeable_init_unchained(_endpoint);
+    }
+
+    function __OFT20CoreUpgradeable_init_unchained(address _endpoint) internal onlyInitializing {
+        __NonblockingLzAppUpgradeable_init_unchained(_endpoint);
+    }
 
     function supportsInterface(bytes4 interfaceId) public view virtual override(ERC165Upgradeable, IERC165Upgradeable) returns (bool) {
         return interfaceId == type(IOFT20CoreUpgradeable).interfaceId || super.supportsInterface(interfaceId);

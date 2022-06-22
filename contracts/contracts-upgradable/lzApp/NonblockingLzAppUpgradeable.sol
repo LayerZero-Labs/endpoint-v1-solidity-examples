@@ -11,9 +11,13 @@ import "./LzAppUpgradeable.sol";
  */
 abstract contract NonblockingLzAppUpgradeable is Initializable, LzAppUpgradeable {
 
-    function __NonblockingLzAppUpgradeable_init() public onlyInitializing {}
+    function __NonblockingLzAppUpgradeable_init(address _endpoint) internal onlyInitializing {
+        __NonblockingLzAppUpgradeable_init_unchained(_endpoint);
+    }
 
-    function __NonblockingLzAppUpgradeable_init_unchained() public onlyInitializing {}
+    function __NonblockingLzAppUpgradeable_init_unchained(address _endpoint) internal onlyInitializing {
+        __LzAppUpgradeable_init_unchained(_endpoint);
+    }
 
     mapping(uint16 => mapping(bytes => mapping(uint64 => bytes32))) public failedMessages;
 

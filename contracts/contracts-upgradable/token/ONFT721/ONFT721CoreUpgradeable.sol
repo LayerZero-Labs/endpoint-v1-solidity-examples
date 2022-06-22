@@ -9,9 +9,13 @@ import "./IONFT721CoreUpgradeable.sol";
 
 abstract contract ONFT721CoreUpgradeable is Initializable, NonblockingLzAppUpgradeable, ERC165Upgradeable, IONFT721CoreUpgradeable {
 
-    function __ONFT721CoreUpgradeable_init() public onlyInitializing {}
+    function __ONFT721CoreUpgradeable_init(address _lzEndpoint) internal onlyInitializing {
+        __ONFT721CoreUpgradeable_init_unchained(_lzEndpoint);
+    }
 
-    function __ONFT721CoreUpgradeable_init_unchained() public onlyInitializing {}
+    function __ONFT721CoreUpgradeable_init_unchained(address _lzEndpoint) internal onlyInitializing {
+        __NonblockingLzAppUpgradeable_init_unchained(_lzEndpoint);
+    }
 
     function supportsInterface(bytes4 interfaceId) public view virtual override(ERC165Upgradeable, IERC165Upgradeable) returns (bool) {
         return interfaceId == type(IONFT721CoreUpgradeable).interfaceId || super.supportsInterface(interfaceId);

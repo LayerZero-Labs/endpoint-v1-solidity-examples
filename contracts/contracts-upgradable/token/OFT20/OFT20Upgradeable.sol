@@ -11,13 +11,12 @@ import "./IOFT20Upgradeable.sol";
 // override decimal() function is needed
 contract OFT20Upgradeable is Initializable, OFT20CoreUpgradeable, ERC20Upgradeable, IOFT20Upgradeable {
 
-    function __OFT20Upgradeable_init(string memory _name, string memory _symbol, address _lzEndpoint) public onlyInitializing {
-        __OFT20Upgradeable_init_unchained(_name, _symbol, _lzEndpoint);
+    function __OFT20Upgradeable_init(string memory _name, string memory _symbol, address _lzEndpoint) internal onlyInitializing {
+        __ERC20_init_unchained(_name, _symbol);
+        __OFT20CoreUpgradeable_init_unchained(_lzEndpoint);
     }
 
-    function __OFT20Upgradeable_init_unchained(string memory _name, string memory _symbol, address _lzEndpoint) public onlyInitializing {
-        __ERC20_init_unchained(_name, _symbol);
-        __LzAppUpgradeable_init_unchained(_lzEndpoint);
+    function __OFT20Upgradeable_init_unchained(string memory _name, string memory _symbol, address _lzEndpoint) internal onlyInitializing {
     }
 
     function supportsInterface(bytes4 interfaceId) public view virtual override(OFT20CoreUpgradeable, IERC165Upgradeable) returns (bool) {
