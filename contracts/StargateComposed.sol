@@ -87,7 +87,7 @@ contract StargateComposed is IStargateReceiver {
 
     //-----------------------------------------------------------------------------------------------------------------------
     // sgReceive() - the destination contract must implement this function to receive the tokens and payload
-    function sgReceive(uint16 _chainId, bytes memory _srcAddress, uint _nonce, address _token, uint amountLD, bytes memory payload) override external {
+    function sgReceive(uint16 /*_chainId*/, bytes memory /*_srcAddress*/, uint /*_nonce*/, address _token, uint amountLD, bytes memory payload) override external {
         require(msg.sender == address(stargateRouter), "only stargate router can call sgReceive!");
 
         (address _tokenOut, uint _deadline, uint _amountOutMin, address _toAddr) = abi.decode(payload, (address, uint, uint, address));

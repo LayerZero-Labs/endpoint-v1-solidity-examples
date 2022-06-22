@@ -25,7 +25,7 @@ contract StargateSwap is IStargateReceiver {
         uint16 srcPoolId,                       // stargate poolId - *must* be the poolId for the qty asset
         uint16 dstPoolId,                       // stargate destination poolId
         address to,                             // the address to send the destination tokens to
-        uint deadline,                          // overall deadline
+        uint /*deadline*/,                          // overall deadline
         address destStargateComposed            // destination contract. it must implement sgReceive()
     ) external payable {
         require(msg.value > 0, "stargate requires a msg.value to pay crosschain message");
@@ -54,7 +54,7 @@ contract StargateSwap is IStargateReceiver {
 
     //-----------------------------------------------------------------------------------------------------------------------
     // sgReceive() - the destination contract must implement this function to receive the tokens and payload
-    function sgReceive(uint16 _chainId, bytes memory _srcAddress, uint _nonce, address _token, uint amountLD, bytes memory _payload) override external {
+    function sgReceive(uint16 /*_chainId*/, bytes memory /*_srcAddress*/, uint /*_nonce*/, address _token, uint amountLD, bytes memory _payload) override external {
         require(msg.sender == address(stargateRouter), "only stargate router can call sgReceive!");
         (address _toAddr) = abi.decode(_payload, (address));
         // send transfer _token/amountLD to _toAddr
