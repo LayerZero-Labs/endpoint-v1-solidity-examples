@@ -20,7 +20,7 @@ contract PartnerSwap is ReentrancyGuard {
         address feeCollector;
     }
 
-    event PartnerSwapId(bytes16 partnerId);
+    event PartnerSwapId(bytes16 partnerId, uint256 feeNumerator, uint256 partnerFee);
 
     constructor(address _stargateRouter, address _stargateEthRouter, address _factory) {
         stargateRouter = IStargateRouter(_stargateRouter);
@@ -39,7 +39,7 @@ contract PartnerSwap is ReentrancyGuard {
         bytes16 _partnerId,
         FeeObj calldata _feeObj
     ) external nonReentrant payable {
-        uint256 amountToSwap = _tokenApproveAndTransfer(_srcPoolId, _amountLD, _feeObj);
+        (uint256 amountToSwap, uint256 partnerFee) = _tokenApproveAndTransfer(_srcPoolId, _amountLD, _feeObj);
 
         stargateRouter.swap{value:msg.value}(
             _dstChainId,
@@ -53,7 +53,7 @@ contract PartnerSwap is ReentrancyGuard {
             "0x"
         );
 
-        emit PartnerSwapId(_partnerId);
+        emit PartnerSwapId(_partnerId, _feeObj.feeNumerator, partnerFee);
     }
 
     function swapEth(
@@ -64,7 +64,7 @@ contract PartnerSwap is ReentrancyGuard {
         bytes16 _partnerId,
         FeeObj calldata _feeObj
     ) external nonReentrant payable {
-        uint256 amountToSwap = _ethApproveAndTransfer(_amountLD, _feeObj);
+        (uint256 amountToSwap, uint256 partnerFee) = _ethApproveAndTransfer(_amountLD, _feeObj);
 
         stargateEthRouter.swapETH{value:amountToSwap}(
             _dstChainId,
@@ -74,16 +74,16 @@ contract PartnerSwap is ReentrancyGuard {
             _minAmountLD
         );
 
-        emit PartnerSwapId(_partnerId);
+        emit PartnerSwapId(_partnerId, _feeObj.feeNumerator, partnerFee);
     }
 
     function _tokenApproveAndTransfer(
         uint16 _srcPoolId,
         uint256 _amountLD,
         FeeObj calldata _feeObj
-    ) internal returns (uint256 amountToSwap) {
+    ) internal returns (uint256 amountToSwap, uint256 partnerFee) {
         // calculate fees
-        uint256 partnerFee = _amountLD * _feeObj.feeNumerator / DENOMINATOR;
+        partnerFee = _amountLD * _feeObj.feeNumerator / DENOMINATOR;
         amountToSwap = _amountLD - partnerFee;
 
         // corresponding token to the poolId
@@ -98,15 +98,15 @@ contract PartnerSwap is ReentrancyGuard {
         // allow router to spend the tokens to be transferred
         IERC20(token).approve(address(stargateRouter), amountToSwap);
 
-        return amountToSwap;
+        return (amountToSwap, partnerFee);
     }
 
     function _ethApproveAndTransfer(
         uint256 _amountLD,
         FeeObj calldata _feeObj
-    ) internal returns (uint256 amountToSwap) {
+    ) internal returns (uint256 amountToSwap, uint256 partnerFee) {
         // calculate fees
-        uint256 partnerFee = _amountLD * _feeObj.feeNumerator / DENOMINATOR;
+        partnerFee = _amountLD * _feeObj.feeNumerator / DENOMINATOR;
         require(msg.value > partnerFee, "PartnerSwap: not enough eth for fee");
 
         // calculate swap amount
@@ -117,6 +117,6 @@ contract PartnerSwap is ReentrancyGuard {
         (bool success, ) = _feeObj.feeCollector.call{value: partnerFee}("");
         require(success, "PartnerSwap: failed to transfer");
 
-        return amountToSwap;
+        return (amountToSwap, partnerFee);
     }
 }
