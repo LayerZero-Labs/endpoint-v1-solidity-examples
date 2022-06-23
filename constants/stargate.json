@@ -7,5 +7,11 @@
     "arbitrum-rinkeby": "0x6701D9802aDF674E524053bd44AA83ef253efc41",
     "optimism-kovan": "0xCC68641528B948642bDE1729805d6cf1DECB0B00",
     "fantom-testnet": "0xa73b0a56B29aD790595763e71505FCa2c1abb77f"
+  },
+  "routerETH": {
+    "rinkeby": "0x2D57DbE0CFbe17FE654a0EBA64dF6a57ee389008"
+  },
+  "factory": {
+    "rinkeby": "0xa8CE68CfB645eaBd2c03d4B7129Cae8122930aC3"
   }
 }

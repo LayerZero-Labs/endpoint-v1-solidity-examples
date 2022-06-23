@@ -70,7 +70,7 @@ contract PartnerSwap is ReentrancyGuard {
             _dstChainId,
             payable(msg.sender),
             _to,
-            amountToSwap,
+            _amountLD - partnerFee,
             _minAmountLD
         );
 
