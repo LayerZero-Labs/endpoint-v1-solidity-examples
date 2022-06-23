@@ -13,14 +13,13 @@ contract WidgetSwap is ReentrancyGuard {
     IStargateRouter public immutable stargateRouter;
     IStargateRouterETH public immutable stargateRouterEth;
     IStargateFactory public immutable stargateFactory;
-    uint256 public immutable DENOMINATOR = 1e18;
 
     struct FeeObj {
-        uint256 feeNumerator;
+        uint256 bps;
         address feeCollector;
     }
 
-    event WidgetSwapped(bytes16 indexed partnerId, uint256 feeNumerator, uint256 widgetFee);
+    event WidgetSwapped(bytes2 indexed partnerId, uint256 bps, uint256 widgetFee);
 
     constructor(address _stargateRouter, address _stargateRouterEth, address _stargateFactory) {
         stargateRouter = IStargateRouter(_stargateRouter);
@@ -36,7 +35,7 @@ contract WidgetSwap is ReentrancyGuard {
         uint256 _minAmountLD,
         IStargateRouter.lzTxObj calldata _lzTxParams,
         bytes calldata _to,
-        bytes16 _partnerId,
+        bytes2 _partnerId,
         FeeObj calldata _feeObj
     ) external nonReentrant payable {
         uint256 widgetFee = _getAndPayWidgetFee(_srcPoolId, _amountLD, _feeObj);
@@ -53,7 +52,7 @@ contract WidgetSwap is ReentrancyGuard {
             "0x"
         );
 
-        emit WidgetSwapped(_partnerId, _feeObj.feeNumerator, widgetFee);
+        emit WidgetSwapped(_partnerId, _feeObj.bps, widgetFee);
     }
 
     function swapEth(
@@ -61,7 +60,7 @@ contract WidgetSwap is ReentrancyGuard {
         uint256 _amountLD,
         uint256 _minAmountLD,
         bytes calldata _to,
-        bytes16 _partnerId,
+        bytes2 _partnerId,
         FeeObj calldata _feeObj
     ) external nonReentrant payable {
         uint256 widgetFee = _getAndPayWidgetFeeETH(_amountLD, _feeObj);
@@ -75,7 +74,7 @@ contract WidgetSwap is ReentrancyGuard {
             _minAmountLD
         );
 
-        emit WidgetSwapped(_partnerId, _feeObj.feeNumerator, widgetFee);
+        emit WidgetSwapped(_partnerId, _feeObj.bps, widgetFee);
     }
 
     function _getAndPayWidgetFee(
@@ -90,7 +89,7 @@ contract WidgetSwap is ReentrancyGuard {
         IERC20(token).transferFrom(msg.sender, address(this), _amountLD);
 
         // calculate the widgetFee
-        widgetFee = _amountLD * _feeObj.feeNumerator / DENOMINATOR;
+        widgetFee = _amountLD * _feeObj.bps / 10000;
 
         // pay the widget fee
         IERC20(token).transfer(_feeObj.feeCollector, widgetFee);
@@ -106,7 +105,7 @@ contract WidgetSwap is ReentrancyGuard {
         FeeObj calldata _feeObj
     ) internal returns (uint256 widgetFee) {
         // calculate the widgetFee
-        widgetFee = _amountLD * _feeObj.feeNumerator / DENOMINATOR;
+        widgetFee = _amountLD * _feeObj.bps / 10000;
         require(msg.value > widgetFee, "WidgetSwap: not enough eth for widgetFee");
 
         // verify theres enough eth to cover the amount to swap

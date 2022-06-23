@@ -11,7 +11,7 @@ module.exports = async function ({ deployments, getNamedAccounts }) {
     console.log(`[${hre.network.name}] Stargate RouterETH address: ${stargateRouterETH}`)
     console.log(`[${hre.network.name}] Stargate Factory address: ${stargateFactory}`)
 
-    await deploy("PartnerSwap", {
+    await deploy("WidgetSwap", {
         from: deployer,
         args: [stargateRouter, stargateRouterETH, stargateFactory],
         log: true,
@@ -19,4 +19,4 @@ module.exports = async function ({ deployments, getNamedAccounts }) {
     })
 }
 
-module.exports.tags = ["PartnerSwap"]
+module.exports.tags = ["WidgetSwap"]
