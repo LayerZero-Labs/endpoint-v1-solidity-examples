@@ -137,6 +137,8 @@ task("batchSendONFT1155", "send a tokenid and quantity", require("./batchSendONF
     .addParam("tokenIds", "the NFT tokenId")
     .addParam("quantities", "the quantity of NFT tokenId to send")
 
+task("WireProxyOft", "wire some proxy oft", require("./WireProxyOft"))
+
 // uint qty,
 // address bridgeToken,                    // the address of the native ERC20 to swap() - *must* be the token for the poolId
 // uint16 dstChainId,                      // Stargate/LayerZero chainId
