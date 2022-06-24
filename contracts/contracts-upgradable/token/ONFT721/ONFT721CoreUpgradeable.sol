@@ -57,4 +57,11 @@ abstract contract ONFT721CoreUpgradeable is Initializable, NonblockingLzAppUpgra
     function _debitFrom(address _from, uint16 _dstChainId, bytes memory _toAddress, uint _tokenId) internal virtual;
 
     function _creditTo(uint16 _srcChainId, address _toAddress, uint _tokenId) internal virtual;
+
+    /**
+     * @dev This empty reserved space is put in place to allow future versions to add new
+     * variables without shifting down storage in the inheritance chain.
+     * See https://docs.openzeppelin.com/contracts/4.x/upgradeable#storage_gaps
+     */
+    uint256[50] private __gap;
 }

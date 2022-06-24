@@ -67,7 +67,10 @@ module.exports = {
   namedAccounts: {
     deployer: {
       default: 0,    // wallet address 0, of the mnemonic in .env
-    }
+    },
+    proxyOwner: {
+      default: 1,
+    },
   },
 
   networks: {
