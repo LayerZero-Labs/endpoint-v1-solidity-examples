@@ -11,7 +11,7 @@ import "../interfaces/IStargateFactory.sol";
 
 contract WidgetSwap is ReentrancyGuard {
     IStargateRouter public immutable stargateRouter;
-    IStargateRouterETH public immutable stargateRouterEth;
+    IStargateRouterETH public immutable stargateRouterETH;
     IStargateFactory public immutable stargateFactory;
 
     struct FeeObj {
@@ -21,9 +21,9 @@ contract WidgetSwap is ReentrancyGuard {
 
     event WidgetSwapped(bytes2 indexed partnerId, uint256 bps, uint256 widgetFee);
 
-    constructor(address _stargateRouter, address _stargateRouterEth, address _stargateFactory) {
+    constructor(address _stargateRouter, address _stargateRouterETH, address _stargateFactory) {
         stargateRouter = IStargateRouter(_stargateRouter);
-        stargateRouterEth = IStargateRouterETH(_stargateRouterEth);
+        stargateRouterETH = IStargateRouterETH(_stargateRouterETH);
         stargateFactory = IStargateFactory(_stargateFactory);
     }
 
@@ -55,7 +55,7 @@ contract WidgetSwap is ReentrancyGuard {
         emit WidgetSwapped(_partnerId, _feeObj.bps, widgetFee);
     }
 
-    function swapEth(
+    function swapETH(
         uint16 _dstChainId,
         uint256 _amountLD,
         uint256 _minAmountLD,
@@ -63,10 +63,13 @@ contract WidgetSwap is ReentrancyGuard {
         bytes2 _partnerId,
         FeeObj calldata _feeObj
     ) external nonReentrant payable {
+        // allows us to deploy same contract on non eth chains
+        require(address(stargateRouterETH) != address(0x0), "WidgetSwap: func not available");
+
         uint256 widgetFee = _getAndPayWidgetFeeETH(_amountLD, _feeObj);
 
         // "value:" contains the amount of eth to swap and the stargate/layerZero fees, minus the widget fee
-        stargateRouterEth.swapETH{value:msg.value - widgetFee}(
+        stargateRouterETH.swapETH{value:msg.value - widgetFee}(
             _dstChainId,
             payable(msg.sender),
             _to,
