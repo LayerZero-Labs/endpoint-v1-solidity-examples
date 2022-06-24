@@ -7,16 +7,19 @@ import "hardhat-deploy/solc_0.8/proxy/Proxied.sol";
 
 contract ExampleOFT20Upgradeable is Initializable, OFT20Upgradeable, Proxied {
 
-    function initialize(string memory _name, string memory _symbol, address _lzEndpoint) public initializer {
-        __ExampleOFT20Upgradeable_init(_name, _symbol, _lzEndpoint);
+    function initialize(string memory _name, string memory _symbol, uint _initialSupply, address _lzEndpoint) public initializer {
+        __ExampleOFT20Upgradeable_init(_name, _symbol, _initialSupply, _lzEndpoint);
     }
 
-    function __ExampleOFT20Upgradeable_init(string memory _name, string memory _symbol, address _lzEndpoint) internal onlyInitializing {
+    function __ExampleOFT20Upgradeable_init(string memory _name, string memory _symbol, uint _initialSupply, address _lzEndpoint) internal onlyInitializing {
         __Ownable_init();
         __OFT20Upgradeable_init(_name, _symbol, _lzEndpoint);
+        __ExampleOFT20Upgradeable_init_unchained(_initialSupply);
     }
 
-    function __ExampleOFT20Upgradeable_init_unchained(string memory _name, string memory _symbol, address _lzEndpoint) internal onlyInitializing {}
+    function __ExampleOFT20Upgradeable_init_unchained(uint _initialSupply) internal onlyInitializing {
+        _mint(_msgSender(), _initialSupply);
+    }
 
     /**
      * @dev This empty reserved space is put in place to allow future versions to add new

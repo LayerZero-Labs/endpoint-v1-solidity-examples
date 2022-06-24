@@ -23,7 +23,7 @@ module.exports = async function ({ deployments, getNamedAccounts }) {
             execute: {
                 init: {
                     methodName: "initialize",
-                    args: ["name", "symbol", lzEndpointAddress],
+                    args: ["name", "symbol", 0, lzEndpointAddress],
                 }
             },
         },
