@@ -9,9 +9,17 @@
     "fantom-testnet": "0xa73b0a56B29aD790595763e71505FCa2c1abb77f"
   },
   "routerETH": {
-    "rinkeby": "0x2D57DbE0CFbe17FE654a0EBA64dF6a57ee389008"
+    "rinkeby": "0x2D57DbE0CFbe17FE654a0EBA64dF6a57ee389008",
+    "arbitrum-rinkeby": "0x7f9246106c33ECF3379D2be4664042349284f605",
+    "optimism-kovan": "0x8637D51086D1a7A9d25b8dc233551C54fF8Ee49A"
   },
   "factory": {
-    "rinkeby": "0xa8CE68CfB645eaBd2c03d4B7129Cae8122930aC3"
+    "rinkeby": "0xa8CE68CfB645eaBd2c03d4B7129Cae8122930aC3",
+    "bsc-testnet": "0x407210a67cDAe7Aa09E4426109329cd3E90aFe47",
+    "fuji": "0x439C197429036423d42631181afAC655b19972e5",
+    "mumbai": "0x43c3a5348671D868ED9dD9BFDb2859bE984d262e",
+    "arbitrum-rinkeby": "0x5f1daEe0Eb4c237635f970f132B28BD71fd618C9",
+    "optimism-kovan": "0xF22293462b6551C818190F1EC67Ed80c18E4cDb4",
+    "fantom-testnet": "0xEa2aC81591de47ab33408D48c22b10D24AAD6F0F"
   }
 }

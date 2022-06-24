@@ -5,7 +5,7 @@ module.exports = async function ({ deployments, getNamedAccounts }) {
     const { deployer } = await getNamedAccounts()
 
     const stargateRouter = STARGATE.router[hre.network.name]
-    const stargateRouterETH = STARGATE.routerETH[hre.network.name]
+    const stargateRouterETH = STARGATE.routerETH[hre.network.name] || "0x0000000000000000000000000000000000000000"
     const stargateFactory = STARGATE.factory[hre.network.name]
     console.log(`[${hre.network.name}] Stargate Router address: ${stargateRouter}`)
     console.log(`[${hre.network.name}] Stargate RouterETH address: ${stargateRouterETH}`)
