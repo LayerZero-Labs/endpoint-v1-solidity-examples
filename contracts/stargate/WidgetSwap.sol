@@ -13,9 +13,10 @@ contract WidgetSwap is ReentrancyGuard {
     IStargateRouter public immutable stargateRouter;
     IStargateRouterETH public immutable stargateRouterETH;
     IStargateFactory public immutable stargateFactory;
+    uint256 public immutable DENOMINATOR = 100000;
 
     struct FeeObj {
-        uint256 bps;
+        uint256 tenthBps; // bps is to an extra decimal place
         address feeCollector;
     }
 
@@ -52,7 +53,7 @@ contract WidgetSwap is ReentrancyGuard {
             "0x"
         );
 
-        emit WidgetSwapped(_partnerId, _feeObj.bps, widgetFee);
+        emit WidgetSwapped(_partnerId, _feeObj.tenthBps, widgetFee);
     }
 
     function swapETH(
@@ -77,7 +78,7 @@ contract WidgetSwap is ReentrancyGuard {
             _minAmountLD
         );
 
-        emit WidgetSwapped(_partnerId, _feeObj.bps, widgetFee);
+        emit WidgetSwapped(_partnerId, _feeObj.tenthBps, widgetFee);
     }
 
     function _getAndPayWidgetFee(
@@ -92,7 +93,7 @@ contract WidgetSwap is ReentrancyGuard {
         IERC20(token).transferFrom(msg.sender, address(this), _amountLD);
 
         // calculate the widgetFee
-        widgetFee = _amountLD * _feeObj.bps / 10000;
+        widgetFee = _amountLD * _feeObj.tenthBps / DENOMINATOR;
 
         // pay the widget fee
         IERC20(token).transfer(_feeObj.feeCollector, widgetFee);
@@ -108,7 +109,7 @@ contract WidgetSwap is ReentrancyGuard {
         FeeObj calldata _feeObj
     ) internal returns (uint256 widgetFee) {
         // calculate the widgetFee
-        widgetFee = _amountLD * _feeObj.bps / 10000;
+        widgetFee = _amountLD * _feeObj.tenthBps / DENOMINATOR;
         require(msg.value > widgetFee, "WidgetSwap: not enough eth for widgetFee");
 
         // verify theres enough eth to cover the amount to swap
