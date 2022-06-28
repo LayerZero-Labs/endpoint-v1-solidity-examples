@@ -13,7 +13,7 @@ describe("BasedOFT: ", function () {
     before(async function () {
         owner = (await ethers.getSigners())[0]
         LZEndpointMock = await ethers.getContractFactory("LZEndpointMock")
-        BasedOFT = await ethers.getContractFactory("BasedOFT")
+        BasedOFT = await ethers.getContractFactory("ExampleBasedOFT")
         OFT = await ethers.getContractFactory("OFT")
     })
 
@@ -28,8 +28,8 @@ describe("BasedOFT: ", function () {
         // create two BasedOFT instances. both tokens have the same name and symbol on each chain
         // 1. base chain
         // 2. other chain
-        baseOFT = await BasedOFT.deploy(name, symbol, lzEndpointBase.address, globalSupply)
-        otherOFT = await OFT.deploy(name, symbol, lzEndpointOther.address, globalSupply)
+        baseOFT = await BasedOFT.deploy(lzEndpointBase.address, globalSupply)
+        otherOFT = await OFT.deploy(name, symbol, lzEndpointOther.address)
 
         // internal bookkeeping for endpoints (not part of a real deploy, just for this test)
         lzEndpointBase.setDestLzEndpoint(otherOFT.address, lzEndpointOther.address)
@@ -44,7 +44,7 @@ describe("BasedOFT: ", function () {
         // ... the deployed OFTs are ready now!
     })
 
-    it("send() - tokens from main to other chain", async function () {
+    it("sendFrom() - tokens from main to other chain", async function () {
         // ensure they're both allocated initial amounts
         expect(await baseOFT.balanceOf(owner.address)).to.equal(globalSupply)
         expect(await otherOFT.balanceOf(owner.address)).to.equal(0)
@@ -52,7 +52,8 @@ describe("BasedOFT: ", function () {
         const amount = ethers.utils.parseUnits("100", 18)
         const messageFee = ethers.utils.parseEther("0.01") // conversion to units of wei
 
-        await baseOFT.send(
+        await baseOFT.sendFrom(
+            owner.address,
             otherChainId, // destination chainId
             owner.address, // destination address to send tokens to
             amount, // quantity of tokens to send (in units of wei)

@@ -6,6 +6,8 @@
 
 # LayerZero Omnichain Contract Examples
 
+* A formal audit (May 21, 2022) can in /audit folder *
+
  ### Install & Run tests
 ```shell
 yarn install
@@ -119,6 +121,12 @@ npx hardhat --network bsc-testnet ocIncrementCounter --target-network fuji
 Optionally use this command in a separate terminal to watch the counter increment in real-time.
 ```
 npx hardhat --network fuji ocPoll    
+```
+
+# Check your setTrustedRemote's are wired up correctly
+Just use our checkWireUpAll task by running the following command with the correct Contract parameter
+```angular2html
+npx hardhat checkWireUpAll --e testnet --contract OmniCounter
 ```
 
 ### See some examples in `/contracts`  🙌
