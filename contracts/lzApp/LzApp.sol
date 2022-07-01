@@ -15,7 +15,6 @@ abstract contract LzApp is Ownable, ILayerZeroReceiver, ILayerZeroUserApplicatio
     mapping(uint16 => bytes) public trustedRemoteLookup;
 
     bool public useCustomAdapterParams;
-    bool public checkGasLimit;
     mapping(uint16 => uint) public minGasLimit;
 
     event SetTrustedRemote(uint16 _srcChainId, bytes _srcAddress);
@@ -45,21 +44,22 @@ abstract contract LzApp is Ownable, ILayerZeroReceiver, ILayerZeroUserApplicatio
         if (!useCustomAdapterParams) {
             // signal the LayerZero to use the default adapter params
             _adapterParams = bytes("");
-        } else if (checkGasLimit) {
-            // use the custom adapter params
+        } else {
+            // force check the gas limit.
             _checkGasLimit(_dstChainId, _adapterParams);
         }
 
         lzEndpoint.send{value: msg.value}(_dstChainId, trustedRemote, _payload, _refundAddress, _zroPaymentAddress, _adapterParams);
     }
 
-    function _checkGasLimit(uint16 _dstChainId, bytes memory _adapterParams) internal{
+    function _checkGasLimit(uint16 _dstChainId, bytes memory _adapterParams) internal view {
         uint providedGasLimit;
         assembly {
             providedGasLimit := mload(add(_adapterParams, 34))
         }
-        uint minGasLimit = minGasLimit[_dstChainId];
-        require(providedGasLimit >= minGasLimit, "LzApp: gas limit is too low");
+        uint setGasLimit = minGasLimit[_dstChainId];
+        require(setGasLimit > 0, "LzApp: invalid minGasLimit");
+        require(providedGasLimit >= setGasLimit, "LzApp: gas limit is too low");
     }
 
     //---------------------------UserApplication config----------------------------------------
@@ -92,10 +92,6 @@ abstract contract LzApp is Ownable, ILayerZeroReceiver, ILayerZeroUserApplicatio
 
     function setUseCustomAdapterParams(bool _useCustomAdapterParams) external onlyOwner {
         useCustomAdapterParams = _useCustomAdapterParams;
-    }
-
-    function setCheckGasLimit(bool _checkGasLimit) external onlyOwner {
-        checkGasLimit = _checkGasLimit;
     }
 
     function setMinGasLimit(uint16 _srcChainId, uint _gasLimit) external onlyOwner {
