@@ -41,12 +41,12 @@ abstract contract LzApp is Ownable, ILayerZeroReceiver, ILayerZeroUserApplicatio
         bytes memory trustedRemote = trustedRemoteLookup[_dstChainId];
         require(trustedRemote.length != 0, "LzApp: destination chain is not a trusted source");
 
-        if (!useCustomAdapterParams) {
-            // signal the LayerZero to use the default adapter params
-            _adapterParams = bytes("");
-        } else {
+        if (useCustomAdapterParams) {
             // force check the gas limit.
             _checkGasLimit(_dstChainId, _adapterParams);
+        } else {
+            // signal the LayerZero to use the default adapter params
+            _adapterParams = bytes("");
         }
 
         lzEndpoint.send{value: msg.value}(_dstChainId, trustedRemote, _payload, _refundAddress, _zroPaymentAddress, _adapterParams);
@@ -95,6 +95,7 @@ abstract contract LzApp is Ownable, ILayerZeroReceiver, ILayerZeroUserApplicatio
     }
 
     function setMinGasLimit(uint16 _srcChainId, uint _gasLimit) external onlyOwner {
+        require(_gasLimit > 0, "LzApp: invalid minGasLimit");
         minGasLimit[_srcChainId] = _gasLimit;
     }
     //--------------------------- VIEW FUNCTION ----------------------------------------
