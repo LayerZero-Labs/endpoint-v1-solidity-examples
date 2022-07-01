@@ -12,8 +12,11 @@ import "../interfaces/ILayerZeroEndpoint.sol";
  */
 abstract contract LzApp is Ownable, ILayerZeroReceiver, ILayerZeroUserApplicationConfig {
     ILayerZeroEndpoint public immutable lzEndpoint;
-
     mapping(uint16 => bytes) public trustedRemoteLookup;
+
+    bool public useCustomAdapterParams;
+    bool public checkGasLimit;
+    mapping(uint16 => uint) public minGasLimit;
 
     event SetTrustedRemote(uint16 _srcChainId, bytes _srcAddress);
 
@@ -38,7 +41,25 @@ abstract contract LzApp is Ownable, ILayerZeroReceiver, ILayerZeroUserApplicatio
     function _lzSend(uint16 _dstChainId, bytes memory _payload, address payable _refundAddress, address _zroPaymentAddress, bytes memory _adapterParams) internal virtual {
         bytes memory trustedRemote = trustedRemoteLookup[_dstChainId];
         require(trustedRemote.length != 0, "LzApp: destination chain is not a trusted source");
+
+        if (!useCustomAdapterParams) {
+            // signal the LayerZero to use the default adapter params
+            _adapterParams = bytes("");
+        } else if (checkGasLimit) {
+            // use the custom adapter params
+            _checkGasLimit(_dstChainId, _adapterParams);
+        }
+
         lzEndpoint.send{value: msg.value}(_dstChainId, trustedRemote, _payload, _refundAddress, _zroPaymentAddress, _adapterParams);
+    }
+
+    function _checkGasLimit(uint16 _dstChainId, bytes memory _adapterParams) internal{
+        uint providedGasLimit;
+        assembly {
+            providedGasLimit := mload(add(_adapterParams, 34))
+        }
+        uint minGasLimit = minGasLimit[_dstChainId];
+        require(providedGasLimit >= minGasLimit, "LzApp: gas limit is too low");
     }
 
     //---------------------------UserApplication config----------------------------------------
@@ -69,6 +90,17 @@ abstract contract LzApp is Ownable, ILayerZeroReceiver, ILayerZeroUserApplicatio
         emit SetTrustedRemote(_srcChainId, _srcAddress);
     }
 
+    function setUseCustomAdapterParams(bool _useCustomAdapterParams) external onlyOwner {
+        useCustomAdapterParams = _useCustomAdapterParams;
+    }
+
+    function setCheckGasLimit(bool _checkGasLimit) external onlyOwner {
+        checkGasLimit = _checkGasLimit;
+    }
+
+    function setMinGasLimit(uint16 _srcChainId, uint _gasLimit) external onlyOwner {
+        minGasLimit[_srcChainId] = _gasLimit;
+    }
     //--------------------------- VIEW FUNCTION ----------------------------------------
 
     function isTrustedRemote(uint16 _srcChainId, bytes calldata _srcAddress) external view returns (bool) {
