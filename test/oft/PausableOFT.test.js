@@ -40,6 +40,9 @@ describe("PausableOFT: ", function () {
         //set destination min gas
         await OFTSrc.setMinDstGasLookup(chainIdDst, parseInt(await OFTSrc.FUNCTION_TYPE_SEND()), 225000)
         await OFTDst.setMinDstGasLookup(chainIdSrc, parseInt(await OFTDst.FUNCTION_TYPE_SEND()), 225000)
+
+        await OFTSrc.setUseCustomAdapterParams(true);
+        await OFTDst.setUseCustomAdapterParams(true);
     })
 
     it("sendFrom()", async function () {
