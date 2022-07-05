@@ -8,8 +8,10 @@ import "@openzeppelin/contracts/utils/introspection/ERC165.sol";
 
 abstract contract ONFT1155Core is NonblockingLzApp, ERC165, IONFT1155Core {
 
+    uint public constant NO_EXTRA_GAS = 0;
     uint public constant FUNCTION_TYPE_SEND = 1;
     uint public constant FUNCTION_TYPE_SEND_BATCH = 2;
+    bool public useCustomAdapterParams;
 
     constructor(address _lzEndpoint) NonblockingLzApp(_lzEndpoint) {}
 
@@ -65,6 +67,26 @@ abstract contract ONFT1155Core is NonblockingLzApp, ERC165, IONFT1155Core {
         } else if (tokenIds.length > 1) {
             emit ReceiveBatchFromChain(_srcChainId, _srcAddress, toAddress, tokenIds, amounts, _nonce);
         }
+    }
+
+    function _checkGasLimit(uint16 _dstChainId, uint _type, bytes memory _adapterParams, uint _extraGas) internal view {
+        if(useCustomAdapterParams) {
+            // check defined adapter params for gas limit, otherwise rely on defaults inside of layerzero
+            require(_adapterParams.length > 0, "LzApp: _adapterParams must be set.");
+            uint providedGasLimit;
+            assembly {
+                providedGasLimit := mload(add(_adapterParams, 34))
+            }
+            uint minGasLimit = minDstGasLookup[_dstChainId][_type] + _extraGas;
+            require(minGasLimit > 0, "LzApp: minGasLimit not set");
+            require(providedGasLimit >= minGasLimit, "LzApp: gas limit is too low");
+        } else {
+            require(_adapterParams.length == 0, "LzApp: _adapterParams must be empty.");
+        }
+    }
+
+    function setUseCustomAdapterParams(bool _useCustomAdapterParams) external onlyOwner {
+        useCustomAdapterParams = _useCustomAdapterParams;
     }
 
     function _debitFrom(address _from, uint16 _dstChainId, bytes memory _toAddress, uint[] memory _tokenIds, uint[] memory _amounts) internal virtual;

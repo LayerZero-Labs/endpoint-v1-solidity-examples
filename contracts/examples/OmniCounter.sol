@@ -16,7 +16,6 @@ contract OmniCounter is NonblockingLzApp {
     }
 
     function incrementCounter(uint16 _dstChainId) public payable {
-        _checkGasLimit(_dstChainId, 0, bytes(""), NO_EXTRA_GAS);
         _lzSend(_dstChainId, bytes(""), payable(msg.sender), address(0x0), bytes(""));
     }
 }

@@ -13,8 +13,6 @@ import "../interfaces/ILayerZeroEndpoint.sol";
 abstract contract LzApp is Ownable, ILayerZeroReceiver, ILayerZeroUserApplicationConfig {
 
     ILayerZeroEndpoint public immutable lzEndpoint;
-    bool public useCustomAdapterParams;
-    uint public immutable NO_EXTRA_GAS = 0;
     mapping(uint16 => bytes) public trustedRemoteLookup;
     mapping(uint16 => mapping(uint => uint)) public minDstGasLookup;
 
@@ -44,22 +42,6 @@ abstract contract LzApp is Ownable, ILayerZeroReceiver, ILayerZeroUserApplicatio
         lzEndpoint.send{value: msg.value}(_dstChainId, trustedRemote, _payload, _refundAddress, _zroPaymentAddress, _adapterParams);
     }
 
-    function _checkGasLimit(uint16 _dstChainId, uint _type, bytes memory _adapterParams, uint _extraGas) internal view {
-        if(useCustomAdapterParams) {
-            // check defined adapter params for gas limit, otherwise rely on defaults inside of layerzero
-            require(_adapterParams.length > 0, "LzApp: _adapterParams must be set.");
-            uint providedGasLimit;
-            assembly {
-                providedGasLimit := mload(add(_adapterParams, 34))
-            }
-            uint minGasLimit = minDstGasLookup[_dstChainId][_type] + _extraGas;
-            require(minGasLimit > 0, "LzApp: minGasLimit not set");
-            require(providedGasLimit >= minGasLimit, "LzApp: gas limit is too low");
-        } else {
-            require(_adapterParams.length == 0, "LzApp: _adapterParams must be empty.");
-        }
-    }
-
     //---------------------------UserApplication config----------------------------------------
     function getConfig(uint16 _version, uint16 _chainId, address, uint _configType) external view returns (bytes memory) {
         return lzEndpoint.getConfig(_version, _chainId, address(this), _configType);
@@ -86,10 +68,6 @@ abstract contract LzApp is Ownable, ILayerZeroReceiver, ILayerZeroUserApplicatio
     function setTrustedRemote(uint16 _srcChainId, bytes calldata _srcAddress) external onlyOwner {
         trustedRemoteLookup[_srcChainId] = _srcAddress;
         emit SetTrustedRemote(_srcChainId, _srcAddress);
-    }
-
-    function setUseCustomAdapterParams(bool _useCustomAdapterParams) external onlyOwner {
-        useCustomAdapterParams = _useCustomAdapterParams;
     }
 
     function setMinDstGasLookup(uint16 _dstChainId, uint _type, uint _dstGasAmount) external onlyOwner {
