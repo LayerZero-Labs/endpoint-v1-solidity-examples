@@ -6,6 +6,7 @@ import "@openzeppelin/contracts/access/Ownable.sol";
 import "../interfaces/ILayerZeroReceiver.sol";
 import "../interfaces/ILayerZeroUserApplicationConfig.sol";
 import "../interfaces/ILayerZeroEndpoint.sol";
+import "../libraries/LzLib.sol";
 
 /*
  * a generic LzReceiver implementation
@@ -40,6 +41,13 @@ abstract contract LzApp is Ownable, ILayerZeroReceiver, ILayerZeroUserApplicatio
         bytes memory trustedRemote = trustedRemoteLookup[_dstChainId];
         require(trustedRemote.length != 0, "LzApp: destination chain is not a trusted source");
         lzEndpoint.send{value: msg.value}(_dstChainId, trustedRemote, _payload, _refundAddress, _zroPaymentAddress, _adapterParams);
+    }
+
+    function _checkGasLimit(uint16 _dstChainId, uint _type, bytes memory _adapterParams, uint _extraGas) internal view {
+        uint providedGasLimit = LzLib.getGasLimit(_adapterParams);
+        uint minGasLimit = minDstGasLookup[_dstChainId][_type] + _extraGas;
+        require(minGasLimit > 0, "LzApp: minGasLimit not set");
+        require(providedGasLimit >= minGasLimit, "LzApp: gas limit is too low");
     }
 
     //---------------------------UserApplication config----------------------------------------

@@ -40,7 +40,7 @@ interface IOFTCore is IERC165 {
      * @dev Emitted when `_amount` tokens are moved from the `_sender` to (`_dstChainId`, `_toAddress`)
      * `_nonce` is the outbound nonce
      */
-    event SendToChain(address indexed _sender, uint16 indexed _dstChainId, bytes indexed _toAddress, uint _amount, uint64 _nonce);
+    event SendToChain(address indexed _sender, uint16 indexed _dstChainId, bytes indexed _toAddress, uint _amount);
 
     /**
      * @dev Emitted when `_amount` tokens are received from `_srcChainId` into the `_toAddress` on the local chain.

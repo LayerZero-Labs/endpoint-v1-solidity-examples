@@ -10,15 +10,16 @@ describe("PausableOFT: ", function () {
     const adapterParam = ethers.utils.solidityPack(["uint16", "uint256"], [1, 225000])
     const sendQty = ethers.utils.parseUnits("1", 18) // amount to be sent across
 
-    let owner, warlock, lzEndpointSrcMock, lzEndpointDstMock, OFTSrc, OFTDst, LZEndpointMock, BasedOFT, PausableOFT
+    let owner, warlock, lzEndpointSrcMock, lzEndpointDstMock, OFTSrc, OFTDst, LZEndpointMock, BasedOFT, PausableOFT, LzLibFactory, lzLib
 
     before(async function () {
         owner = (await ethers.getSigners())[0]
         warlock = (await ethers.getSigners())[1]
-
+        LzLibFactory = await ethers.getContractFactory("LzLib")
+        lzLib = await LzLibFactory.deploy();
         LZEndpointMock = await ethers.getContractFactory("LZEndpointMock")
-        BasedOFT = await ethers.getContractFactory("ExampleBasedOFT")
-        PausableOFT = await ethers.getContractFactory("PausableOFT")
+        BasedOFT = await ethers.getContractFactory("ExampleBasedOFT", {libraries: {LzLib: lzLib.address}})
+        PausableOFT = await ethers.getContractFactory("PausableOFT", {libraries: {LzLib: lzLib.address}})
     })
 
     beforeEach(async function () {

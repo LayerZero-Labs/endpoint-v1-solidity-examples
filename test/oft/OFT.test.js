@@ -8,14 +8,15 @@ describe("OFT: ", function () {
     const symbol = "OFT"
     const globalSupply = ethers.utils.parseUnits("1000000", 18)
 
-    let owner, lzEndpointSrcMock, lzEndpointDstMock, OFTSrc, OFTDst, LZEndpointMock, BasedOFT, OFT
+    let owner, lzEndpointSrcMock, lzEndpointDstMock, OFTSrc, OFTDst, LZEndpointMock, BasedOFT, OFT, LzLibFactory, lzLib
 
     before(async function () {
         owner = (await ethers.getSigners())[0]
-
+        LzLibFactory = await ethers.getContractFactory("LzLib")
+        lzLib = await LzLibFactory.deploy();
         LZEndpointMock = await ethers.getContractFactory("LZEndpointMock")
-        BasedOFT = await ethers.getContractFactory("ExampleBasedOFT")
-        OFT = await ethers.getContractFactory("OFT")
+        BasedOFT = await ethers.getContractFactory("ExampleBasedOFT", {libraries: {LzLib: lzLib.address}})
+        OFT = await ethers.getContractFactory("OFT", {libraries: {LzLib: lzLib.address}})
     })
 
     beforeEach(async function () {

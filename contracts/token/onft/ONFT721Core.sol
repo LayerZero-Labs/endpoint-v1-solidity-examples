@@ -32,15 +32,18 @@ abstract contract ONFT721Core is NonblockingLzApp, ERC165, IONFT721Core {
         _debitFrom(_from, _dstChainId, _toAddress, _tokenId);
 
         bytes memory payload = abi.encode(_toAddress, _tokenId);
-        _checkGasLimit(_dstChainId, FUNCTION_TYPE_SEND, _adapterParams, NO_EXTRA_GAS);
+
+        if(useCustomAdapterParams) {
+            _checkGasLimit(_dstChainId, FUNCTION_TYPE_SEND, _adapterParams, NO_EXTRA_GAS);
+        } else {
+            require(_adapterParams.length == 0, "LzApp: _adapterParams must be empty.");
+        }
         _lzSend(_dstChainId, payload, _refundAddress, _zroPaymentAddress, _adapterParams);
 
-        uint64 nonce = lzEndpoint.getOutboundNonce(_dstChainId, address(this));
-        emit SendToChain(_from, _dstChainId, _toAddress, _tokenId, nonce);
+        emit SendToChain(_from, _dstChainId, _toAddress, _tokenId);
     }
 
     function _nonblockingLzReceive(uint16 _srcChainId, bytes memory _srcAddress, uint64 _nonce, bytes memory _payload) internal virtual override {
-        // decode and load the toAddress
         (bytes memory toAddressBytes, uint tokenId) = abi.decode(_payload, (bytes, uint));
         address toAddress;
         assembly {
@@ -50,22 +53,6 @@ abstract contract ONFT721Core is NonblockingLzApp, ERC165, IONFT721Core {
         _creditTo(_srcChainId, toAddress, tokenId);
 
         emit ReceiveFromChain(_srcChainId, _srcAddress, toAddress, tokenId, _nonce);
-    }
-
-    function _checkGasLimit(uint16 _dstChainId, uint _type, bytes memory _adapterParams, uint _extraGas) internal view {
-        if(useCustomAdapterParams) {
-            // check defined adapter params for gas limit, otherwise rely on defaults inside of layerzero
-            require(_adapterParams.length > 0, "LzApp: _adapterParams must be set.");
-            uint providedGasLimit;
-            assembly {
-                providedGasLimit := mload(add(_adapterParams, 34))
-            }
-            uint minGasLimit = minDstGasLookup[_dstChainId][_type] + _extraGas;
-            require(minGasLimit > 0, "LzApp: minGasLimit not set");
-            require(providedGasLimit >= minGasLimit, "LzApp: gas limit is too low");
-        } else {
-            require(_adapterParams.length == 0, "LzApp: _adapterParams must be empty.");
-        }
     }
 
     function setUseCustomAdapterParams(bool _useCustomAdapterParams) external onlyOwner {

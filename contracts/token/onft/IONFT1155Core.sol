@@ -8,8 +8,8 @@ import "@openzeppelin/contracts/utils/introspection/IERC165.sol";
  * @dev Interface of the ONFT Core standard
  */
 interface IONFT1155Core is IERC165 {
-    event SendToChain(address indexed _sender, uint16 indexed _dstChainId, bytes indexed _toAddress, uint _tokenId, uint _amount, uint64 _nonce);
-    event SendBatchToChain(address indexed _sender, uint16 indexed _dstChainId, bytes indexed _toAddress, uint[] _tokenIds, uint[] _amounts, uint64 _nonce);
+    event SendToChain(address indexed _sender, uint16 indexed _dstChainId, bytes indexed _toAddress, uint _tokenId, uint _amount);
+    event SendBatchToChain(address indexed _sender, uint16 indexed _dstChainId, bytes indexed _toAddress, uint[] _tokenIds, uint[] _amounts);
     event ReceiveFromChain(uint16 indexed _srcChainId, bytes indexed _srcAddress, address indexed _toAddress, uint _tokenId, uint _amount, uint64 _nonce);
     event ReceiveBatchFromChain(uint16 indexed _srcChainId, bytes indexed _srcAddress, address indexed _toAddress, uint[] _tokenIds, uint[] _amounts, uint64 _nonce);
 

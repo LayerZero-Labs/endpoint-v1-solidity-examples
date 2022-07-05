@@ -40,15 +40,21 @@ abstract contract ONFT1155Core is NonblockingLzApp, ERC165, IONFT1155Core {
         _debitFrom(_from, _dstChainId, _toAddress, _tokenIds, _amounts);
         bytes memory payload = abi.encode(_toAddress, _tokenIds, _amounts);
         if (_tokenIds.length == 1) {
-            _checkGasLimit(_dstChainId, FUNCTION_TYPE_SEND, _adapterParams, NO_EXTRA_GAS);
+            if(useCustomAdapterParams) {
+                _checkGasLimit(_dstChainId, FUNCTION_TYPE_SEND, _adapterParams, NO_EXTRA_GAS);
+            } else {
+                require(_adapterParams.length == 0, "LzApp: _adapterParams must be empty.");
+            }
             _lzSend(_dstChainId, payload, _refundAddress, _zroPaymentAddress, _adapterParams);
-            uint64 nonce = lzEndpoint.getOutboundNonce(_dstChainId, address(this));
-            emit SendToChain(_from, _dstChainId, _toAddress, _tokenIds[0], _amounts[0], nonce);
+            emit SendToChain(_from, _dstChainId, _toAddress, _tokenIds[0], _amounts[0]);
         } else if (_tokenIds.length > 1) {
-            _checkGasLimit(_dstChainId, FUNCTION_TYPE_SEND_BATCH, _adapterParams, NO_EXTRA_GAS);
+            if(useCustomAdapterParams) {
+                _checkGasLimit(_dstChainId, FUNCTION_TYPE_SEND_BATCH, _adapterParams, NO_EXTRA_GAS);
+            } else {
+                require(_adapterParams.length == 0, "LzApp: _adapterParams must be empty.");
+            }
             _lzSend(_dstChainId, payload, _refundAddress, _zroPaymentAddress, _adapterParams);
-            uint64 nonce = lzEndpoint.getOutboundNonce(_dstChainId, address(this));
-            emit SendBatchToChain(_from, _dstChainId, _toAddress, _tokenIds, _amounts, nonce);
+            emit SendBatchToChain(_from, _dstChainId, _toAddress, _tokenIds, _amounts);
         }
     }
 
@@ -66,22 +72,6 @@ abstract contract ONFT1155Core is NonblockingLzApp, ERC165, IONFT1155Core {
             emit ReceiveFromChain(_srcChainId, _srcAddress, toAddress, tokenIds[0], amounts[0], _nonce);
         } else if (tokenIds.length > 1) {
             emit ReceiveBatchFromChain(_srcChainId, _srcAddress, toAddress, tokenIds, amounts, _nonce);
-        }
-    }
-
-    function _checkGasLimit(uint16 _dstChainId, uint _type, bytes memory _adapterParams, uint _extraGas) internal view {
-        if(useCustomAdapterParams) {
-            // check defined adapter params for gas limit, otherwise rely on defaults inside of layerzero
-            require(_adapterParams.length > 0, "LzApp: _adapterParams must be set.");
-            uint providedGasLimit;
-            assembly {
-                providedGasLimit := mload(add(_adapterParams, 34))
-            }
-            uint minGasLimit = minDstGasLookup[_dstChainId][_type] + _extraGas;
-            require(minGasLimit > 0, "LzApp: minGasLimit not set");
-            require(providedGasLimit >= minGasLimit, "LzApp: gas limit is too low");
-        } else {
-            require(_adapterParams.length == 0, "LzApp: _adapterParams must be empty.");
         }
     }
 
