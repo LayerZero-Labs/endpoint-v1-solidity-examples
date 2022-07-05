@@ -7,6 +7,10 @@ import "../../lzApp/NonblockingLzApp.sol";
 import "@openzeppelin/contracts/utils/introspection/ERC165.sol";
 
 abstract contract ONFT1155Core is NonblockingLzApp, ERC165, IONFT1155Core {
+
+    uint public constant FUNCTION_TYPE_SEND = 1;
+    uint public constant FUNCTION_TYPE_SEND_BATCH = 2;
+
     constructor(address _lzEndpoint) NonblockingLzApp(_lzEndpoint) {}
 
     function supportsInterface(bytes4 interfaceId) public view virtual override(ERC165, IERC165) returns (bool) {
@@ -32,14 +36,14 @@ abstract contract ONFT1155Core is NonblockingLzApp, ERC165, IONFT1155Core {
 
     function _sendBatch(address _from, uint16 _dstChainId, bytes memory _toAddress, uint[] memory _tokenIds, uint[] memory _amounts, address payable _refundAddress, address _zroPaymentAddress, bytes memory _adapterParams) internal virtual {
         _debitFrom(_from, _dstChainId, _toAddress, _tokenIds, _amounts);
-
         bytes memory payload = abi.encode(_toAddress, _tokenIds, _amounts);
-        _lzSend(_dstChainId, payload, _refundAddress, _zroPaymentAddress, _adapterParams);
-
-        uint64 nonce = lzEndpoint.getOutboundNonce(_dstChainId, address(this));
         if (_tokenIds.length == 1) {
+            _lzSend(_dstChainId, payload, FUNCTION_TYPE_SEND, _refundAddress, _zroPaymentAddress, _adapterParams);
+            uint64 nonce = lzEndpoint.getOutboundNonce(_dstChainId, address(this));
             emit SendToChain(_from, _dstChainId, _toAddress, _tokenIds[0], _amounts[0], nonce);
         } else if (_tokenIds.length > 1) {
+            _lzSend(_dstChainId, payload, FUNCTION_TYPE_SEND_BATCH, _refundAddress, _zroPaymentAddress, _adapterParams);
+            uint64 nonce = lzEndpoint.getOutboundNonce(_dstChainId, address(this));
             emit SendBatchToChain(_from, _dstChainId, _toAddress, _tokenIds, _amounts, nonce);
         }
     }

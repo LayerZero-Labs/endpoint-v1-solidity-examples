@@ -33,6 +33,9 @@ describe("OFT: ", function () {
         // set each contracts source address so it can send to each other
         await OFTSrc.setTrustedRemote(chainIdDst, OFTDst.address) // for A, set B
         await OFTDst.setTrustedRemote(chainIdSrc, OFTSrc.address) // for B, set A
+
+        //set destination min gas
+        await OFTSrc.setMinDstGasLookup(chainIdDst, parseInt(await OFTSrc.FUNCTION_TYPE_SEND()), 225000)
     })
 
     describe("setting up stored payload", async function () {

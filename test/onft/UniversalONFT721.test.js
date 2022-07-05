@@ -32,6 +32,9 @@ describe("UniversalONFT721: ", function () {
         // set each contracts source address so it can send to each other
         await ONFTSrc.setTrustedRemote(chainIdDst, ONFTDst.address) // for A, set B
         await ONFTDst.setTrustedRemote(chainIdSrc, ONFTSrc.address) // for B, set A
+
+        //set destination min gas
+        await ONFTSrc.setMinDstGasLookup(chainIdDst, parseInt(await ONFTSrc.FUNCTION_TYPE_SEND()), 225000)
     })
 
     it("sendFrom() - mint on the source chain and send ONFT to the destination chain", async function () {

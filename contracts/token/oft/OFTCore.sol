@@ -7,6 +7,9 @@ import "./IOFTCore.sol";
 import "@openzeppelin/contracts/utils/introspection/ERC165.sol";
 
 abstract contract OFTCore is NonblockingLzApp, ERC165, IOFTCore {
+
+    uint public immutable FUNCTION_TYPE_SEND = 1;
+
     constructor(address _lzEndpoint) NonblockingLzApp(_lzEndpoint) {}
 
     function supportsInterface(bytes4 interfaceId) public view virtual override(ERC165, IERC165) returns (bool) {
@@ -40,7 +43,7 @@ abstract contract OFTCore is NonblockingLzApp, ERC165, IOFTCore {
         _debitFrom(_from, _dstChainId, _toAddress, _amount);
 
         bytes memory payload = abi.encode(_toAddress, _amount);
-        _lzSend(_dstChainId, payload, _refundAddress, _zroPaymentAddress, _adapterParams);
+        _lzSend(_dstChainId, payload, FUNCTION_TYPE_SEND, _refundAddress, _zroPaymentAddress, _adapterParams);
 
         uint64 nonce = lzEndpoint.getOutboundNonce(_dstChainId, address(this));
         emit SendToChain(_from, _dstChainId, _toAddress, _amount, nonce);
