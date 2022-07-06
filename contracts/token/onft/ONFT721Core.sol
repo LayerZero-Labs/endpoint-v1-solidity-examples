@@ -40,10 +40,10 @@ abstract contract ONFT721Core is NonblockingLzApp, ERC165, IONFT721Core {
         }
         _lzSend(_dstChainId, payload, _refundAddress, _zroPaymentAddress, _adapterParams);
 
-        emit SendToChain(_from, _dstChainId, _toAddress, _tokenId);
+        emit SendToChain(_dstChainId, _from, _toAddress, _tokenId);
     }
 
-    function _nonblockingLzReceive(uint16 _srcChainId, bytes memory _srcAddress, uint64 _nonce, bytes memory _payload) internal virtual override {
+    function _nonblockingLzReceive(uint16 _srcChainId, bytes memory _srcAddress, uint64 /*_nonce*/, bytes memory _payload) internal virtual override {
         (bytes memory toAddressBytes, uint tokenId) = abi.decode(_payload, (bytes, uint));
         address toAddress;
         assembly {
@@ -52,7 +52,7 @@ abstract contract ONFT721Core is NonblockingLzApp, ERC165, IONFT721Core {
 
         _creditTo(_srcChainId, toAddress, tokenId);
 
-        emit ReceiveFromChain(_srcChainId, _srcAddress, toAddress, tokenId, _nonce);
+        emit ReceiveFromChain(_srcChainId, _srcAddress, toAddress, tokenId);
     }
 
     function setUseCustomAdapterParams(bool _useCustomAdapterParams) external onlyOwner {

@@ -46,7 +46,7 @@ abstract contract ONFT1155Core is NonblockingLzApp, ERC165, IONFT1155Core {
                 require(_adapterParams.length == 0, "LzApp: _adapterParams must be empty.");
             }
             _lzSend(_dstChainId, payload, _refundAddress, _zroPaymentAddress, _adapterParams);
-            emit SendToChain(_from, _dstChainId, _toAddress, _tokenIds[0], _amounts[0]);
+            emit SendToChain(_dstChainId, _from, _toAddress, _tokenIds[0], _amounts[0]);
         } else if (_tokenIds.length > 1) {
             if(useCustomAdapterParams) {
                 _checkGasLimit(_dstChainId, FUNCTION_TYPE_SEND_BATCH, _adapterParams, NO_EXTRA_GAS);
@@ -54,11 +54,11 @@ abstract contract ONFT1155Core is NonblockingLzApp, ERC165, IONFT1155Core {
                 require(_adapterParams.length == 0, "LzApp: _adapterParams must be empty.");
             }
             _lzSend(_dstChainId, payload, _refundAddress, _zroPaymentAddress, _adapterParams);
-            emit SendBatchToChain(_from, _dstChainId, _toAddress, _tokenIds, _amounts);
+            emit SendBatchToChain(_dstChainId, _from, _toAddress, _tokenIds, _amounts);
         }
     }
 
-    function _nonblockingLzReceive(uint16 _srcChainId, bytes memory _srcAddress, uint64 _nonce, bytes memory _payload) internal virtual override {
+    function _nonblockingLzReceive(uint16 _srcChainId, bytes memory _srcAddress, uint64 /*_nonce*/, bytes memory _payload) internal virtual override {
         // decode and load the toAddress
         (bytes memory toAddressBytes, uint[] memory tokenIds, uint[] memory amounts) = abi.decode(_payload, (bytes, uint[], uint[]));
         address toAddress;
@@ -69,9 +69,9 @@ abstract contract ONFT1155Core is NonblockingLzApp, ERC165, IONFT1155Core {
         _creditTo(_srcChainId, toAddress, tokenIds, amounts);
 
         if (tokenIds.length == 1) {
-            emit ReceiveFromChain(_srcChainId, _srcAddress, toAddress, tokenIds[0], amounts[0], _nonce);
+            emit ReceiveFromChain(_srcChainId, _srcAddress, toAddress, tokenIds[0], amounts[0]);
         } else if (tokenIds.length > 1) {
-            emit ReceiveBatchFromChain(_srcChainId, _srcAddress, toAddress, tokenIds, amounts, _nonce);
+            emit ReceiveBatchFromChain(_srcChainId, _srcAddress, toAddress, tokenIds, amounts);
         }
     }
 

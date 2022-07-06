@@ -28,7 +28,7 @@ abstract contract OFTCore is NonblockingLzApp, ERC165, IOFTCore {
         _send(_from, _dstChainId, _toAddress, _amount, _refundAddress, _zroPaymentAddress, _adapterParams);
     }
 
-    function _nonblockingLzReceive(uint16 _srcChainId, bytes memory _srcAddress, uint64 _nonce, bytes memory _payload) internal virtual override {
+    function _nonblockingLzReceive(uint16 _srcChainId, bytes memory _srcAddress, uint64 /*_nonce*/, bytes memory _payload) internal virtual override {
         // decode and load the toAddress
         (bytes memory toAddressBytes, uint amount) = abi.decode(_payload, (bytes, uint));
         address toAddress;
@@ -38,7 +38,7 @@ abstract contract OFTCore is NonblockingLzApp, ERC165, IOFTCore {
 
         _creditTo(_srcChainId, toAddress, amount);
 
-        emit ReceiveFromChain(_srcChainId, _srcAddress, toAddress, amount, _nonce);
+        emit ReceiveFromChain(_srcChainId, _srcAddress, toAddress, amount);
     }
 
     function _send(address _from, uint16 _dstChainId, bytes memory _toAddress, uint _amount, address payable _refundAddress, address _zroPaymentAddress, bytes memory _adapterParams) internal virtual {
@@ -52,7 +52,7 @@ abstract contract OFTCore is NonblockingLzApp, ERC165, IOFTCore {
         }
         _lzSend(_dstChainId, payload, _refundAddress, _zroPaymentAddress, _adapterParams);
 
-        emit SendToChain(_from, _dstChainId, _toAddress, _amount);
+        emit SendToChain(_dstChainId, _from, _toAddress, _amount);
     }
 
     function setUseCustomAdapterParams(bool _useCustomAdapterParams) external onlyOwner {
