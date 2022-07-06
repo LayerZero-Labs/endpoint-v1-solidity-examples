@@ -37,6 +37,9 @@ task(
     "setTrustedRemote(chainId, sourceAddr) to enable inbound/outbound messages with your other contracts",
     require("./setTrustedRemote")
 ).addParam("targetNetwork", "the target network to set as a trusted remote")
+    .addOptionalParam("srcContract", "")
+    .addOptionalParam("dstContract", "")
+
 //.addParam("contractName", "the contract name to call setTrustedRemote on")
 
 //
@@ -138,3 +141,12 @@ task("batchSendONFT1155", "send a tokenid and quantity", require("./batchSendONF
     .addParam("targetNetwork", "the destination chainId")
     .addParam("tokenIds", "the NFT tokenId")
     .addParam("quantities", "the quantity of NFT tokenId to send")
+
+// npx hardhat deployWireCheck --e testnet --contract OFT
+// npx hardhat deployWireCheck --e testnet --contract OFT --proxy-chain fuji --proxy-contract ProxyOFT
+task("deployWireCheck", "", require("./deployWireCheck"))
+    .addParam("e", "environment testnet/mainet")
+    .addParam("contract", "")
+    .addOptionalParam("proxyChain", "")
+    .addOptionalParam("proxyContract", "")
+
