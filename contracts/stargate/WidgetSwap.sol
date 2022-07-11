@@ -3,17 +3,19 @@
 pragma solidity ^0.8.4;
 pragma abicoder v2;
 
-import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
+import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import "../interfaces/IStargateRouter.sol";
 import "../interfaces/IStargateRouterETH.sol";
 import "../interfaces/IStargateFactory.sol";
 
 contract WidgetSwap is ReentrancyGuard {
+    using SafeERC20 for IERC20;
+
     IStargateRouter public immutable stargateRouter;
     IStargateRouterETH public immutable stargateRouterETH;
     IStargateFactory public immutable stargateFactory;
-    uint256 public immutable TENTH_BPS_DENOMINATOR = 100000;
+    uint256 public constant TENTH_BPS_DENOMINATOR = 100000;
 
     struct FeeObj {
         uint256 tenthBps; // bps is to an extra decimal place
@@ -90,13 +92,13 @@ contract WidgetSwap is ReentrancyGuard {
         address token = stargateFactory.getPool(_srcPoolId).token();
 
         // move all the tokens to this contract
-        IERC20(token).transferFrom(msg.sender, address(this), _amountLD);
+        IERC20(token).safeTransferFrom(msg.sender, address(this), _amountLD);
 
         // calculate the widgetFee
         widgetFee = _amountLD * _feeObj.tenthBps / TENTH_BPS_DENOMINATOR;
 
         // pay the widget fee
-        IERC20(token).transfer(_feeObj.feeCollector, widgetFee);
+        IERC20(token).safeTransfer(_feeObj.feeCollector, widgetFee);
 
         // allow stargateRouter to spend the tokens to be transferred
         IERC20(token).approve(address(stargateRouter), _amountLD - widgetFee);
