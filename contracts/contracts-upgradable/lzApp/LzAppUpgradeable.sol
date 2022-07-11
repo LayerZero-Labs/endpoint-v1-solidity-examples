@@ -6,14 +6,16 @@ import "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
 import "../interfaces/ILayerZeroReceiverUpgradeable.sol";
 import "../interfaces/ILayerZeroUserApplicationConfigUpgradeable.sol";
 import "../interfaces/ILayerZeroEndpointUpgradeable.sol";
+import "../../libraries/LzLib.sol";
 
 /*
  * a generic LzReceiver implementation
  */
 abstract contract LzAppUpgradeable is Initializable, OwnableUpgradeable, ILayerZeroReceiverUpgradeable, ILayerZeroUserApplicationConfigUpgradeable {
-    ILayerZeroEndpointUpgradeable public lzEndpoint;
 
+    ILayerZeroEndpointUpgradeable public lzEndpoint;
     mapping(uint16 => bytes) public trustedRemoteLookup;
+    mapping(uint16 => mapping(uint => uint)) public minDstGasLookup;
 
     event SetTrustedRemote(uint16 _srcChainId, bytes _srcAddress);
 
@@ -45,6 +47,13 @@ abstract contract LzAppUpgradeable is Initializable, OwnableUpgradeable, ILayerZ
         lzEndpoint.send{value: msg.value}(_dstChainId, trustedRemote, _payload, _refundAddress, _zroPaymentAddress, _adapterParams);
     }
 
+    function _checkGasLimit(uint16 _dstChainId, uint _type, bytes memory _adapterParams, uint _extraGas) internal view {
+        uint providedGasLimit = LzLib.getGasLimit(_adapterParams);
+        uint minGasLimit = minDstGasLookup[_dstChainId][_type] + _extraGas;
+        require(minGasLimit > 0, "LzApp: minGasLimit not set");
+        require(providedGasLimit >= minGasLimit, "LzApp: gas limit is too low");
+    }
+
     //---------------------------UserApplication config----------------------------------------
     function getConfig(uint16 _version, uint16 _chainId, address, uint _configType) external view returns (bytes memory) {
         return lzEndpoint.getConfig(_version, _chainId, address(this), _configType);
@@ -73,8 +82,12 @@ abstract contract LzAppUpgradeable is Initializable, OwnableUpgradeable, ILayerZ
         emit SetTrustedRemote(_srcChainId, _srcAddress);
     }
 
-    //--------------------------- VIEW FUNCTION ----------------------------------------
+    function setMinDstGasLookup(uint16 _dstChainId, uint _type, uint _dstGasAmount) external onlyOwner {
+        require(_dstGasAmount > 0, "LzApp: invalid _dstGasAmount");
+        minDstGasLookup[_dstChainId][_type] = _dstGasAmount;
+    }
 
+    //--------------------------- VIEW FUNCTION ----------------------------------------
     function isTrustedRemote(uint16 _srcChainId, bytes calldata _srcAddress) external view returns (bool) {
         bytes memory trustedSource = trustedRemoteLookup[_srcChainId];
         return keccak256(trustedSource) == keccak256(_srcAddress);

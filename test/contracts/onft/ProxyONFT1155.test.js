@@ -16,8 +16,8 @@ describe("ProxyONFT1155: ", function () {
         LzLibFactory = await ethers.getContractFactory("LzLib")
         lzLib = await LzLibFactory.deploy();
         LZEndpointMock = await ethers.getContractFactory("LZEndpointMock")
-        ONFT = await ethers.getContractFactory("ONFT1155", {libraries: {LzLib: lzLib.address}})
-        ProxyONFT = await ethers.getContractFactory("ProxyONFT1155", {libraries: {LzLib: lzLib.address}})
+        ONFT = await ethers.getContractFactory("ONFT1155")
+        ProxyONFT = await ethers.getContractFactory("ProxyONFT1155")
         ERC1155 = await ethers.getContractFactory("ERC1155Mock")
     })
 

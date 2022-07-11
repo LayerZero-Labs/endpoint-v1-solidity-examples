@@ -8,6 +8,10 @@ import "../../lzApp/NonblockingLzAppUpgradeable.sol";
 
 abstract contract OFT20CoreUpgradeable is Initializable, NonblockingLzAppUpgradeable, ERC165Upgradeable, IOFT20CoreUpgradeable {
 
+    uint public constant NO_EXTRA_GAS = 0;
+    uint public constant FUNCTION_TYPE_SEND = 1;
+    bool public useCustomAdapterParams;
+
     function __OFT20CoreUpgradeable_init(address _endpoint) internal onlyInitializing {
         __OFT20CoreUpgradeable_init_unchained(_endpoint);
     }
@@ -47,10 +51,19 @@ abstract contract OFT20CoreUpgradeable is Initializable, NonblockingLzAppUpgrade
         _debitFrom(_from, _dstChainId, _toAddress, _amount);
 
         bytes memory payload = abi.encode(_toAddress, _amount);
+        if(useCustomAdapterParams) {
+            _checkGasLimit(_dstChainId, FUNCTION_TYPE_SEND, _adapterParams, NO_EXTRA_GAS);
+        } else {
+            require(_adapterParams.length == 0, "LzApp: _adapterParams must be empty.");
+        }
         _lzSend(_dstChainId, payload, _refundAddress, _zroPaymentAddress, _adapterParams);
 
         uint64 nonce = lzEndpoint.getOutboundNonce(_dstChainId, address(this));
         emit SendToChain(_from, _dstChainId, _toAddress, _amount, nonce);
+    }
+
+    function setUseCustomAdapterParams(bool _useCustomAdapterParams) external onlyOwner {
+        useCustomAdapterParams = _useCustomAdapterParams;
     }
 
     function _debitFrom(address _from, uint16 _dstChainId, bytes memory _toAddress, uint _amount) internal virtual;

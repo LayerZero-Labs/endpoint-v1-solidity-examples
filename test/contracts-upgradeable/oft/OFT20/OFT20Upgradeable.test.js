@@ -8,13 +8,15 @@ describe("OFT20Upgradeable: ", function () {
     const symbol = "OFT"
     const globalSupply = ethers.utils.parseUnits("1000000", 18)
 
-    let deployer, lzEndpointSrcMock, lzEndpointDstMock, OFTSrc, OFTDst, LZEndpointMock, OFT20Upgradeable, proxyOwner, OFT20UpgradeableContractFactory
+    let deployer, lzEndpointSrcMock, lzEndpointDstMock, OFTSrc, OFTDst, LZEndpointMock, OFT20Upgradeable, proxyOwner, OFT20UpgradeableContractFactory, LzLibFactory, lzLib
 
     before(async function () {
         deployer = (await ethers.getSigners())[0]
         proxyOwner = (await ethers.getSigners())[1]
+        LzLibFactory = await ethers.getContractFactory("LzLib")
+        lzLib = await LzLibFactory.deploy();
         LZEndpointMock = await ethers.getContractFactory("LZEndpointMock")
-        OFT20UpgradeableContractFactory = await ethers.getContractFactory("OFT20UpgradeableMock")
+        OFT20UpgradeableContractFactory = await ethers.getContractFactory("ExampleOFT20Upgradeable")
     })
 
     beforeEach(async function () {
@@ -34,6 +36,10 @@ describe("OFT20Upgradeable: ", function () {
         // internal bookkeeping for endpoints (not part of a real deploy, just for this test)
         lzEndpointSrcMock.setDestLzEndpoint(OFTDst.address, lzEndpointDstMock.address)
         lzEndpointDstMock.setDestLzEndpoint(OFTSrc.address, lzEndpointSrcMock.address)
+
+        //set destination min gas
+        await OFTSrc.setMinDstGasLookup(chainIdDst, parseInt(await OFTSrc.FUNCTION_TYPE_SEND()), 220000)
+        await OFTSrc.setUseCustomAdapterParams(true);
 
         // set each contracts source address so it can send to each other
         await OFTSrc.setTrustedRemote(chainIdDst, OFTDst.address) // for A, set B

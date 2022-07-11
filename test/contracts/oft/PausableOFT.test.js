@@ -18,8 +18,8 @@ describe("PausableOFT: ", function () {
         LzLibFactory = await ethers.getContractFactory("LzLib")
         lzLib = await LzLibFactory.deploy();
         LZEndpointMock = await ethers.getContractFactory("LZEndpointMock")
-        BasedOFT = await ethers.getContractFactory("ExampleBasedOFT", {libraries: {LzLib: lzLib.address}})
-        PausableOFT = await ethers.getContractFactory("PausableOFT", {libraries: {LzLib: lzLib.address}})
+        BasedOFT = await ethers.getContractFactory("ExampleBasedOFT")
+        PausableOFT = await ethers.getContractFactory("PausableOFT")
     })
 
     beforeEach(async function () {

@@ -14,7 +14,7 @@ describe("ONFT721Upgradeable: ", function () {
         warlock = (await ethers.getSigners())[1]
 
         LZEndpointMock = await ethers.getContractFactory("LZEndpointMock")
-        ONFT = await ethers.getContractFactory("ONFT721UpgradeableMock")
+        ONFT = await ethers.getContractFactory("ExampleONFT721Upgradeable")
     })
 
     beforeEach(async function () {

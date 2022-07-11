@@ -2,8 +2,8 @@
 
 pragma solidity ^0.8.0;
 
-import "../OFT20Upgradeable.sol";
 import "hardhat-deploy/solc_0.8/proxy/Proxied.sol";
+import "../token/OFT20/OFT20Upgradeable.sol";
 
 contract ExampleOFT20Upgradeable is Initializable, OFT20Upgradeable, Proxied {
 
@@ -14,10 +14,10 @@ contract ExampleOFT20Upgradeable is Initializable, OFT20Upgradeable, Proxied {
     function __ExampleOFT20Upgradeable_init(string memory _name, string memory _symbol, uint _initialSupply, address _lzEndpoint) internal onlyInitializing {
         __Ownable_init();
         __OFT20Upgradeable_init(_name, _symbol, _lzEndpoint);
-        __ExampleOFT20Upgradeable_init_unchained(_initialSupply);
+        __ExampleOFT20Upgradeable_init_unchained(_name, _symbol, _initialSupply, _lzEndpoint);
     }
 
-    function __ExampleOFT20Upgradeable_init_unchained(uint _initialSupply) internal onlyInitializing {
+    function __ExampleOFT20Upgradeable_init_unchained(string memory, string memory, uint _initialSupply, address) internal onlyInitializing {
         _mint(_msgSender(), _initialSupply);
     }
 

@@ -9,6 +9,10 @@ import "./IONFT721CoreUpgradeable.sol";
 
 abstract contract ONFT721CoreUpgradeable is Initializable, NonblockingLzAppUpgradeable, ERC165Upgradeable, IONFT721CoreUpgradeable {
 
+    uint public constant NO_EXTRA_GAS = 0;
+    uint public constant FUNCTION_TYPE_SEND = 1;
+    bool public useCustomAdapterParams;
+
     function __ONFT721CoreUpgradeable_init(address _lzEndpoint) internal onlyInitializing {
         __ONFT721CoreUpgradeable_init_unchained(_lzEndpoint);
     }
@@ -35,6 +39,11 @@ abstract contract ONFT721CoreUpgradeable is Initializable, NonblockingLzAppUpgra
         _debitFrom(_from, _dstChainId, _toAddress, _tokenId);
 
         bytes memory payload = abi.encode(_toAddress, _tokenId);
+        if(useCustomAdapterParams) {
+            _checkGasLimit(_dstChainId, FUNCTION_TYPE_SEND, _adapterParams, NO_EXTRA_GAS);
+        } else {
+            require(_adapterParams.length == 0, "LzApp: _adapterParams must be empty.");
+        }
         _lzSend(_dstChainId, payload, _refundAddress, _zroPaymentAddress, _adapterParams);
 
         uint64 nonce = lzEndpoint.getOutboundNonce(_dstChainId, address(this));
@@ -52,6 +61,10 @@ abstract contract ONFT721CoreUpgradeable is Initializable, NonblockingLzAppUpgra
         _creditTo(_srcChainId, toAddress, tokenId);
 
         emit ReceiveFromChain(_srcChainId, _srcAddress, toAddress, tokenId, _nonce);
+    }
+
+    function setUseCustomAdapterParams(bool _useCustomAdapterParams) external onlyOwner {
+        useCustomAdapterParams = _useCustomAdapterParams;
     }
 
     function _debitFrom(address _from, uint16 _dstChainId, bytes memory _toAddress, uint _tokenId) internal virtual;

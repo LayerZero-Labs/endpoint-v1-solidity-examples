@@ -15,7 +15,7 @@ describe("ONFT721: ", function () {
         LzLibFactory = await ethers.getContractFactory("LzLib")
         lzLib = await LzLibFactory.deploy();
         LZEndpointMock = await ethers.getContractFactory("LZEndpointMock")
-        ONFT = await ethers.getContractFactory("ONFT721Mock", {libraries: {LzLib: lzLib.address}})
+        ONFT = await ethers.getContractFactory("ONFT721Mock")
     })
 
     beforeEach(async function () {
