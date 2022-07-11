@@ -8,14 +8,15 @@ describe("OFT: ", function () {
     const symbol = "OFT"
     const globalSupply = ethers.utils.parseUnits("1000000", 18)
 
-    let owner, lzEndpointSrcMock, lzEndpointDstMock, OFTSrc, OFTDst, LZEndpointMock, BasedOFT, OFT
+    let owner, lzEndpointSrcMock, lzEndpointDstMock, OFTSrc, OFTDst, LZEndpointMock, BasedOFT, OFT, LzLibFactory, lzLib
 
     before(async function () {
         owner = (await ethers.getSigners())[0]
-
+        LzLibFactory = await ethers.getContractFactory("LzLib")
+        lzLib = await LzLibFactory.deploy();
         LZEndpointMock = await ethers.getContractFactory("LZEndpointMock")
-        BasedOFT = await ethers.getContractFactory("ExampleBasedOFT")
-        OFT = await ethers.getContractFactory("OFT")
+        BasedOFT = await ethers.getContractFactory("ExampleBasedOFT", {libraries: {LzLib: lzLib.address}})
+        OFT = await ethers.getContractFactory("OFT", {libraries: {LzLib: lzLib.address}})
     })
 
     beforeEach(async function () {
@@ -33,6 +34,10 @@ describe("OFT: ", function () {
         // set each contracts source address so it can send to each other
         await OFTSrc.setTrustedRemote(chainIdDst, OFTDst.address) // for A, set B
         await OFTDst.setTrustedRemote(chainIdSrc, OFTSrc.address) // for B, set A
+
+        //set destination min gas
+        await OFTSrc.setMinDstGasLookup(chainIdDst, parseInt(await OFTSrc.FUNCTION_TYPE_SEND()), 225000)
+        await OFTSrc.setUseCustomAdapterParams(true);
     })
 
     describe("setting up stored payload", async function () {
