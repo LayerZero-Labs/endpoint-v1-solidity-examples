@@ -25,10 +25,10 @@ contract NativeProxyOFT is ReentrancyGuard, ERC20, NonblockingLzApp, ERC165 {
         bytes memory payload = abi.encode(_toAddress, _amount);
         return lzEndpoint.estimateFees(_dstChainId, address(this), payload, _useZro, _adapterParams);
     }
-
-    function sendFrom(address _from, uint16 _dstChainId, bytes memory _toAddress, uint _totalAmount, uint _mintAmount, address payable _refundAddress, address _zroPaymentAddress, bytes memory _adapterParams) public payable {
-        _send(_from, _dstChainId, _toAddress, _totalAmount, _mintAmount, _refundAddress, _zroPaymentAddress, _adapterParams);
-    }
+//
+//    function sendFrom(address _from, uint16 _dstChainId, bytes memory _toAddress, uint _totalAmount, uint _mintAmount, address payable _refundAddress, address _zroPaymentAddress, bytes memory _adapterParams) public payable {
+//        _send(_from, _dstChainId, _toAddress, _totalAmount, _mintAmount, _refundAddress, _zroPaymentAddress, _adapterParams);
+//    }
 
     function _nonblockingLzReceive(uint16 _srcChainId, bytes memory _srcAddress, uint64 /*_nonce*/, bytes memory _payload) internal virtual override {
 
@@ -44,8 +44,8 @@ contract NativeProxyOFT is ReentrancyGuard, ERC20, NonblockingLzApp, ERC165 {
         emit ReceiveFromChain(_srcChainId, _srcAddress, toAddress, amount);
     }
 
-    function _send(address _from, uint16 _dstChainId, bytes memory _toAddress, uint _totalAmount, uint _mintAmount, address payable _refundAddress, address _zroPaymentAddress, bytes memory _adapterParams) internal virtual {
-        _debitFrom(_from, _dstChainId, _toAddress, _totalAmount, _mintAmount);
+    function _send(uint16 _dstChainId, bytes memory _toAddress, uint _totalAmount, uint _mintAmount, address payable _refundAddress, address _zroPaymentAddress, bytes memory _adapterParams) public payable {
+        _debitFrom(msg.sender, _dstChainId, _toAddress, _totalAmount, _mintAmount);
 
         // messageFee is the remainder of the msg.value after wrap
         uint256 messageFee = msg.value - _mintAmount;
@@ -60,7 +60,7 @@ contract NativeProxyOFT is ReentrancyGuard, ERC20, NonblockingLzApp, ERC165 {
         bytes memory trustedRemote = trustedRemoteLookup[_dstChainId];
         require(trustedRemote.length != 0, "NativeProxyOFT: destination chain is not a trusted source");
         lzEndpoint.send{value: messageFee}(_dstChainId, trustedRemote, payload, _refundAddress, _zroPaymentAddress, _adapterParams);
-        emit SendToChain(_dstChainId, _from, _toAddress, _totalAmount);
+        emit SendToChain(_dstChainId, msg.sender, _toAddress, _totalAmount);
     }
 
     function setUseCustomAdapterParams(bool _useCustomAdapterParams) external onlyOwner {
@@ -78,8 +78,7 @@ contract NativeProxyOFT is ReentrancyGuard, ERC20, NonblockingLzApp, ERC165 {
         require(success, "NativeProxyOFT: failed to unwrap");
     }
 
-    function _debitFrom(address _from, uint16, bytes memory, uint _totalAmount, uint _mintAmount) internal {
-        require(_from == _msgSender(), "NativeProxyOFT: owner is not send caller");
+    function _debitFrom(uint16, bytes memory, uint _totalAmount, uint _mintAmount) internal {
         require(msg.value > _mintAmount, "NativeProxyOFT: msg.value must be > mintAmount.");
         _mint(msg.sender, _mintAmount);
 
