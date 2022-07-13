@@ -14,11 +14,9 @@ describe("ProxyONFT721: ", function () {
     before(async function () {
         owner = (await ethers.getSigners())[0]
         warlock = (await ethers.getSigners())[1]
-        LzLibFactory = await ethers.getContractFactory("LzLib")
-        lzLib = await LzLibFactory.deploy();
         LZEndpointMock = await ethers.getContractFactory("LZEndpointMock")
-        ONFT = await ethers.getContractFactory("ONFT721", {libraries: {LzLib: lzLib.address}})
-        ProxyONFT = await ethers.getContractFactory("ProxyONFT721", {libraries: {LzLib: lzLib.address}})
+        ONFT = await ethers.getContractFactory("ONFT721")
+        ProxyONFT = await ethers.getContractFactory("ProxyONFT721")
         ERC721 = await ethers.getContractFactory("ERC721Mock")
     })
 

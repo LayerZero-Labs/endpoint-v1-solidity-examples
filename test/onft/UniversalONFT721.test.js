@@ -11,10 +11,8 @@ describe("UniversalONFT721: ", function () {
 
     before(async function () {
         owner = (await ethers.getSigners())[0]
-        LzLibFactory = await ethers.getContractFactory("LzLib")
-        lzLib = await LzLibFactory.deploy();
         LZEndpointMock = await ethers.getContractFactory("LZEndpointMock")
-        ONFT = await ethers.getContractFactory("UniversalONFT721", {libraries: {LzLib: lzLib.address}})
+        ONFT = await ethers.getContractFactory("UniversalONFT721")
         ONFTSrcIds = [1, 1] // [startID, endID]... only allowed to mint one ONFT
         ONFTDstIds = [2, 2] // [startID, endID]... only allowed to mint one ONFT
     })

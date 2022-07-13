@@ -6,7 +6,6 @@ import "@openzeppelin/contracts/access/Ownable.sol";
 import "../interfaces/ILayerZeroReceiver.sol";
 import "../interfaces/ILayerZeroUserApplicationConfig.sol";
 import "../interfaces/ILayerZeroEndpoint.sol";
-import "../libraries/LzLib.sol";
 
 /*
  * a generic LzReceiver implementation
@@ -44,10 +43,16 @@ abstract contract LzApp is Ownable, ILayerZeroReceiver, ILayerZeroUserApplicatio
     }
 
     function _checkGasLimit(uint16 _dstChainId, uint _type, bytes memory _adapterParams, uint _extraGas) internal view {
-        uint providedGasLimit = LzLib.getGasLimit(_adapterParams);
+        uint providedGasLimit = getGasLimit(_adapterParams);
         uint minGasLimit = minDstGasLookup[_dstChainId][_type] + _extraGas;
         require(minGasLimit > 0, "LzApp: minGasLimit not set");
         require(providedGasLimit >= minGasLimit, "LzApp: gas limit is too low");
+    }
+
+    function getGasLimit(bytes memory _adapterParams) public pure returns (uint gasLimit) {
+        assembly {
+            gasLimit := mload(add(_adapterParams, 34))
+        }
     }
 
     //---------------------------UserApplication config----------------------------------------

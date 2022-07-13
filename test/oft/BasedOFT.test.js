@@ -13,10 +13,8 @@ describe("BasedOFT: ", function () {
     before(async function () {
         owner = (await ethers.getSigners())[0]
         LZEndpointMock = await ethers.getContractFactory("LZEndpointMock")
-        LzLibFactory = await ethers.getContractFactory("LzLib")
-        lzLib = await LzLibFactory.deploy();
-        BasedOFT = await ethers.getContractFactory("ExampleBasedOFT", {libraries: {LzLib: lzLib.address}})
-        OFT = await ethers.getContractFactory("OFT", {libraries: {LzLib: lzLib.address}})
+        BasedOFT = await ethers.getContractFactory("ExampleBasedOFT")
+        OFT = await ethers.getContractFactory("OFT")
     })
 
     beforeEach(async function () {

@@ -14,11 +14,9 @@ describe("ProxyOFT: ", function () {
     before(async function () {
         owner = (await ethers.getSigners())[0]
         warlock = (await ethers.getSigners())[1]
-        LzLibFactory = await ethers.getContractFactory("LzLib")
-        lzLib = await LzLibFactory.deploy();
         LZEndpointMock = await ethers.getContractFactory("LZEndpointMock")
-        OFT = await ethers.getContractFactory("OFT", {libraries: {LzLib: lzLib.address}})
-        ProxyOFT = await ethers.getContractFactory("ProxyOFT", {libraries: {LzLib: lzLib.address}})
+        OFT = await ethers.getContractFactory("OFT")
+        ProxyOFT = await ethers.getContractFactory("ProxyOFT")
         ERC20 = await ethers.getContractFactory("ERC20Mock")
     })
 

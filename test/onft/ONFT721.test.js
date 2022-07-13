@@ -7,15 +7,13 @@ describe("ONFT721: ", function () {
     const name = "OmnichainNonFungibleToken"
     const symbol = "ONFT"
 
-    let owner, warlock, lzEndpointMockA, lzEndpointMockB, LZEndpointMock, ONFT, ONFT_A, ONFT_B, LzLibFactory, lzLib
+    let owner, warlock, lzEndpointMockA, lzEndpointMockB, LZEndpointMock, ONFT, ONFT_A, ONFT_B
 
     before(async function () {
         owner = (await ethers.getSigners())[0]
         warlock = (await ethers.getSigners())[1]
-        LzLibFactory = await ethers.getContractFactory("LzLib")
-        lzLib = await LzLibFactory.deploy();
         LZEndpointMock = await ethers.getContractFactory("LZEndpointMock")
-        ONFT = await ethers.getContractFactory("ONFT721Mock", {libraries: {LzLib: lzLib.address}})
+        ONFT = await ethers.getContractFactory("ONFT721Mock")
     })
 
     beforeEach(async function () {
