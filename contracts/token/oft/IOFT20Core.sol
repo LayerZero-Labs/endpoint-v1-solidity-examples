@@ -8,7 +8,7 @@ import "@openzeppelin/contracts/utils/introspection/IERC165.sol";
 /**
  * @dev Interface of the IOFT core standard
  */
-interface IOFTCore is IERC165 {
+interface IOFT20Core is IERC165 {
     /**
      * @dev estimate send token `_tokenId` to (`_dstChainId`, `_toAddress`)
      * _dstChainId - L0 defined chain id to send tokens too

@@ -3,10 +3,10 @@
 pragma solidity ^0.8.0;
 
 import "../../lzApp/NonblockingLzApp.sol";
-import "./IOFTCore.sol";
+import "./IOFT20Core.sol";
 import "@openzeppelin/contracts/utils/introspection/ERC165.sol";
 
-abstract contract OFTCore is NonblockingLzApp, ERC165, IOFTCore {
+abstract contract OFT20Core is NonblockingLzApp, ERC165, IOFT20Core {
 
     uint public constant NO_EXTRA_GAS = 0;
     uint public constant FUNCTION_TYPE_SEND = 1;
@@ -15,7 +15,7 @@ abstract contract OFTCore is NonblockingLzApp, ERC165, IOFTCore {
     constructor(address _lzEndpoint) NonblockingLzApp(_lzEndpoint) {}
 
     function supportsInterface(bytes4 interfaceId) public view virtual override(ERC165, IERC165) returns (bool) {
-        return interfaceId == type(IOFTCore).interfaceId || super.supportsInterface(interfaceId);
+        return interfaceId == type(IOFT20Core).interfaceId || super.supportsInterface(interfaceId);
     }
 
     function estimateSendFee(uint16 _dstChainId, bytes memory _toAddress, uint _amount, bool _useZro, bytes memory _adapterParams) public view virtual override returns (uint nativeFee, uint zroFee) {
