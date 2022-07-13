@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: MIT
 
-pragma solidity ^0.8.4;
+pragma solidity 0.8.4;
 pragma abicoder v2;
 
 import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
@@ -23,11 +23,18 @@ contract WidgetSwap is ReentrancyGuard {
     }
 
     event WidgetSwapped(bytes2 indexed partnerId, uint256 tenthBps, uint256 widgetFee);
+    event PartnerSwap(bytes2 indexed partnerId);
 
     constructor(address _stargateRouter, address _stargateRouterETH, address _stargateFactory) {
         stargateRouter = IStargateRouter(_stargateRouter);
         stargateRouterETH = IStargateRouterETH(_stargateRouterETH);
         stargateFactory = IStargateFactory(_stargateFactory);
+    }
+
+    // allow anyone to emit this msg alongside their stargate tx so they can get credited for their referral
+    // to get credit this event must be emitted in the same tx as a stargate swap event
+    function partnerSwap(bytes2 _partnerId) external {
+        emit PartnerSwap(_partnerId);
     }
 
     function swapTokens(
