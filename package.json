@@ -1,8 +1,11 @@
-
 {
-  "name": "solidity-examples",
-  "version": "0.0.1",
+  "name": "@layerzerolabs/solidity-examples",
+  "version": "0.0.2",
   "license": "MIT",
+  "files": [
+    "artifacts/",
+    "contracts/"
+  ],
   "description": "example contracts",
   "main": "index.js",
   "scripts": {
