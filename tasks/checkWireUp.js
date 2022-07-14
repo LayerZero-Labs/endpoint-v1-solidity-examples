@@ -1,9 +1,5 @@
 const CHAIN_ID = require("../constants/chainIds.json")
-
-const environments = {
-    mainnet: ["ethereum", "bsc", "avalanche", "polygon", "arbitrum", "optimism", "fantom"],
-    testnet: ["rinkeby", "bsc-testnet", "fuji", "mumbai", "arbitrum-rinkeby", "optimism-kovan", "fantom-testnet"],
-}
+const environments = require("../constants/environments.json")
 
 function TrustedRemoteTestnet() {
     this.rinkeby
@@ -28,8 +24,11 @@ function TrustedRemote() {
 module.exports = async function (taskArgs) {
     const environment = hre.network.name
     const environmentArray = environments[taskArgs.e]
+
     let trustedRemoteTable = {}
+
     trustedRemoteTable[environment] = taskArgs.e === "mainnet" ? new TrustedRemote() : new TrustedRemoteTestnet();
+
     await Promise.all(
         environmentArray.map(async (env) => {
             try {
