@@ -8,22 +8,15 @@ import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import "../interfaces/IStargateRouter.sol";
 import "../interfaces/IStargateRouterETH.sol";
 import "../interfaces/IStargateFactory.sol";
+import "../interfaces/IStargateWidget.sol";
 
-contract WidgetSwap is ReentrancyGuard {
+contract WidgetSwap is ReentrancyGuard, IStargateWidget {
     using SafeERC20 for IERC20;
 
     IStargateRouter public immutable stargateRouter;
     IStargateRouterETH public immutable stargateRouterETH;
     IStargateFactory public immutable stargateFactory;
     uint256 public constant TENTH_BPS_DENOMINATOR = 100000;
-
-    struct FeeObj {
-        uint256 tenthBps; // bps is to an extra decimal place
-        address feeCollector;
-    }
-
-    event WidgetSwapped(bytes2 indexed partnerId, uint256 tenthBps, uint256 widgetFee);
-    event PartnerSwap(bytes2 indexed partnerId);
 
     constructor(address _stargateRouter, address _stargateRouterETH, address _stargateFactory) {
         stargateRouter = IStargateRouter(_stargateRouter);
@@ -33,7 +26,7 @@ contract WidgetSwap is ReentrancyGuard {
 
     // allow anyone to emit this msg alongside their stargate tx so they can get credited for their referral
     // to get credit this event must be emitted in the same tx as a stargate swap event
-    function partnerSwap(bytes2 _partnerId) external {
+    function partnerSwap(bytes2 _partnerId) external override {
         emit PartnerSwap(_partnerId);
     }
 
@@ -47,7 +40,7 @@ contract WidgetSwap is ReentrancyGuard {
         bytes calldata _to,
         bytes2 _partnerId,
         FeeObj calldata _feeObj
-    ) external nonReentrant payable {
+    ) external override nonReentrant payable {
         uint256 widgetFee = _getAndPayWidgetFee(_srcPoolId, _amountLD, _feeObj);
 
         stargateRouter.swap{value:msg.value}(
@@ -72,7 +65,7 @@ contract WidgetSwap is ReentrancyGuard {
         bytes calldata _to,
         bytes2 _partnerId,
         FeeObj calldata _feeObj
-    ) external nonReentrant payable {
+    ) external override nonReentrant payable {
         // allows us to deploy same contract on non eth chains
         require(address(stargateRouterETH) != address(0x0), "WidgetSwap: func not available");
 
