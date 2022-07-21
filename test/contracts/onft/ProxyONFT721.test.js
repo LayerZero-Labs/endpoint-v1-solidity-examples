@@ -97,7 +97,7 @@ describe("ProxyONFT721: ", function () {
         )
 
         // token is burned on the sending chain
-        await expect(ONFT_B.ownerOf(tokenId)).to.be.revertedWith("ERC721: owner query for nonexistent token")
+        expect(await ONFT_B.ownerOf(tokenId)).to.be.equal(ONFT_B.address)
 
         // token received on the dst chain
         expect(await ONFT_C.ownerOf(tokenId)).to.be.equal(warlock.address)
@@ -114,7 +114,7 @@ describe("ProxyONFT721: ", function () {
         )
 
         // token is burned on the sending chain
-        await expect(ONFT_C.ownerOf(tokenId)).to.be.revertedWith("ERC721: owner query for nonexistent token")
+        expect(await ONFT_C.ownerOf(tokenId)).to.be.equal(ONFT_C.address)
 
         // is received on the original chain
         expect(await ERC721Src.ownerOf(tokenId)).to.be.equal(warlock.address)

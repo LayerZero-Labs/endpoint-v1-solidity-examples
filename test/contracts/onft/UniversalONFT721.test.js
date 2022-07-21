@@ -63,7 +63,7 @@ describe("UniversalONFT721: ", function () {
         )
 
         // verify the owner of the token is no longer on the source chain
-        await expect(ONFTSrc.ownerOf(newId)).to.revertedWith("ERC721: owner query for nonexistent token")
+        expect(await ONFTSrc.ownerOf(newId)).to.equal(ONFTSrc.address)
 
         // verify the owner of the token is on the destination chain
         expect(await ONFTDst.ownerOf(newId)).to.not.equal(owner)
