@@ -25,7 +25,7 @@ contract ONFT721 is ONFT721Core, ERC721, IONFT721 {
         require(!_exists(_tokenId) || (_exists(_tokenId) && ERC721.ownerOf(_tokenId) == address(this)));
         if(!_exists(_tokenId)) {
             _safeMint(_toAddress, _tokenId);
-        } else if(_exists(_tokenId) && ERC721.ownerOf(_tokenId) == address(this)) {
+        } else {
             _transfer(address(this), _toAddress, _tokenId);
         }
     }
