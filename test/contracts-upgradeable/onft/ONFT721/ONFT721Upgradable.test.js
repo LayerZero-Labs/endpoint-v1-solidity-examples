@@ -72,7 +72,7 @@ describe("ONFT721Upgradeable: ", function () {
         )
 
         // token is burnt
-        await expect(ONFT_A.ownerOf(tokenId)).to.be.revertedWith("ERC721: owner query for nonexistent token")
+        expect(await ONFT_A.ownerOf(tokenId)).to.be.equal(ONFT_A.address)
 
         // token received on the dst chain
         expect(await ONFT_B.ownerOf(tokenId)).to.be.equal(warlock.address)
@@ -89,7 +89,8 @@ describe("ONFT721Upgradeable: ", function () {
         )
 
         // token is burned on the sending chain
-        await expect(ONFT_B.ownerOf(tokenId)).to.be.revertedWith("ERC721: owner query for nonexistent token")
+        expect(await ONFT_B.ownerOf(tokenId)).to.be.equal(ONFT_B.address)
+
     })
 
     it("sendFrom() - reverts if not owner on non proxy chain", async function () {
