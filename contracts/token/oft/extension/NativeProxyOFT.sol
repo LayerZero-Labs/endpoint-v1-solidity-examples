@@ -21,13 +21,12 @@ contract NativeProxyOFT is ReentrancyGuard, ERC20, NonblockingLzApp, ERC165 {
     constructor(string memory _name, string memory _symbol, address _lzEndpoint) ERC20(_name, _symbol) NonblockingLzApp(_lzEndpoint) {}
 
     function estimateSendFee(uint16 _dstChainId, bytes memory _toAddress, uint _amount, bool _useZro, bytes memory _adapterParams) public view returns (uint nativeFee, uint zroFee) {
-        // mock the payload for send()
         bytes memory payload = abi.encode(_toAddress, _amount);
         return lzEndpoint.estimateFees(_dstChainId, address(this), payload, _useZro, _adapterParams);
     }
 
-    function sendFrom(address _from, uint16 _dstChainId, bytes memory _toAddress, uint _totalAmount, address payable _refundAddress, address _zroPaymentAddress, bytes memory _adapterParams) public payable {
-        _send(_from, _dstChainId, _toAddress, _totalAmount, _refundAddress, _zroPaymentAddress, _adapterParams);
+    function sendFrom(address _from, uint16 _dstChainId, bytes memory _toAddress, uint _amount, address payable _refundAddress, address _zroPaymentAddress, bytes memory _adapterParams) public payable {
+        _send(_from, _dstChainId, _toAddress, _amount, _refundAddress, _zroPaymentAddress, _adapterParams);
     }
 
     function _nonblockingLzReceive(uint16 _srcChainId, bytes memory _srcAddress, uint64 /*_nonce*/, bytes memory _payload) internal virtual override {
@@ -44,18 +43,10 @@ contract NativeProxyOFT is ReentrancyGuard, ERC20, NonblockingLzApp, ERC165 {
         emit ReceiveFromChain(_srcChainId, _srcAddress, toAddress, amount);
     }
 
-    function _send(address _from, uint16 _dstChainId, bytes memory _toAddress, uint _totalAmount, address payable _refundAddress, address _zroPaymentAddress, bytes memory _adapterParams) public payable {
-        // messageFee is the remainder of the msg.value after wrap
-        uint256 messageFee = msg.value;// - _mintAmount;
-        if(balanceOf(msg.sender) < _totalAmount) {
-            uint nativeDeposit = _totalAmount - balanceOf(msg.sender);
-            require(msg.value >= nativeDeposit, "NativeProxyOFT: Insufficient msg.value");
-            messageFee = msg.value - (nativeDeposit);
-        }
+    function _send(address _from, uint16 _dstChainId, bytes memory _toAddress, uint _amount, address payable _refundAddress, address _zroPaymentAddress, bytes memory _adapterParams) public payable {
+        uint256 messageFee = _debitFrom(_from, _dstChainId, _toAddress, _amount);
 
-         _debitFrom(_from, _dstChainId, _toAddress, _totalAmount);
-
-        bytes memory payload = abi.encode(_toAddress, _totalAmount);
+        bytes memory payload = abi.encode(_toAddress, _amount);
         if(useCustomAdapterParams) {
             _checkGasLimit(_dstChainId, FUNCTION_TYPE_SEND, _adapterParams, NO_EXTRA_GAS);
         } else {
@@ -65,7 +56,7 @@ contract NativeProxyOFT is ReentrancyGuard, ERC20, NonblockingLzApp, ERC165 {
         bytes memory trustedRemote = trustedRemoteLookup[_dstChainId];
         require(trustedRemote.length != 0, "NativeProxyOFT: destination chain is not a trusted source");
         lzEndpoint.send{value: messageFee}(_dstChainId, trustedRemote, payload, _refundAddress, _zroPaymentAddress, _adapterParams);
-        emit SendToChain(_dstChainId, msg.sender, _toAddress, _totalAmount);
+        emit SendToChain(_dstChainId, msg.sender, _toAddress, _amount);
     }
 
     function setUseCustomAdapterParams(bool _useCustomAdapterParams) external onlyOwner {
@@ -83,15 +74,18 @@ contract NativeProxyOFT is ReentrancyGuard, ERC20, NonblockingLzApp, ERC165 {
         require(success, "NativeProxyOFT: failed to unwrap");
     }
 
-    function _debitFrom(address, uint16, bytes memory, uint _totalAmount) internal {
-        if(balanceOf(msg.sender) < _totalAmount) {
-            require(balanceOf(msg.sender) + msg.value >= _totalAmount, "NativeProxyOFT: Insufficient msg.value");
-            uint mintAmount = _totalAmount - balanceOf(msg.sender);
+    function _debitFrom(address, uint16, bytes memory, uint _amount) internal returns (uint messageFee) {
+        if(balanceOf(msg.sender) < _amount) {
+            require(balanceOf(msg.sender) + msg.value >= _amount, "NativeProxyOFT: Insufficient msg.value");
+            uint mintAmount = _amount - balanceOf(msg.sender);
+            messageFee = msg.value - mintAmount;
             _transfer(msg.sender, address(this), balanceOf(msg.sender));
             _mint(address(this), mintAmount);
         } else {
-            _burn(msg.sender, _totalAmount);
+            messageFee = msg.value;
+            _transfer(msg.sender, address(this), _amount);
         }
+        return messageFee;
     }
 
     function _creditTo(uint16, address _toAddress, uint _amount) internal {
