@@ -8,7 +8,7 @@ import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
 import "@openzeppelin/contracts/utils/introspection/ERC165.sol";
 import "../../../lzApp/NonblockingLzApp.sol";
 
-contract NativeProxyOFT20 is ReentrancyGuard, ERC20, NonblockingLzApp, ERC165 {
+contract NativeProxyOFT20 is NonblockingLzApp, ReentrancyGuard, ERC20, ERC165 {
     using SafeERC20 for IERC20;
 
     uint public constant NO_EXTRA_GAS = 0;
