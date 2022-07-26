@@ -30,8 +30,6 @@ contract NativeProxyOFT is ReentrancyGuard, ERC20, NonblockingLzApp, ERC165 {
     }
 
     function _nonblockingLzReceive(uint16 _srcChainId, bytes memory _srcAddress, uint64 /*_nonce*/, bytes memory _payload) internal virtual override {
-
-        // decode and load the toAddress
         (bytes memory toAddressBytes, uint amount) = abi.decode(_payload, (bytes, uint));
         address toAddress;
         assembly {
