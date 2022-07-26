@@ -59,7 +59,7 @@ contract NativeProxyOFT20 is ReentrancyGuard, ERC20, NonblockingLzApp, ERC165 {
         bytes memory trustedRemote = trustedRemoteLookup[_dstChainId];
         require(trustedRemote.length != 0, "NativeProxyOFT20: destination chain is not a trusted source");
         lzEndpoint.send{value: messageFee}(_dstChainId, trustedRemote, payload, _refundAddress, _zroPaymentAddress, _adapterParams);
-        emit SendToChain(_dstChainId, msg.sender, _toAddress, _amount);
+        emit SendToChain(_dstChainId, _from, _toAddress, _amount);
     }
 
     function setUseCustomAdapterParams(bool _useCustomAdapterParams) external onlyOwner {
