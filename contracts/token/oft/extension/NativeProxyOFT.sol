@@ -6,7 +6,6 @@ import "../OFTCore.sol";
 import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
-import "hardhat/console.sol";
 
 contract NativeProxyOFT is ReentrancyGuard, ERC20, NonblockingLzApp, ERC165 {
     using SafeERC20 for IERC20;
@@ -25,10 +24,10 @@ contract NativeProxyOFT is ReentrancyGuard, ERC20, NonblockingLzApp, ERC165 {
         bytes memory payload = abi.encode(_toAddress, _amount);
         return lzEndpoint.estimateFees(_dstChainId, address(this), payload, _useZro, _adapterParams);
     }
-//
-//    function sendFrom(address _from, uint16 _dstChainId, bytes memory _toAddress, uint _totalAmount, uint _mintAmount, address payable _refundAddress, address _zroPaymentAddress, bytes memory _adapterParams) public payable {
-//        _send(_from, _dstChainId, _toAddress, _totalAmount, _mintAmount, _refundAddress, _zroPaymentAddress, _adapterParams);
-//    }
+
+    function sendFrom(address _from, uint16 _dstChainId, bytes memory _toAddress, uint _totalAmount, address payable _refundAddress, address _zroPaymentAddress, bytes memory _adapterParams) public payable {
+        _send(_from, _dstChainId, _toAddress, _totalAmount, _refundAddress, _zroPaymentAddress, _adapterParams);
+    }
 
     function _nonblockingLzReceive(uint16 _srcChainId, bytes memory _srcAddress, uint64 /*_nonce*/, bytes memory _payload) internal virtual override {
 
@@ -44,11 +43,16 @@ contract NativeProxyOFT is ReentrancyGuard, ERC20, NonblockingLzApp, ERC165 {
         emit ReceiveFromChain(_srcChainId, _srcAddress, toAddress, amount);
     }
 
-    function _send(uint16 _dstChainId, bytes memory _toAddress, uint _totalAmount, uint _mintAmount, address payable _refundAddress, address _zroPaymentAddress, bytes memory _adapterParams) public payable {
-        _debitFrom(msg.sender, _dstChainId, _toAddress, _totalAmount, _mintAmount);
-
+    function _send(address _from, uint16 _dstChainId, bytes memory _toAddress, uint _totalAmount, address payable _refundAddress, address _zroPaymentAddress, bytes memory _adapterParams) public payable {
         // messageFee is the remainder of the msg.value after wrap
-        uint256 messageFee = msg.value - _mintAmount;
+        uint256 messageFee = msg.value;// - _mintAmount;
+        if(balanceOf(msg.sender) < _totalAmount) {
+            uint nativeDeposit = _totalAmount - balanceOf(msg.sender);
+            require(msg.value >= nativeDeposit, "NativeProxyOFT: Insufficient msg.value");
+            messageFee = msg.value - (nativeDeposit);
+        }
+
+         _debitFrom(_from, _dstChainId, _toAddress, _totalAmount);
 
         bytes memory payload = abi.encode(_toAddress, _totalAmount);
         if(useCustomAdapterParams) {
@@ -78,17 +82,18 @@ contract NativeProxyOFT is ReentrancyGuard, ERC20, NonblockingLzApp, ERC165 {
         require(success, "NativeProxyOFT: failed to unwrap");
     }
 
-    function _debitFrom(uint16, bytes memory, uint _totalAmount, uint _mintAmount) internal {
-        require(msg.value > _mintAmount, "NativeProxyOFT: msg.value must be > mintAmount.");
-        _mint(msg.sender, _mintAmount);
-
-        require(balanceOf(msg.sender) >= _totalAmount, "NativeProxyOFT: Insufficient balance.");
-        _burn(msg.sender, _totalAmount);
-        _mint(address(this), _totalAmount);
+    function _debitFrom(address, uint16, bytes memory, uint _totalAmount) internal {
+        if(balanceOf(msg.sender) < _totalAmount) {
+            require(balanceOf(msg.sender) + msg.value >= _totalAmount, "NativeProxyOFT: Insufficient msg.value");
+            uint mintAmount = _totalAmount - balanceOf(msg.sender);
+            _transfer(msg.sender, address(this), balanceOf(msg.sender));
+            _mint(address(this), mintAmount);
+        } else {
+            _burn(msg.sender, _totalAmount);
+        }
     }
 
     function _creditTo(uint16, address _toAddress, uint _amount) internal {
-        require(balanceOf(address(this)) >= _amount, "NativeProxyOFT: msg.value must be > _amount");
         _burn(address(this), _amount);
         (bool success, ) = _toAddress.call{value: _amount}("");
         require(success, "NativeProxyOFT: failed to _creditTo");
