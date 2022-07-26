@@ -8,7 +8,7 @@ import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
 import "@openzeppelin/contracts/utils/introspection/ERC165.sol";
 import "../../../lzApp/NonblockingLzApp.sol";
 
-contract NativeProxyOFT is ReentrancyGuard, ERC20, NonblockingLzApp, ERC165 {
+contract NativeProxyOFT20 is ReentrancyGuard, ERC20, NonblockingLzApp, ERC165 {
     using SafeERC20 for IERC20;
 
     uint public constant NO_EXTRA_GAS = 0;
@@ -48,11 +48,11 @@ contract NativeProxyOFT is ReentrancyGuard, ERC20, NonblockingLzApp, ERC165 {
         if(useCustomAdapterParams) {
             _checkGasLimit(_dstChainId, FUNCTION_TYPE_SEND, _adapterParams, NO_EXTRA_GAS);
         } else {
-            require(_adapterParams.length == 0, "NativeProxyOFT: _adapterParams must be empty.");
+            require(_adapterParams.length == 0, "NativeProxyOFT20: _adapterParams must be empty.");
         }
 
         bytes memory trustedRemote = trustedRemoteLookup[_dstChainId];
-        require(trustedRemote.length != 0, "NativeProxyOFT: destination chain is not a trusted source");
+        require(trustedRemote.length != 0, "NativeProxyOFT20: destination chain is not a trusted source");
         lzEndpoint.send{value: messageFee}(_dstChainId, trustedRemote, payload, _refundAddress, _zroPaymentAddress, _adapterParams);
         emit SendToChain(_dstChainId, msg.sender, _toAddress, _amount);
     }
@@ -66,29 +66,62 @@ contract NativeProxyOFT is ReentrancyGuard, ERC20, NonblockingLzApp, ERC165 {
     }
 
     function withdraw(uint _amount) external nonReentrant {
-        require(balanceOf(msg.sender) >= _amount, "NativeProxyOFT: Insufficient balance.");
+        require(balanceOf(msg.sender) >= _amount, "NativeProxyOFT20: Insufficient balance.");
         _burn(msg.sender, _amount);
         (bool success, ) = msg.sender.call{value: _amount}("");
-        require(success, "NativeProxyOFT: failed to unwrap");
+        require(success, "NativeProxyOFT20: failed to unwrap");
     }
 
-    function _debitFrom(address, uint16, bytes memory, uint _amount) internal returns (uint messageFee) {
-        if(balanceOf(msg.sender) < _amount) {
-            require(balanceOf(msg.sender) + msg.value >= _amount, "NativeProxyOFT: Insufficient msg.value");
-            uint mintAmount = _amount - balanceOf(msg.sender);
+    function _debitFrom(address _from, uint16, bytes memory, uint _amount) internal returns (uint messageFee) {
+        messageFee = msg.sender == _from ? _debitMsgSender(_amount) : _debitMsgFrom(_from, _amount);
+    }
+
+    function _debitMsgSender(uint _amount) internal returns (uint messageFee) {
+        uint msgSenderBalance = balanceOf(msg.sender);
+
+        if(msgSenderBalance < _amount) {
+            require(msgSenderBalance + msg.value >= _amount, "NativeProxyOFT20: Insufficient msg.value");
+
+            // user can cover difference with additional msg.value ie. wrapping
+            uint mintAmount = _amount - msgSenderBalance;
+            _mint(address(msg.sender), mintAmount);
+
             messageFee = msg.value - mintAmount;
-            _transfer(msg.sender, address(this), balanceOf(msg.sender));
-            _mint(address(this), mintAmount);
         } else {
             messageFee = msg.value;
-            _transfer(msg.sender, address(this), _amount);
         }
+
+        _transfer(msg.sender, address(this), _amount);
+        return messageFee;
+    }
+
+    function _debitMsgFrom(address _from, uint _amount) internal returns (uint messageFee) {
+        uint msgFromBalance = balanceOf(_from);
+
+        if(msgFromBalance < _amount) {
+            require(msgFromBalance + msg.value >= _amount, "NativeProxyOFT20: Insufficient msg.value");
+
+            // user can cover difference with additional msg.value ie. wrapping
+            uint mintAmount = _amount - msgFromBalance;
+            _mint(address(msg.sender), mintAmount);
+
+            messageFee = msg.value - mintAmount;
+
+            _amount = msgFromBalance;
+
+            _transfer(msg.sender, address(this), mintAmount);
+        } else {
+            messageFee = msg.value;
+        }
+
+        _spendAllowance(_from, msg.sender, _amount);
+        _transfer(_from, address(this), _amount);
         return messageFee;
     }
 
     function _creditTo(uint16, address _toAddress, uint _amount) internal {
         _burn(address(this), _amount);
         (bool success, ) = _toAddress.call{value: _amount}("");
-        require(success, "NativeProxyOFT: failed to _creditTo");
+        require(success, "NativeProxyOFT20: failed to _creditTo");
     }
 }
