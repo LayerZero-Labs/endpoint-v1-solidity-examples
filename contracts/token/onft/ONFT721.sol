@@ -23,7 +23,7 @@ contract ONFT721 is ONFT721Core, ERC721, IONFT721 {
 
     function _creditTo(uint16, address _toAddress, uint _tokenId) internal virtual override {
         require(!_exists(_tokenId) || (_exists(_tokenId) && ERC721.ownerOf(_tokenId) == address(this)));
-        if(!_exists(_tokenId)) {
+        if (!_exists(_tokenId)) {
             _safeMint(_toAddress, _tokenId);
         } else {
             _transfer(address(this), _toAddress, _tokenId);

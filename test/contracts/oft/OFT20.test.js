@@ -35,7 +35,7 @@ describe("OFT20: ", function () {
 
         //set destination min gas
         await OFTSrc.setMinDstGasLookup(chainIdDst, parseInt(await OFTSrc.FUNCTION_TYPE_SEND()), 225000)
-        await OFTSrc.setUseCustomAdapterParams(true);
+        await OFTSrc.setUseCustomAdapterParams(true)
     })
 
     describe("setting up stored payload", async function () {

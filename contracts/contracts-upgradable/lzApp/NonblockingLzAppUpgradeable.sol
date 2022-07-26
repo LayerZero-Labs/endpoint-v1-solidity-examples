@@ -10,7 +10,6 @@ import "./LzAppUpgradeable.sol";
  * NOTE: if the srcAddress is not configured properly, it will still block the message pathway from (srcChainId, srcAddress)
  */
 abstract contract NonblockingLzAppUpgradeable is Initializable, LzAppUpgradeable {
-
     function __NonblockingLzAppUpgradeable_init(address _endpoint) internal onlyInitializing {
         __NonblockingLzAppUpgradeable_init_unchained(_endpoint);
     }
@@ -60,5 +59,5 @@ abstract contract NonblockingLzAppUpgradeable is Initializable, LzAppUpgradeable
      * variables without shifting down storage in the inheritance chain.
      * See https://docs.openzeppelin.com/contracts/4.x/upgradeable#storage_gaps
      */
-    uint256[50] private __gap;
+    uint[50] private __gap;
 }

@@ -7,7 +7,6 @@ import "../../lzApp/NonblockingLzApp.sol";
 import "@openzeppelin/contracts/utils/introspection/ERC165.sol";
 
 abstract contract ONFT721Core is NonblockingLzApp, ERC165, IONFT721Core {
-
     uint public constant NO_EXTRA_GAS = 0;
     uint public constant FUNCTION_TYPE_SEND = 1;
     bool public useCustomAdapterParams;
@@ -33,7 +32,7 @@ abstract contract ONFT721Core is NonblockingLzApp, ERC165, IONFT721Core {
 
         bytes memory payload = abi.encode(_toAddress, _tokenId);
 
-        if(useCustomAdapterParams) {
+        if (useCustomAdapterParams) {
             _checkGasLimit(_dstChainId, FUNCTION_TYPE_SEND, _adapterParams, NO_EXTRA_GAS);
         } else {
             require(_adapterParams.length == 0, "LzApp: _adapterParams must be empty.");
@@ -43,7 +42,12 @@ abstract contract ONFT721Core is NonblockingLzApp, ERC165, IONFT721Core {
         emit SendToChain(_dstChainId, _from, _toAddress, _tokenId);
     }
 
-    function _nonblockingLzReceive(uint16 _srcChainId, bytes memory _srcAddress, uint64 /*_nonce*/, bytes memory _payload) internal virtual override {
+    function _nonblockingLzReceive(
+        uint16 _srcChainId,
+        bytes memory _srcAddress,
+        uint64, /*_nonce*/
+        bytes memory _payload
+    ) internal virtual override {
         (bytes memory toAddressBytes, uint tokenId) = abi.decode(_payload, (bytes, uint));
         address toAddress;
         assembly {

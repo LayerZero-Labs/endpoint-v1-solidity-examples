@@ -21,14 +21,8 @@ describe("ONFT721Upgradeable: ", function () {
         lzEndpointMockB = await LZEndpointMock.deploy(chainId_B)
 
         // generate a proxy to allow it to go ONFT
-        ONFT_A = await upgrades.deployProxy(
-            ONFT,
-            [name, symbol, lzEndpointMockA.address],
-        );
-        ONFT_B = await upgrades.deployProxy(
-            ONFT,
-            [name, symbol, lzEndpointMockB.address],
-        );
+        ONFT_A = await upgrades.deployProxy(ONFT, [name, symbol, lzEndpointMockA.address])
+        ONFT_B = await upgrades.deployProxy(ONFT, [name, symbol, lzEndpointMockB.address])
 
         // wire the lz endpoints to guide msgs back and forth
         lzEndpointMockA.setDestLzEndpoint(ONFT_B.address, lzEndpointMockB.address)
@@ -46,16 +40,13 @@ describe("ONFT721Upgradeable: ", function () {
         // verify the owner of the token is on the source chain
         expect(await ONFT_A.ownerOf(tokenId)).to.be.equal(owner.address)
 
-
         // token doesn't exist on other chain
         await expect(ONFT_B.ownerOf(tokenId)).to.be.revertedWith("ERC721: owner query for nonexistent token")
-
 
         // can transfer token on srcChain as regular erC721
         await ONFT_A.transferFrom(owner.address, warlock.address, tokenId)
 
         expect(await ONFT_A.ownerOf(tokenId)).to.be.equal(warlock.address)
-
 
         // approve the proxy to swap your token
         await ONFT_A.connect(warlock).approve(ONFT_A.address, tokenId)
@@ -90,7 +81,6 @@ describe("ONFT721Upgradeable: ", function () {
 
         // token is burned on the sending chain
         expect(await ONFT_B.ownerOf(tokenId)).to.be.equal(ONFT_B.address)
-
     })
 
     it("sendFrom() - reverts if not owner on non proxy chain", async function () {

@@ -11,7 +11,6 @@ import "../interfaces/ILayerZeroEndpoint.sol";
  * a generic LzReceiver implementation
  */
 abstract contract LzApp is Ownable, ILayerZeroReceiver, ILayerZeroUserApplicationConfig {
-
     ILayerZeroEndpoint public immutable lzEndpoint;
     mapping(uint16 => bytes) public trustedRemoteLookup;
     mapping(uint16 => mapping(uint => uint)) public minDstGasLookup;

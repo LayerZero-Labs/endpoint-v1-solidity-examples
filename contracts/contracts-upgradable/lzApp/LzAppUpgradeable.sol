@@ -11,7 +11,6 @@ import "../interfaces/ILayerZeroEndpointUpgradeable.sol";
  * a generic LzReceiver implementation
  */
 abstract contract LzAppUpgradeable is Initializable, OwnableUpgradeable, ILayerZeroReceiverUpgradeable, ILayerZeroUserApplicationConfigUpgradeable {
-
     ILayerZeroEndpointUpgradeable public lzEndpoint;
     mapping(uint16 => bytes) public trustedRemoteLookup;
     mapping(uint16 => mapping(uint => uint)) public minDstGasLookup;
@@ -103,5 +102,5 @@ abstract contract LzAppUpgradeable is Initializable, OwnableUpgradeable, ILayerZ
      * variables without shifting down storage in the inheritance chain.
      * See https://docs.openzeppelin.com/contracts/4.x/upgradeable#storage_gaps
      */
-    uint256[50] private __gap;
+    uint[50] private __gap;
 }

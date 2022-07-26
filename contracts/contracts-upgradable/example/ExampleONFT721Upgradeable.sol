@@ -6,7 +6,6 @@ import "hardhat-deploy/solc_0.8/proxy/Proxied.sol";
 import "../token/ONFT721/ONFT721Upgradeable.sol";
 
 contract ExampleONFT721Upgradeable is Initializable, ONFT721Upgradeable, Proxied {
-
     function initialize(string memory _name, string memory _symbol, address _lzEndpoint) public initializer {
         __ONFT721UpgradeableMock_init(_name, _symbol, _lzEndpoint);
     }
@@ -16,8 +15,7 @@ contract ExampleONFT721Upgradeable is Initializable, ONFT721Upgradeable, Proxied
         __ONFT721Upgradeable_init(_name, _symbol, _lzEndpoint);
     }
 
-    function __ONFT721UpgradeableMock_init_unchained(string memory _name, string memory _symbol, address _lzEndpoint) internal onlyInitializing {
-    }
+    function __ONFT721UpgradeableMock_init_unchained(string memory _name, string memory _symbol, address _lzEndpoint) internal onlyInitializing {}
 
     function mint(address _tokenOwner, uint _newId) external payable {
         _safeMint(_tokenOwner, _newId);
@@ -28,5 +26,5 @@ contract ExampleONFT721Upgradeable is Initializable, ONFT721Upgradeable, Proxied
      * variables without shifting down storage in the inheritance chain.
      * See https://docs.openzeppelin.com/contracts/4.x/upgradeable#storage_gaps
      */
-    uint256[50] private __gap;
+    uint[50] private __gap;
 }

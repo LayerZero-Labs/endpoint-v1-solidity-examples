@@ -7,7 +7,6 @@ import "../../lzApp/NonblockingLzApp.sol";
 import "@openzeppelin/contracts/utils/introspection/ERC165.sol";
 
 abstract contract ONFT1155Core is NonblockingLzApp, ERC165, IONFT1155Core {
-
     uint public constant NO_EXTRA_GAS = 0;
     uint public constant FUNCTION_TYPE_SEND = 1;
     uint public constant FUNCTION_TYPE_SEND_BATCH = 2;
@@ -40,7 +39,7 @@ abstract contract ONFT1155Core is NonblockingLzApp, ERC165, IONFT1155Core {
         _debitFrom(_from, _dstChainId, _toAddress, _tokenIds, _amounts);
         bytes memory payload = abi.encode(_toAddress, _tokenIds, _amounts);
         if (_tokenIds.length == 1) {
-            if(useCustomAdapterParams) {
+            if (useCustomAdapterParams) {
                 _checkGasLimit(_dstChainId, FUNCTION_TYPE_SEND, _adapterParams, NO_EXTRA_GAS);
             } else {
                 require(_adapterParams.length == 0, "LzApp: _adapterParams must be empty.");
@@ -48,7 +47,7 @@ abstract contract ONFT1155Core is NonblockingLzApp, ERC165, IONFT1155Core {
             _lzSend(_dstChainId, payload, _refundAddress, _zroPaymentAddress, _adapterParams);
             emit SendToChain(_dstChainId, _from, _toAddress, _tokenIds[0], _amounts[0]);
         } else if (_tokenIds.length > 1) {
-            if(useCustomAdapterParams) {
+            if (useCustomAdapterParams) {
                 _checkGasLimit(_dstChainId, FUNCTION_TYPE_SEND_BATCH, _adapterParams, NO_EXTRA_GAS);
             } else {
                 require(_adapterParams.length == 0, "LzApp: _adapterParams must be empty.");
@@ -58,7 +57,12 @@ abstract contract ONFT1155Core is NonblockingLzApp, ERC165, IONFT1155Core {
         }
     }
 
-    function _nonblockingLzReceive(uint16 _srcChainId, bytes memory _srcAddress, uint64 /*_nonce*/, bytes memory _payload) internal virtual override {
+    function _nonblockingLzReceive(
+        uint16 _srcChainId,
+        bytes memory _srcAddress,
+        uint64, /*_nonce*/
+        bytes memory _payload
+    ) internal virtual override {
         // decode and load the toAddress
         (bytes memory toAddressBytes, uint[] memory tokenIds, uint[] memory amounts) = abi.decode(_payload, (bytes, uint[], uint[]));
         address toAddress;

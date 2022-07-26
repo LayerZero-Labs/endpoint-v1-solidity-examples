@@ -1,5 +1,5 @@
 const { expect } = require("chai")
-const { ethers, deployments, upgrades} = require("hardhat")
+const { ethers, deployments, upgrades } = require("hardhat")
 
 describe("OFT20Upgradeable: ", function () {
     const chainIdSrc = 1
@@ -8,7 +8,17 @@ describe("OFT20Upgradeable: ", function () {
     const symbol = "OFT"
     const globalSupply = ethers.utils.parseUnits("1000000", 18)
 
-    let deployer, lzEndpointSrcMock, lzEndpointDstMock, OFTSrc, OFTDst, LZEndpointMock, OFT20Upgradeable, proxyOwner, OFT20UpgradeableContractFactory, LzLibFactory, lzLib
+    let deployer,
+        lzEndpointSrcMock,
+        lzEndpointDstMock,
+        OFTSrc,
+        OFTDst,
+        LZEndpointMock,
+        OFT20Upgradeable,
+        proxyOwner,
+        OFT20UpgradeableContractFactory,
+        LzLibFactory,
+        lzLib
 
     before(async function () {
         deployer = (await ethers.getSigners())[0]
@@ -22,14 +32,8 @@ describe("OFT20Upgradeable: ", function () {
         lzEndpointDstMock = await LZEndpointMock.deploy(chainIdDst)
 
         // generate a proxy to allow it to go ONFT
-        OFTSrc = await upgrades.deployProxy(
-            OFT20UpgradeableContractFactory,
-            [name, symbol, globalSupply, lzEndpointSrcMock.address],
-        );
-        OFTDst = await upgrades.deployProxy(
-            OFT20UpgradeableContractFactory,
-            [name, symbol, 0, lzEndpointDstMock.address],
-        );
+        OFTSrc = await upgrades.deployProxy(OFT20UpgradeableContractFactory, [name, symbol, globalSupply, lzEndpointSrcMock.address])
+        OFTDst = await upgrades.deployProxy(OFT20UpgradeableContractFactory, [name, symbol, 0, lzEndpointDstMock.address])
 
         // internal bookkeeping for endpoints (not part of a real deploy, just for this test)
         lzEndpointSrcMock.setDestLzEndpoint(OFTDst.address, lzEndpointDstMock.address)
@@ -37,7 +41,7 @@ describe("OFT20Upgradeable: ", function () {
 
         //set destination min gas
         await OFTSrc.setMinDstGasLookup(chainIdDst, parseInt(await OFTSrc.FUNCTION_TYPE_SEND()), 220000)
-        await OFTSrc.setUseCustomAdapterParams(true);
+        await OFTSrc.setUseCustomAdapterParams(true)
 
         // set each contracts source address so it can send to each other
         await OFTSrc.setTrustedRemote(chainIdDst, OFTDst.address) // for A, set B

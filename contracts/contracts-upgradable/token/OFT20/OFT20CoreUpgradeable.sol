@@ -7,7 +7,6 @@ import "@openzeppelin/contracts-upgradeable/utils/introspection/ERC165Upgradeabl
 import "../../lzApp/NonblockingLzAppUpgradeable.sol";
 
 abstract contract OFT20CoreUpgradeable is Initializable, NonblockingLzAppUpgradeable, ERC165Upgradeable, IOFT20CoreUpgradeable {
-
     uint public constant NO_EXTRA_GAS = 0;
     uint public constant FUNCTION_TYPE_SEND = 1;
     bool public useCustomAdapterParams;
@@ -51,7 +50,7 @@ abstract contract OFT20CoreUpgradeable is Initializable, NonblockingLzAppUpgrade
         _debitFrom(_from, _dstChainId, _toAddress, _amount);
 
         bytes memory payload = abi.encode(_toAddress, _amount);
-        if(useCustomAdapterParams) {
+        if (useCustomAdapterParams) {
             _checkGasLimit(_dstChainId, FUNCTION_TYPE_SEND, _adapterParams, NO_EXTRA_GAS);
         } else {
             require(_adapterParams.length == 0, "LzApp: _adapterParams must be empty.");
@@ -75,5 +74,5 @@ abstract contract OFT20CoreUpgradeable is Initializable, NonblockingLzAppUpgrade
      * variables without shifting down storage in the inheritance chain.
      * See https://docs.openzeppelin.com/contracts/4.x/upgradeable#storage_gaps
      */
-    uint256[50] private __gap;
+    uint[50] private __gap;
 }

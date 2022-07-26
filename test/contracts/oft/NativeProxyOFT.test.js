@@ -42,14 +42,14 @@ describe("NativeProxyOFT20: ", function () {
         await nativeProxyOFT.setTrustedRemote(otherChainId, otherOFT.address)
         await otherOFT.setTrustedRemote(baseChainId, nativeProxyOFT.address)
 
-        await nativeProxyOFT.setUseCustomAdapterParams(true);
+        await nativeProxyOFT.setUseCustomAdapterParams(true)
         // ... the deployed OFTs are ready now!
     })
 
     it("sendFrom() - tokens from main to other chain using default", async function () {
         // ensure they're both allocated initial amounts
-        let ownerBalance = await ethers.provider.getBalance(owner.address);
-        let aliceBalance = await ethers.provider.getBalance(alice.address);
+        let ownerBalance = await ethers.provider.getBalance(owner.address)
+        let aliceBalance = await ethers.provider.getBalance(alice.address)
         expect(await nativeProxyOFT.balanceOf(owner.address)).to.equal(0)
         expect(await otherOFT.balanceOf(owner.address)).to.equal(0)
         expect(await ethers.provider.getBalance(nativeProxyOFT.address)).to.be.equal(0)
@@ -67,8 +67,8 @@ describe("NativeProxyOFT20: ", function () {
         let totalAmount = ethers.utils.parseUnits("8", 18)
 
         let messageFee = ethers.utils.parseUnits("3", 18) // conversion to units of wei
-        await nativeProxyOFT.setUseCustomAdapterParams(false);
-        await otherOFT.setUseCustomAdapterParams(false);
+        await nativeProxyOFT.setUseCustomAdapterParams(false)
+        await otherOFT.setUseCustomAdapterParams(false)
 
         await nativeProxyOFT.sendFrom(
             owner.address,
@@ -91,7 +91,7 @@ describe("NativeProxyOFT20: ", function () {
         expect(await nativeProxyOFT.balanceOf(owner.address)).to.be.equal(leftOverAmount)
         expect(await otherOFT.balanceOf(owner.address)).to.be.equal(totalAmount)
 
-        let ownerBalance2 = await ethers.provider.getBalance(owner.address);
+        let ownerBalance2 = await ethers.provider.getBalance(owner.address)
         messageFee = ethers.utils.parseEther("0.01")
 
         await otherOFT.sendFrom(
@@ -105,7 +105,7 @@ describe("NativeProxyOFT20: ", function () {
             { value: messageFee } // pass a msg.value to pay the LayerZero message fee
         )
 
-        transFee = ownerBalance2.sub(await ethers.provider.getBalance(owner.address)).sub(messageFee);
+        transFee = ownerBalance2.sub(await ethers.provider.getBalance(owner.address)).sub(messageFee)
 
         expect(await ethers.provider.getBalance(alice.address)).to.be.equal(aliceBalance.add(totalAmount))
         expect(await ethers.provider.getBalance(owner.address)).to.be.equal(ownerBalance2.sub(messageFee).sub(transFee))
@@ -115,8 +115,8 @@ describe("NativeProxyOFT20: ", function () {
 
     it("sendFrom() - with enough native", async function () {
         // ensure they're both allocated initial amounts
-        let ownerBalance = await ethers.provider.getBalance(owner.address);
-        let aliceBalance = await ethers.provider.getBalance(alice.address);
+        let ownerBalance = await ethers.provider.getBalance(owner.address)
+        let aliceBalance = await ethers.provider.getBalance(alice.address)
         expect(await nativeProxyOFT.balanceOf(owner.address)).to.equal(0)
         expect(await otherOFT.balanceOf(owner.address)).to.equal(0)
         expect(await ethers.provider.getBalance(nativeProxyOFT.address)).to.be.equal(0)
@@ -134,8 +134,8 @@ describe("NativeProxyOFT20: ", function () {
         let totalAmount = ethers.utils.parseUnits("4", 18)
 
         let messageFee = ethers.utils.parseUnits("1", 18) // conversion to units of wei
-        await nativeProxyOFT.setUseCustomAdapterParams(false);
-        await otherOFT.setUseCustomAdapterParams(false);
+        await nativeProxyOFT.setUseCustomAdapterParams(false)
+        await otherOFT.setUseCustomAdapterParams(false)
         await nativeProxyOFT.sendFrom(
             owner.address,
             otherChainId, // destination chainId
@@ -157,8 +157,8 @@ describe("NativeProxyOFT20: ", function () {
 
     it("sendFrom() - from != sender with enough native", async function () {
         // ensure they're both allocated initial amounts
-        let ownerBalance = await ethers.provider.getBalance(owner.address);
-        let aliceBalance = await ethers.provider.getBalance(alice.address);
+        let ownerBalance = await ethers.provider.getBalance(owner.address)
+        let aliceBalance = await ethers.provider.getBalance(alice.address)
         expect(await nativeProxyOFT.balanceOf(owner.address)).to.equal(0)
         expect(await otherOFT.balanceOf(owner.address)).to.equal(0)
         expect(await ethers.provider.getBalance(nativeProxyOFT.address)).to.be.equal(0)
@@ -179,8 +179,8 @@ describe("NativeProxyOFT20: ", function () {
         await nativeProxyOFT.approve(alice.address, totalAmount)
 
         let messageFee = ethers.utils.parseUnits("1", 18) // conversion to units of wei
-        await nativeProxyOFT.setUseCustomAdapterParams(false);
-        await otherOFT.setUseCustomAdapterParams(false);
+        await nativeProxyOFT.setUseCustomAdapterParams(false)
+        await otherOFT.setUseCustomAdapterParams(false)
         await nativeProxyOFT.connect(alice).sendFrom(
             owner.address,
             otherChainId, // destination chainId
@@ -202,8 +202,8 @@ describe("NativeProxyOFT20: ", function () {
 
     it("sendFrom() - from != sender with addition msg.value", async function () {
         // ensure they're both allocated initial amounts
-        let ownerBalance = await ethers.provider.getBalance(owner.address);
-        let aliceBalance = await ethers.provider.getBalance(alice.address);
+        let ownerBalance = await ethers.provider.getBalance(owner.address)
+        let aliceBalance = await ethers.provider.getBalance(alice.address)
         expect(await nativeProxyOFT.balanceOf(owner.address)).to.equal(0)
         expect(await otherOFT.balanceOf(owner.address)).to.equal(0)
         expect(await ethers.provider.getBalance(nativeProxyOFT.address)).to.be.equal(0)
@@ -224,8 +224,8 @@ describe("NativeProxyOFT20: ", function () {
         await nativeProxyOFT.approve(alice.address, totalAmount)
 
         let messageFee = ethers.utils.parseUnits("2", 18) // conversion to units of wei
-        await nativeProxyOFT.setUseCustomAdapterParams(false);
-        await otherOFT.setUseCustomAdapterParams(false);
+        await nativeProxyOFT.setUseCustomAdapterParams(false)
+        await otherOFT.setUseCustomAdapterParams(false)
         await nativeProxyOFT.connect(alice).sendFrom(
             owner.address,
             otherChainId, // destination chainId
@@ -247,8 +247,8 @@ describe("NativeProxyOFT20: ", function () {
 
     it("sendFrom() - from != sender with not enough native", async function () {
         // ensure they're both allocated initial amounts
-        let ownerBalance = await ethers.provider.getBalance(owner.address);
-        let aliceBalance = await ethers.provider.getBalance(alice.address);
+        let ownerBalance = await ethers.provider.getBalance(owner.address)
+        let aliceBalance = await ethers.provider.getBalance(alice.address)
         expect(await nativeProxyOFT.balanceOf(owner.address)).to.equal(0)
         expect(await otherOFT.balanceOf(owner.address)).to.equal(0)
         expect(await ethers.provider.getBalance(nativeProxyOFT.address)).to.be.equal(0)
@@ -269,24 +269,26 @@ describe("NativeProxyOFT20: ", function () {
         await nativeProxyOFT.approve(alice.address, totalAmount)
 
         let messageFee = ethers.utils.parseUnits("0.5", 18) // conversion to units of wei
-        await nativeProxyOFT.setUseCustomAdapterParams(false);
-        await otherOFT.setUseCustomAdapterParams(false);
-        await expect (nativeProxyOFT.connect(alice).sendFrom(
-            owner.address,
-            otherChainId, // destination chainId
-            owner.address, // destination address to send tokens to
-            totalAmount, // quantity of tokens to send (in units of wei)
-            owner.address, // LayerZero refund address (if too much fee is sent gets refunded)
-            ethers.constants.AddressZero, // future parameter
-            "0x", // adapterParameters empty bytes specifies default settings
-            { value: messageFee } // pass a msg.value to pay the LayerZero message fee
-        )).to.be.revertedWith("NativeProxyOFT20: Insufficient msg.value")
+        await nativeProxyOFT.setUseCustomAdapterParams(false)
+        await otherOFT.setUseCustomAdapterParams(false)
+        await expect(
+            nativeProxyOFT.connect(alice).sendFrom(
+                owner.address,
+                otherChainId, // destination chainId
+                owner.address, // destination address to send tokens to
+                totalAmount, // quantity of tokens to send (in units of wei)
+                owner.address, // LayerZero refund address (if too much fee is sent gets refunded)
+                ethers.constants.AddressZero, // future parameter
+                "0x", // adapterParameters empty bytes specifies default settings
+                { value: messageFee } // pass a msg.value to pay the LayerZero message fee
+            )
+        ).to.be.revertedWith("NativeProxyOFT20: Insufficient msg.value")
     })
 
     it("sendFrom() - from != sender not approved expect revert", async function () {
         // ensure they're both allocated initial amounts
-        let ownerBalance = await ethers.provider.getBalance(owner.address);
-        let aliceBalance = await ethers.provider.getBalance(alice.address);
+        let ownerBalance = await ethers.provider.getBalance(owner.address)
+        let aliceBalance = await ethers.provider.getBalance(alice.address)
         expect(await nativeProxyOFT.balanceOf(owner.address)).to.equal(0)
         expect(await otherOFT.balanceOf(owner.address)).to.equal(0)
         expect(await ethers.provider.getBalance(nativeProxyOFT.address)).to.be.equal(0)
@@ -307,24 +309,26 @@ describe("NativeProxyOFT20: ", function () {
         // await nativeProxyOFT.approve(alice.address, totalAmount)
 
         let messageFee = ethers.utils.parseUnits("1", 18) // conversion to units of wei
-        await nativeProxyOFT.setUseCustomAdapterParams(false);
-        await otherOFT.setUseCustomAdapterParams(false);
-        await expect (nativeProxyOFT.connect(alice).sendFrom(
-            owner.address,
-            otherChainId, // destination chainId
-            owner.address, // destination address to send tokens to
-            totalAmount, // quantity of tokens to send (in units of wei)
-            owner.address, // LayerZero refund address (if too much fee is sent gets refunded)
-            ethers.constants.AddressZero, // future parameter
-            "0x", // adapterParameters empty bytes specifies default settings
-            { value: messageFee } // pass a msg.value to pay the LayerZero message fee
-        )).to.be.revertedWith("ERC20: insufficient allowance")
+        await nativeProxyOFT.setUseCustomAdapterParams(false)
+        await otherOFT.setUseCustomAdapterParams(false)
+        await expect(
+            nativeProxyOFT.connect(alice).sendFrom(
+                owner.address,
+                otherChainId, // destination chainId
+                owner.address, // destination address to send tokens to
+                totalAmount, // quantity of tokens to send (in units of wei)
+                owner.address, // LayerZero refund address (if too much fee is sent gets refunded)
+                ethers.constants.AddressZero, // future parameter
+                "0x", // adapterParameters empty bytes specifies default settings
+                { value: messageFee } // pass a msg.value to pay the LayerZero message fee
+            )
+        ).to.be.revertedWith("ERC20: insufficient allowance")
     })
 
     it("sendFrom() - with insufficient value and expect revert", async function () {
         // ensure they're both allocated initial amounts
-        let ownerBalance = await ethers.provider.getBalance(owner.address);
-        let aliceBalance = await ethers.provider.getBalance(alice.address);
+        let ownerBalance = await ethers.provider.getBalance(owner.address)
+        let aliceBalance = await ethers.provider.getBalance(alice.address)
         expect(await nativeProxyOFT.balanceOf(owner.address)).to.equal(0)
         expect(await otherOFT.balanceOf(owner.address)).to.equal(0)
         expect(await ethers.provider.getBalance(nativeProxyOFT.address)).to.be.equal(0)
@@ -342,18 +346,20 @@ describe("NativeProxyOFT20: ", function () {
         let totalAmount = ethers.utils.parseUnits("8", 18)
 
         let messageFee = ethers.utils.parseUnits("3", 18) // conversion to units of wei
-        await nativeProxyOFT.setUseCustomAdapterParams(false);
-        await otherOFT.setUseCustomAdapterParams(false);
-        await expect(nativeProxyOFT.sendFrom(
-            owner.address,
-            otherChainId, // destination chainId
-            owner.address, // destination address to send tokens to
-            totalAmount, // quantity of tokens to send (in units of wei)
-            owner.address, // LayerZero refund address (if too much fee is sent gets refunded)
-            ethers.constants.AddressZero, // future parameter
-            "0x", // adapterParameters empty bytes specifies default settings
-            { value: messageFee } // pass a msg.value to pay the LayerZero message fee
-        )).to.be.revertedWith("NativeProxyOFT20: Insufficient msg.value")
+        await nativeProxyOFT.setUseCustomAdapterParams(false)
+        await otherOFT.setUseCustomAdapterParams(false)
+        await expect(
+            nativeProxyOFT.sendFrom(
+                owner.address,
+                otherChainId, // destination chainId
+                owner.address, // destination address to send tokens to
+                totalAmount, // quantity of tokens to send (in units of wei)
+                owner.address, // LayerZero refund address (if too much fee is sent gets refunded)
+                ethers.constants.AddressZero, // future parameter
+                "0x", // adapterParameters empty bytes specifies default settings
+                { value: messageFee } // pass a msg.value to pay the LayerZero message fee
+            )
+        ).to.be.revertedWith("NativeProxyOFT20: Insufficient msg.value")
     })
 
     it("sendFrom() - tokens from main to other chain using adapterParam", async function () {
@@ -420,7 +426,7 @@ describe("NativeProxyOFT20: ", function () {
     })
 
     it("wrap() and unwrap()", async function () {
-        let ownerBalance = await ethers.provider.getBalance(owner.address);
+        let ownerBalance = await ethers.provider.getBalance(owner.address)
         expect(await ethers.provider.getBalance(nativeProxyOFT.address)).to.equal(0)
         expect(await nativeProxyOFT.balanceOf(owner.address)).to.equal(0)
 
@@ -442,7 +448,7 @@ describe("NativeProxyOFT20: ", function () {
     })
 
     it("wrap() and unwrap() expect revert", async function () {
-        let ownerBalance = await ethers.provider.getBalance(owner.address);
+        let ownerBalance = await ethers.provider.getBalance(owner.address)
         expect(await ethers.provider.getBalance(nativeProxyOFT.address)).to.equal(0)
         expect(await nativeProxyOFT.balanceOf(owner.address)).to.equal(0)
 

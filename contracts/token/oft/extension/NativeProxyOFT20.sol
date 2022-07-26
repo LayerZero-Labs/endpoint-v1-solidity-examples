@@ -29,7 +29,12 @@ contract NativeProxyOFT20 is ReentrancyGuard, ERC20, NonblockingLzApp, ERC165 {
         _send(_from, _dstChainId, _toAddress, _amount, _refundAddress, _zroPaymentAddress, _adapterParams);
     }
 
-    function _nonblockingLzReceive(uint16 _srcChainId, bytes memory _srcAddress, uint64 /*_nonce*/, bytes memory _payload) internal virtual override {
+    function _nonblockingLzReceive(
+        uint16 _srcChainId,
+        bytes memory _srcAddress,
+        uint64, /*_nonce*/
+        bytes memory _payload
+    ) internal virtual override {
         (bytes memory toAddressBytes, uint amount) = abi.decode(_payload, (bytes, uint));
         address toAddress;
         assembly {
@@ -42,10 +47,10 @@ contract NativeProxyOFT20 is ReentrancyGuard, ERC20, NonblockingLzApp, ERC165 {
     }
 
     function _send(address _from, uint16 _dstChainId, bytes memory _toAddress, uint _amount, address payable _refundAddress, address _zroPaymentAddress, bytes memory _adapterParams) public payable {
-        uint256 messageFee = _debitFrom(_from, _dstChainId, _toAddress, _amount);
+        uint messageFee = _debitFrom(_from, _dstChainId, _toAddress, _amount);
 
         bytes memory payload = abi.encode(_toAddress, _amount);
-        if(useCustomAdapterParams) {
+        if (useCustomAdapterParams) {
             _checkGasLimit(_dstChainId, FUNCTION_TYPE_SEND, _adapterParams, NO_EXTRA_GAS);
         } else {
             require(_adapterParams.length == 0, "NativeProxyOFT20: _adapterParams must be empty.");
@@ -79,7 +84,7 @@ contract NativeProxyOFT20 is ReentrancyGuard, ERC20, NonblockingLzApp, ERC165 {
     function _debitMsgSender(uint _amount) internal returns (uint messageFee) {
         uint msgSenderBalance = balanceOf(msg.sender);
 
-        if(msgSenderBalance < _amount) {
+        if (msgSenderBalance < _amount) {
             require(msgSenderBalance + msg.value >= _amount, "NativeProxyOFT20: Insufficient msg.value");
 
             // user can cover difference with additional msg.value ie. wrapping
@@ -98,7 +103,7 @@ contract NativeProxyOFT20 is ReentrancyGuard, ERC20, NonblockingLzApp, ERC165 {
     function _debitMsgFrom(address _from, uint _amount) internal returns (uint messageFee) {
         uint msgFromBalance = balanceOf(_from);
 
-        if(msgFromBalance < _amount) {
+        if (msgFromBalance < _amount) {
             require(msgFromBalance + msg.value >= _amount, "NativeProxyOFT20: Insufficient msg.value");
 
             // user can cover difference with additional msg.value ie. wrapping

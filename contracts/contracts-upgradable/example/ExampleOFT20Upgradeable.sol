@@ -6,7 +6,6 @@ import "hardhat-deploy/solc_0.8/proxy/Proxied.sol";
 import "../token/OFT20/OFT20Upgradeable.sol";
 
 contract ExampleOFT20Upgradeable is Initializable, OFT20Upgradeable, Proxied {
-
     function initialize(string memory _name, string memory _symbol, uint _initialSupply, address _lzEndpoint) public initializer {
         __ExampleOFT20Upgradeable_init(_name, _symbol, _initialSupply, _lzEndpoint);
     }
@@ -26,5 +25,5 @@ contract ExampleOFT20Upgradeable is Initializable, OFT20Upgradeable, Proxied {
      * variables without shifting down storage in the inheritance chain.
      * See https://docs.openzeppelin.com/contracts/4.x/upgradeable#storage_gaps
      */
-    uint256[50] private __gap;
+    uint[50] private __gap;
 }

@@ -11,14 +11,12 @@ import "./IONFT721Upgradeable.sol";
 // NOTE: this ONFT contract has no public minting logic.
 // must implement your own minting logic in child classes
 contract ONFT721Upgradeable is Initializable, ONFT721CoreUpgradeable, ERC721Upgradeable, IONFT721Upgradeable {
-
     function __ONFT721Upgradeable_init(string memory _name, string memory _symbol, address _lzEndpoint) internal onlyInitializing {
         __ERC721_init_unchained(_name, _symbol);
         __ONFT721CoreUpgradeable_init_unchained(_lzEndpoint);
     }
 
-    function __ONFT721Upgradeable_init_unchained(string memory _name, string memory _symbol, address _lzEndpoint) internal onlyInitializing {
-    }
+    function __ONFT721Upgradeable_init_unchained(string memory _name, string memory _symbol, address _lzEndpoint) internal onlyInitializing {}
 
     function supportsInterface(bytes4 interfaceId) public view virtual override(ONFT721CoreUpgradeable, ERC721Upgradeable, IERC165Upgradeable) returns (bool) {
         return interfaceId == type(IONFT721Upgradeable).interfaceId || super.supportsInterface(interfaceId);
@@ -32,7 +30,7 @@ contract ONFT721Upgradeable is Initializable, ONFT721CoreUpgradeable, ERC721Upgr
 
     function _creditTo(uint16, address _toAddress, uint _tokenId) internal virtual override {
         require(!_exists(_tokenId) || (_exists(_tokenId) && ERC721Upgradeable.ownerOf(_tokenId) == address(this)));
-        if(!_exists(_tokenId)) {
+        if (!_exists(_tokenId)) {
             _safeMint(_toAddress, _tokenId);
         } else {
             _transfer(address(this), _toAddress, _tokenId);
@@ -44,5 +42,5 @@ contract ONFT721Upgradeable is Initializable, ONFT721CoreUpgradeable, ERC721Upgr
      * variables without shifting down storage in the inheritance chain.
      * See https://docs.openzeppelin.com/contracts/4.x/upgradeable#storage_gaps
      */
-    uint256[50] private __gap;
+    uint[50] private __gap;
 }

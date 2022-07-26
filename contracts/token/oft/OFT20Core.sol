@@ -7,7 +7,6 @@ import "./IOFT20Core.sol";
 import "@openzeppelin/contracts/utils/introspection/ERC165.sol";
 
 abstract contract OFT20Core is NonblockingLzApp, ERC165, IOFT20Core {
-
     uint public constant NO_EXTRA_GAS = 0;
     uint public constant FUNCTION_TYPE_SEND = 1;
     bool public useCustomAdapterParams;
@@ -28,7 +27,12 @@ abstract contract OFT20Core is NonblockingLzApp, ERC165, IOFT20Core {
         _send(_from, _dstChainId, _toAddress, _amount, _refundAddress, _zroPaymentAddress, _adapterParams);
     }
 
-    function _nonblockingLzReceive(uint16 _srcChainId, bytes memory _srcAddress, uint64 /*_nonce*/, bytes memory _payload) internal virtual override {
+    function _nonblockingLzReceive(
+        uint16 _srcChainId,
+        bytes memory _srcAddress,
+        uint64, /*_nonce*/
+        bytes memory _payload
+    ) internal virtual override {
         // decode and load the toAddress
         (bytes memory toAddressBytes, uint amount) = abi.decode(_payload, (bytes, uint));
         address toAddress;
@@ -45,7 +49,7 @@ abstract contract OFT20Core is NonblockingLzApp, ERC165, IOFT20Core {
         _debitFrom(_from, _dstChainId, _toAddress, _amount);
 
         bytes memory payload = abi.encode(_toAddress, _amount);
-        if(useCustomAdapterParams) {
+        if (useCustomAdapterParams) {
             _checkGasLimit(_dstChainId, FUNCTION_TYPE_SEND, _adapterParams, NO_EXTRA_GAS);
         } else {
             require(_adapterParams.length == 0, "LzApp: _adapterParams must be empty.");

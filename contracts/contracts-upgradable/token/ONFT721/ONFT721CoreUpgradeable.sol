@@ -8,7 +8,6 @@ import "../../lzApp/NonblockingLzAppUpgradeable.sol";
 import "./IONFT721CoreUpgradeable.sol";
 
 abstract contract ONFT721CoreUpgradeable is Initializable, NonblockingLzAppUpgradeable, ERC165Upgradeable, IONFT721CoreUpgradeable {
-
     uint public constant NO_EXTRA_GAS = 0;
     uint public constant FUNCTION_TYPE_SEND = 1;
     bool public useCustomAdapterParams;
@@ -39,7 +38,7 @@ abstract contract ONFT721CoreUpgradeable is Initializable, NonblockingLzAppUpgra
         _debitFrom(_from, _dstChainId, _toAddress, _tokenId);
 
         bytes memory payload = abi.encode(_toAddress, _tokenId);
-        if(useCustomAdapterParams) {
+        if (useCustomAdapterParams) {
             _checkGasLimit(_dstChainId, FUNCTION_TYPE_SEND, _adapterParams, NO_EXTRA_GAS);
         } else {
             require(_adapterParams.length == 0, "LzApp: _adapterParams must be empty.");
@@ -76,5 +75,5 @@ abstract contract ONFT721CoreUpgradeable is Initializable, NonblockingLzAppUpgra
      * variables without shifting down storage in the inheritance chain.
      * See https://docs.openzeppelin.com/contracts/4.x/upgradeable#storage_gaps
      */
-    uint256[50] private __gap;
+    uint[50] private __gap;
 }

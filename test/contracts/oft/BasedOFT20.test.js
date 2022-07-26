@@ -41,7 +41,7 @@ describe("BasedOFT20: ", function () {
         await baseOFT.setTrustedRemote(otherChainId, otherOFT.address)
         await otherOFT.setTrustedRemote(baseChainId, baseOFT.address)
 
-        await baseOFT.setUseCustomAdapterParams(true);
+        await baseOFT.setUseCustomAdapterParams(true)
         // ... the deployed OFTs are ready now!
     })
 
@@ -53,7 +53,7 @@ describe("BasedOFT20: ", function () {
         const amount = ethers.utils.parseUnits("100", 18)
         const messageFee = ethers.utils.parseEther("0.01") // conversion to units of wei
 
-        await baseOFT.setUseCustomAdapterParams(false);
+        await baseOFT.setUseCustomAdapterParams(false)
 
         await baseOFT.sendFrom(
             owner.address,
