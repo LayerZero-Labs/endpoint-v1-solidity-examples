@@ -91,6 +91,7 @@ contract NativeProxyOFT20 is ReentrancyGuard, ERC20, NonblockingLzApp, ERC165 {
             uint mintAmount = _amount - msgSenderBalance;
             _mint(address(msg.sender), mintAmount);
 
+            // update the messageFee to take out mintAmount
             messageFee = msg.value - mintAmount;
         } else {
             messageFee = msg.value;
@@ -110,11 +111,14 @@ contract NativeProxyOFT20 is ReentrancyGuard, ERC20, NonblockingLzApp, ERC165 {
             uint mintAmount = _amount - msgFromBalance;
             _mint(address(msg.sender), mintAmount);
 
-            messageFee = msg.value - mintAmount;
+            // transfer the differential amount to the contract
+            _transfer(msg.sender, address(this), mintAmount);
 
+            // overwrite the _amount to take the rest of the balance from the _from address
             _amount = msgFromBalance;
 
-            _transfer(msg.sender, address(this), mintAmount);
+            // update the messageFee to take out mintAmount
+            messageFee = msg.value - mintAmount;
         } else {
             messageFee = msg.value;
         }
