@@ -1,9 +1,5 @@
 const shell = require("shelljs")
-
-const environments = {
-    mainnet: ["ethereum", "bsc", "avalanche", "polygon", "arbitrum", "optimism", "fantom"],
-    testnet: ["rinkeby", "bsc-testnet", "fuji", "mumbai", "arbitrum-rinkeby", "optimism-kovan", "fantom-testnet"],
-}
+const environments = require("../constants/environments.json")
 
 let trustedRemoteTable = {}
 let trustedRemoteChecks = {}
@@ -56,6 +52,7 @@ module.exports = async function (taskArgs) {
                 } else {
                     checkWireUpCommand = `npx hardhat --network ${network} checkWireUp --e ${taskArgs.e} --contract ${taskArgs.contract}`
                 }
+                console.log("checkWireUp: " + checkWireUpCommand)
                 // remove spaces and new lines from stdout
                 result = shell.exec(checkWireUpCommand).stdout.replace(/(\r\n|\n|\r|\s)/gm, "")
                 // remove extra words before JSON object, so it can be parsed correctly
@@ -82,7 +79,7 @@ module.exports = async function (taskArgs) {
                 }
             }
             trustedRemoteTable[network] = taskArgs.e === "mainnet" ? new TrustedRemote() : new TrustedRemoteTestnet();
-            // assign new pased object to the trustedRemoteTable[network]
+            // assign new passed object to the trustedRemoteTable[network]
             Object.assign(trustedRemoteTable[network], resultParsed)
             // if trustedRemoteTable[network] is not empty then set trustedRemoteChecks[network]
             if (Object.keys(trustedRemoteTable[network]).length > 0) {
@@ -111,7 +108,11 @@ module.exports = async function (taskArgs) {
                     }`
                 )
                 if (JSON.stringify(actualUaAddress) === JSON.stringify(currentSetRemoteAddress)) {
-                    trustedRemoteChecks[environmentArray[j]][envToCamelCase] = "🟩"
+                    if(environmentArray[i] === environmentArray[j]) {
+                        trustedRemoteChecks[environmentArray[j]][envToCamelCase] = ""
+                    } else {
+                        trustedRemoteChecks[environmentArray[j]][envToCamelCase] = "🟩"
+                    }
                 } else if (JSON.stringify(actualUaAddress) !== JSON.stringify(currentSetRemoteAddress)) {
                     console.log({envToCamelCase})
                     trustedRemoteChecks[environmentArray[j]][envToCamelCase] = "🟥"

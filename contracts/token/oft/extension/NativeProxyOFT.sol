@@ -2,10 +2,11 @@
 
 pragma solidity ^0.8.0;
 
-import "../OFTCore.sol";
 import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
+import "@openzeppelin/contracts/utils/introspection/ERC165.sol";
+import "../../../lzApp/NonblockingLzApp.sol";
 
 contract NativeProxyOFT is ReentrancyGuard, ERC20, NonblockingLzApp, ERC165 {
     using SafeERC20 for IERC20;
