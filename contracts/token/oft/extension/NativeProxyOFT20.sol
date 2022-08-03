@@ -15,6 +15,7 @@ contract NativeProxyOFT20 is NonblockingLzApp, ReentrancyGuard, ERC20, ERC165 {
     uint public constant FUNCTION_TYPE_SEND = 1;
     bool public useCustomAdapterParams;
 
+    event SetUseCustomAdapterParams(bool _useCustomAdapterParams);
     event SendToChain(uint16 indexed _dstChainId, address indexed _from, bytes indexed _toAddress, uint _amount);
     event ReceiveFromChain(uint16 indexed _srcChainId, bytes indexed _srcAddress, address indexed _toAddress, uint _amount);
     event Deposit(address indexed _dst, uint _amount);
@@ -66,6 +67,7 @@ contract NativeProxyOFT20 is NonblockingLzApp, ReentrancyGuard, ERC20, ERC165 {
 
     function setUseCustomAdapterParams(bool _useCustomAdapterParams) external onlyOwner {
         useCustomAdapterParams = _useCustomAdapterParams;
+        emit SetUseCustomAdapterParams(_useCustomAdapterParams);
     }
 
     fallback() external payable {
