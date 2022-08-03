@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: MIT
 
-pragma solidity ^0.8.0;
+pragma solidity 0.8.15;
 
 import "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
 import "../interfaces/ILayerZeroReceiverUpgradeable.sol";
@@ -16,6 +16,7 @@ abstract contract LzAppUpgradeable is Initializable, OwnableUpgradeable, ILayerZ
     mapping(uint16 => mapping(uint => uint)) public minDstGasLookup;
 
     event SetTrustedRemote(uint16 _srcChainId, bytes _srcAddress);
+    event SetMinDstGasLookup(uint16 _dstChainId, uint _type, uint _dstGasAmount);
 
     function __LzAppUpgradeable_init(address _endpoint) internal onlyInitializing {
         __LzAppUpgradeable_init_unchained(_endpoint);
@@ -89,6 +90,7 @@ abstract contract LzAppUpgradeable is Initializable, OwnableUpgradeable, ILayerZ
     function setMinDstGasLookup(uint16 _dstChainId, uint _type, uint _dstGasAmount) external onlyOwner {
         require(_dstGasAmount > 0, "LzApp: invalid _dstGasAmount");
         minDstGasLookup[_dstChainId][_type] = _dstGasAmount;
+        emit SetMinDstGasLookup(_dstChainId, _type, _dstGasAmount);
     }
 
     //--------------------------- VIEW FUNCTION ----------------------------------------

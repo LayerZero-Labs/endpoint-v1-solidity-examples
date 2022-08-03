@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: MIT
 
-pragma solidity ^0.8.0;
+pragma solidity 0.8.15;
 
 import "./IONFT1155.sol";
 import "./ONFT1155Core.sol";

@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: MIT
 
-pragma solidity ^0.8.0;
+pragma solidity 0.8.15;
 
 import "../../lzApp/NonblockingLzApp.sol";
 import "./IOFT20Core.sol";
@@ -10,6 +10,8 @@ abstract contract OFT20Core is NonblockingLzApp, ERC165, IOFT20Core {
     uint public constant NO_EXTRA_GAS = 0;
     uint public constant FUNCTION_TYPE_SEND = 1;
     bool public useCustomAdapterParams;
+
+    event SetUseCustomAdapterParams(bool _useCustomAdapterParams);
 
     constructor(address _lzEndpoint) NonblockingLzApp(_lzEndpoint) {}
 
@@ -61,6 +63,7 @@ abstract contract OFT20Core is NonblockingLzApp, ERC165, IOFT20Core {
 
     function setUseCustomAdapterParams(bool _useCustomAdapterParams) external onlyOwner {
         useCustomAdapterParams = _useCustomAdapterParams;
+        emit SetUseCustomAdapterParams(_useCustomAdapterParams);
     }
 
     function _debitFrom(address _from, uint16 _dstChainId, bytes memory _toAddress, uint _amount) internal virtual;

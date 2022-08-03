@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: MIT
 
-pragma solidity ^0.8.4;
+pragma solidity 0.8.15;
 pragma abicoder v2;
 
 import "../interfaces/ILayerZeroReceiver.sol";

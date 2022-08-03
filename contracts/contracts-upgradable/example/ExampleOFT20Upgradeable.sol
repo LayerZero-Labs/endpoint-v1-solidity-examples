@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: MIT
 
-pragma solidity ^0.8.0;
+pragma solidity 0.8.15;
 
 import "hardhat-deploy/solc_0.8/proxy/Proxied.sol";
 import "../token/OFT20/OFT20Upgradeable.sol";

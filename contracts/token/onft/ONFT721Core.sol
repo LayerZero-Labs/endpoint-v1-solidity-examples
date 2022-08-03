@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: MIT
 
-pragma solidity ^0.8.0;
+pragma solidity 0.8.15;
 
 import "./IONFT721Core.sol";
 import "../../lzApp/NonblockingLzApp.sol";
@@ -10,6 +10,8 @@ abstract contract ONFT721Core is NonblockingLzApp, ERC165, IONFT721Core {
     uint public constant NO_EXTRA_GAS = 0;
     uint public constant FUNCTION_TYPE_SEND = 1;
     bool public useCustomAdapterParams;
+
+    event SetUseCustomAdapterParams(bool _useCustomAdapterParams);
 
     constructor(address _lzEndpoint) NonblockingLzApp(_lzEndpoint) {}
 
@@ -61,6 +63,7 @@ abstract contract ONFT721Core is NonblockingLzApp, ERC165, IONFT721Core {
 
     function setUseCustomAdapterParams(bool _useCustomAdapterParams) external onlyOwner {
         useCustomAdapterParams = _useCustomAdapterParams;
+        emit SetUseCustomAdapterParams(_useCustomAdapterParams);
     }
 
     function _debitFrom(address _from, uint16 _dstChainId, bytes memory _toAddress, uint _tokenId) internal virtual;

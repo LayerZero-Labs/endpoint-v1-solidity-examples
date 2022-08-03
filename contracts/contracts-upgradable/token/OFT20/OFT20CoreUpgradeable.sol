@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: MIT
 
-pragma solidity ^0.8.0;
+pragma solidity 0.8.15;
 
 import "./IOFT20CoreUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/utils/introspection/ERC165Upgradeable.sol";
@@ -10,6 +10,8 @@ abstract contract OFT20CoreUpgradeable is Initializable, NonblockingLzAppUpgrade
     uint public constant NO_EXTRA_GAS = 0;
     uint public constant FUNCTION_TYPE_SEND = 1;
     bool public useCustomAdapterParams;
+
+    event SetUseCustomAdapterParams(bool _useCustomAdapterParams);
 
     function __OFT20CoreUpgradeable_init(address _endpoint) internal onlyInitializing {
         __OFT20CoreUpgradeable_init_unchained(_endpoint);
@@ -63,6 +65,7 @@ abstract contract OFT20CoreUpgradeable is Initializable, NonblockingLzAppUpgrade
 
     function setUseCustomAdapterParams(bool _useCustomAdapterParams) external onlyOwner {
         useCustomAdapterParams = _useCustomAdapterParams;
+        emit SetUseCustomAdapterParams(_useCustomAdapterParams);
     }
 
     function _debitFrom(address _from, uint16 _dstChainId, bytes memory _toAddress, uint _amount) internal virtual;

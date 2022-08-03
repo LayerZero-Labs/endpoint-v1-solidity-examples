@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: MIT
 
-pragma solidity ^0.8.0;
+pragma solidity 0.8.15;
 
 import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
@@ -17,6 +17,8 @@ contract NativeProxyOFT20 is NonblockingLzApp, ReentrancyGuard, ERC20, ERC165 {
 
     event SendToChain(uint16 indexed _dstChainId, address indexed _from, bytes indexed _toAddress, uint _amount);
     event ReceiveFromChain(uint16 indexed _srcChainId, bytes indexed _srcAddress, address indexed _toAddress, uint _amount);
+    event Deposit(address indexed _dst, uint _amount);
+    event Withdrawal(address indexed _src, uint _amount);
 
     constructor(string memory _name, string memory _symbol, address _lzEndpoint) ERC20(_name, _symbol) NonblockingLzApp(_lzEndpoint) {}
 
@@ -66,15 +68,21 @@ contract NativeProxyOFT20 is NonblockingLzApp, ReentrancyGuard, ERC20, ERC165 {
         useCustomAdapterParams = _useCustomAdapterParams;
     }
 
-    function deposit() external payable {
-        _mint(msg.sender, msg.value);
+    fallback() external payable {
+        deposit();
     }
 
-    function withdraw(uint _amount) external nonReentrant {
+    function deposit() public payable {
+        _mint(msg.sender, msg.value);
+        emit Deposit(msg.sender, msg.value);
+    }
+
+    function withdraw(uint _amount) public nonReentrant {
         require(balanceOf(msg.sender) >= _amount, "NativeProxyOFT20: Insufficient balance.");
         _burn(msg.sender, _amount);
         (bool success, ) = msg.sender.call{value: _amount}("");
         require(success, "NativeProxyOFT20: failed to unwrap");
+        emit Withdrawal(msg.sender, _amount);
     }
 
     function _debitFrom(address _from, uint16, bytes memory, uint _amount) internal returns (uint messageFee) {
