@@ -3,15 +3,15 @@ const { getDeploymentAddresses } = require("../utils/readStatic")
 const OFT_CONFIG = require("../constants/oftConfig.json")
 
 module.exports = async function (taskArgs, hre) {
-    let srcContractName = "ExampleOFT20"
+    let srcContractName = "ExampleOFT"
     let dstContractName = srcContractName
     if (taskArgs.targetNetwork === OFT_CONFIG.baseChain) {
         // if its the base chain, we need to grab a different contract
         // Note: its reversed though!
-        dstContractName = "ExampleBasedOFT20"
+        dstContractName = "ExampleBasedOFT"
     }
     if (hre.network.name === OFT_CONFIG.baseChain) {
-        srcContractName = "ExampleBasedOFT20"
+        srcContractName = "ExampleBasedOFT"
 
     }
 

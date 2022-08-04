@@ -2,15 +2,15 @@
 
 pragma solidity 0.8.15;
 
-import "../OFT20Core.sol";
+import "../OFTCore.sol";
 import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 
-contract ProxyOFT20 is OFT20Core {
+contract ProxyOFT is OFTCore {
     using SafeERC20 for IERC20;
 
     IERC20 public immutable token;
 
-    constructor(address _lzEndpoint, address _proxyToken) OFT20Core(_lzEndpoint) {
+    constructor(address _lzEndpoint, address _proxyToken) OFTCore(_lzEndpoint) {
         token = IERC20(_proxyToken);
     }
 

@@ -8,7 +8,7 @@ import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
 import "@openzeppelin/contracts/utils/introspection/ERC165.sol";
 import "../../../lzApp/NonblockingLzApp.sol";
 
-contract NativeProxyOFT20 is NonblockingLzApp, ReentrancyGuard, ERC20, ERC165 {
+contract NativeOFT is NonblockingLzApp, ReentrancyGuard, ERC20, ERC165 {
     using SafeERC20 for IERC20;
 
     uint public constant NO_EXTRA_GAS = 0;
@@ -56,11 +56,11 @@ contract NativeProxyOFT20 is NonblockingLzApp, ReentrancyGuard, ERC20, ERC165 {
         if (useCustomAdapterParams) {
             _checkGasLimit(_dstChainId, FUNCTION_TYPE_SEND, _adapterParams, NO_EXTRA_GAS);
         } else {
-            require(_adapterParams.length == 0, "NativeProxyOFT20: _adapterParams must be empty.");
+            require(_adapterParams.length == 0, "NativeOFT: _adapterParams must be empty.");
         }
 
         bytes memory trustedRemote = trustedRemoteLookup[_dstChainId];
-        require(trustedRemote.length != 0, "NativeProxyOFT20: destination chain is not a trusted source");
+        require(trustedRemote.length != 0, "NativeOFT: destination chain is not a trusted source");
         lzEndpoint.send{value: messageFee}(_dstChainId, trustedRemote, payload, _refundAddress, _zroPaymentAddress, _adapterParams);
         emit SendToChain(_dstChainId, _from, _toAddress, _amount);
     }
@@ -70,20 +70,16 @@ contract NativeProxyOFT20 is NonblockingLzApp, ReentrancyGuard, ERC20, ERC165 {
         emit SetUseCustomAdapterParams(_useCustomAdapterParams);
     }
 
-    fallback() external payable {
-        deposit();
-    }
-
     function deposit() public payable {
         _mint(msg.sender, msg.value);
         emit Deposit(msg.sender, msg.value);
     }
 
     function withdraw(uint _amount) public nonReentrant {
-        require(balanceOf(msg.sender) >= _amount, "NativeProxyOFT20: Insufficient balance.");
+        require(balanceOf(msg.sender) >= _amount, "NativeOFT: Insufficient balance.");
         _burn(msg.sender, _amount);
         (bool success, ) = msg.sender.call{value: _amount}("");
-        require(success, "NativeProxyOFT20: failed to unwrap");
+        require(success, "NativeOFT: failed to unwrap");
         emit Withdrawal(msg.sender, _amount);
     }
 
@@ -95,7 +91,7 @@ contract NativeProxyOFT20 is NonblockingLzApp, ReentrancyGuard, ERC20, ERC165 {
         uint msgSenderBalance = balanceOf(msg.sender);
 
         if (msgSenderBalance < _amount) {
-            require(msgSenderBalance + msg.value >= _amount, "NativeProxyOFT20: Insufficient msg.value");
+            require(msgSenderBalance + msg.value >= _amount, "NativeOFT: Insufficient msg.value");
 
             // user can cover difference with additional msg.value ie. wrapping
             uint mintAmount = _amount - msgSenderBalance;
@@ -115,7 +111,7 @@ contract NativeProxyOFT20 is NonblockingLzApp, ReentrancyGuard, ERC20, ERC165 {
         uint msgFromBalance = balanceOf(_from);
 
         if (msgFromBalance < _amount) {
-            require(msgFromBalance + msg.value >= _amount, "NativeProxyOFT20: Insufficient msg.value");
+            require(msgFromBalance + msg.value >= _amount, "NativeOFT: Insufficient msg.value");
 
             // user can cover difference with additional msg.value ie. wrapping
             uint mintAmount = _amount - msgFromBalance;
@@ -141,6 +137,10 @@ contract NativeProxyOFT20 is NonblockingLzApp, ReentrancyGuard, ERC20, ERC165 {
     function _creditTo(uint16, address _toAddress, uint _amount) internal {
         _burn(address(this), _amount);
         (bool success, ) = _toAddress.call{value: _amount}("");
-        require(success, "NativeProxyOFT20: failed to _creditTo");
+        require(success, "NativeOFT: failed to _creditTo");
+    }
+
+    receive() external payable {
+        deposit();
     }
 }

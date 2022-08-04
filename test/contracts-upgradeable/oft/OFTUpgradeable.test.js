@@ -1,7 +1,7 @@
 const { expect } = require("chai")
 const { ethers, deployments, upgrades } = require("hardhat")
 
-describe("OFT20Upgradeable: ", function () {
+describe("OFTUpgradeable: ", function () {
     const chainIdSrc = 1
     const chainIdDst = 2
     const name = "OmnichainFungibleToken"
@@ -14,9 +14,9 @@ describe("OFT20Upgradeable: ", function () {
         OFTSrc,
         OFTDst,
         LZEndpointMock,
-        OFT20Upgradeable,
+        OFTUpgradeable,
         proxyOwner,
-        OFT20UpgradeableContractFactory,
+        OFTUpgradeableContractFactory,
         LzLibFactory,
         lzLib
 
@@ -24,7 +24,7 @@ describe("OFT20Upgradeable: ", function () {
         deployer = (await ethers.getSigners())[0]
         proxyOwner = (await ethers.getSigners())[1]
         LZEndpointMock = await ethers.getContractFactory("LZEndpointMock")
-        OFT20UpgradeableContractFactory = await ethers.getContractFactory("ExampleOFT20Upgradeable")
+        OFTUpgradeableContractFactory = await ethers.getContractFactory("ExampleOFTUpgradeable")
     })
 
     beforeEach(async function () {
@@ -32,8 +32,8 @@ describe("OFT20Upgradeable: ", function () {
         lzEndpointDstMock = await LZEndpointMock.deploy(chainIdDst)
 
         // generate a proxy to allow it to go ONFT
-        OFTSrc = await upgrades.deployProxy(OFT20UpgradeableContractFactory, [name, symbol, globalSupply, lzEndpointSrcMock.address])
-        OFTDst = await upgrades.deployProxy(OFT20UpgradeableContractFactory, [name, symbol, 0, lzEndpointDstMock.address])
+        OFTSrc = await upgrades.deployProxy(OFTUpgradeableContractFactory, [name, symbol, globalSupply, lzEndpointSrcMock.address])
+        OFTDst = await upgrades.deployProxy(OFTUpgradeableContractFactory, [name, symbol, 0, lzEndpointDstMock.address])
 
         // internal bookkeeping for endpoints (not part of a real deploy, just for this test)
         lzEndpointSrcMock.setDestLzEndpoint(OFTDst.address, lzEndpointDstMock.address)
@@ -80,23 +80,23 @@ describe("OFT20Upgradeable: ", function () {
         })
 
         it("upgrade smart contract to new version", async function () {
-            await deployments.fixture(["ExampleOFT20Upgradeable"])
-            OFT20Upgradeable = await ethers.getContract("ExampleOFT20Upgradeable")
+            await deployments.fixture(["ExampleOFTUpgradeable"])
+            OFTUpgradeable = await ethers.getContract("ExampleOFTUpgradeable")
 
             const proxyAdmin = await ethers.getContract("DefaultProxyAdmin")
-            const OFT20UpgradeableV1Addr = await proxyAdmin.getProxyImplementation(OFT20Upgradeable.address)
-            const OFT20UpgradeableV2 = await (await ethers.getContractFactory("ExampleOFT20Upgradeable")).deploy()
+            const OFTUpgradeableV1Addr = await proxyAdmin.getProxyImplementation(OFTUpgradeable.address)
+            const OFTUpgradeableV2 = await (await ethers.getContractFactory("ExampleOFTUpgradeable")).deploy()
 
             // reverts when called by non proxy deployer
-            await expect(proxyAdmin.connect(deployer).upgrade(OFT20Upgradeable.address, OFT20UpgradeableV2.address)).to.be.revertedWith(
+            await expect(proxyAdmin.connect(deployer).upgrade(OFTUpgradeable.address, OFTUpgradeableV2.address)).to.be.revertedWith(
                 "Ownable: caller is not the owner"
             )
 
-            expect(OFT20UpgradeableV1Addr).to.be.equal(await proxyAdmin.getProxyImplementation(OFT20Upgradeable.address))
+            expect(OFTUpgradeableV1Addr).to.be.equal(await proxyAdmin.getProxyImplementation(OFTUpgradeable.address))
 
-            await proxyAdmin.connect(proxyOwner).upgrade(OFT20Upgradeable.address, OFT20UpgradeableV2.address)
-            const OFT20UpgradeableV2Addr = await proxyAdmin.getProxyImplementation(OFT20Upgradeable.address)
-            expect(OFT20UpgradeableV1Addr).to.not.equal(OFT20UpgradeableV2Addr)
+            await proxyAdmin.connect(proxyOwner).upgrade(OFTUpgradeable.address, OFTUpgradeableV2.address)
+            const OFTUpgradeableV2Addr = await proxyAdmin.getProxyImplementation(OFTUpgradeable.address)
+            expect(OFTUpgradeableV1Addr).to.not.equal(OFTUpgradeableV2Addr)
         })
 
         it("hasStoredPayload() - stores the payload", async function () {

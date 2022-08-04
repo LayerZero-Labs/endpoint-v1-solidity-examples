@@ -2,12 +2,12 @@
 
 pragma solidity 0.8.15;
 
-import "./IOFT20CoreUpgradeable.sol";
+import "./IOFTCoreUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/token/ERC20/IERC20Upgradeable.sol";
 
 /**
  * @dev Interface of the OFT standard
  */
-interface IOFT20Upgradeable is IOFT20CoreUpgradeable, IERC20Upgradeable {
+interface IOFTUpgradeable is IOFTCoreUpgradeable, IERC20Upgradeable {
 
 }

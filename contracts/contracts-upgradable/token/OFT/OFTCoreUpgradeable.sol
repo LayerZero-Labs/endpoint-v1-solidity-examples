@@ -2,27 +2,27 @@
 
 pragma solidity 0.8.15;
 
-import "./IOFT20CoreUpgradeable.sol";
+import "./IOFTCoreUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/utils/introspection/ERC165Upgradeable.sol";
 import "../../lzApp/NonblockingLzAppUpgradeable.sol";
 
-abstract contract OFT20CoreUpgradeable is Initializable, NonblockingLzAppUpgradeable, ERC165Upgradeable, IOFT20CoreUpgradeable {
+abstract contract OFTCoreUpgradeable is Initializable, NonblockingLzAppUpgradeable, ERC165Upgradeable, IOFTCoreUpgradeable {
     uint public constant NO_EXTRA_GAS = 0;
     uint public constant FUNCTION_TYPE_SEND = 1;
     bool public useCustomAdapterParams;
 
     event SetUseCustomAdapterParams(bool _useCustomAdapterParams);
 
-    function __OFT20CoreUpgradeable_init(address _endpoint) internal onlyInitializing {
-        __OFT20CoreUpgradeable_init_unchained(_endpoint);
+    function __OFTCoreUpgradeable_init(address _endpoint) internal onlyInitializing {
+        __OFTCoreUpgradeable_init_unchained(_endpoint);
     }
 
-    function __OFT20CoreUpgradeable_init_unchained(address _endpoint) internal onlyInitializing {
+    function __OFTCoreUpgradeable_init_unchained(address _endpoint) internal onlyInitializing {
         __NonblockingLzAppUpgradeable_init_unchained(_endpoint);
     }
 
     function supportsInterface(bytes4 interfaceId) public view virtual override(ERC165Upgradeable, IERC165Upgradeable) returns (bool) {
-        return interfaceId == type(IOFT20CoreUpgradeable).interfaceId || super.supportsInterface(interfaceId);
+        return interfaceId == type(IOFTCoreUpgradeable).interfaceId || super.supportsInterface(interfaceId);
     }
 
     function estimateSendFee(uint16 _dstChainId, bytes memory _toAddress, uint _amount, bool _useZro, bytes memory _adapterParams) public view virtual override returns (uint nativeFee, uint zroFee) {

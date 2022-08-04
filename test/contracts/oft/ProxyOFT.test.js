@@ -1,7 +1,7 @@
 const { expect } = require("chai")
 const { ethers } = require("hardhat")
 
-describe("ProxyOFT20: ", function () {
+describe("ProxyOFT: ", function () {
     const chainId_A = 1
     const chainId_B = 2
     const chainId_C = 3
@@ -15,8 +15,8 @@ describe("ProxyOFT20: ", function () {
         owner = (await ethers.getSigners())[0]
         warlock = (await ethers.getSigners())[1]
         LZEndpointMock = await ethers.getContractFactory("LZEndpointMock")
-        OFT = await ethers.getContractFactory("OFT20")
-        ProxyOFT = await ethers.getContractFactory("ProxyOFT20")
+        OFT = await ethers.getContractFactory("OFT")
+        ProxyOFT = await ethers.getContractFactory("ProxyOFT")
         ERC20 = await ethers.getContractFactory("ERC20Mock")
     })
 

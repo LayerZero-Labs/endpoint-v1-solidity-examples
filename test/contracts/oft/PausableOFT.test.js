@@ -1,7 +1,7 @@
 const { expect } = require("chai")
 const { ethers } = require("hardhat")
 
-describe("PausableOFT20: ", function () {
+describe("PausableOFT: ", function () {
     const chainIdSrc = 1
     const chainIdDst = 2
     const name = "OmnichainFungibleToken"
@@ -16,8 +16,8 @@ describe("PausableOFT20: ", function () {
         owner = (await ethers.getSigners())[0]
         warlock = (await ethers.getSigners())[1]
         LZEndpointMock = await ethers.getContractFactory("LZEndpointMock")
-        BasedOFT = await ethers.getContractFactory("ExampleBasedOFT20")
-        PausableOFT = await ethers.getContractFactory("PausableOFT20")
+        BasedOFT = await ethers.getContractFactory("ExampleBasedOFT")
+        PausableOFT = await ethers.getContractFactory("PausableOFT")
     })
 
     beforeEach(async function () {

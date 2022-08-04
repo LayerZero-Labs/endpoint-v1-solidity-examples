@@ -5,20 +5,20 @@ pragma solidity 0.8.15;
 import "@openzeppelin/contracts-upgradeable/token/ERC20/ERC20Upgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/token/ERC20/IERC20Upgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/utils/introspection/IERC165Upgradeable.sol";
-import "./OFT20CoreUpgradeable.sol";
-import "./IOFT20Upgradeable.sol";
+import "./OFTCoreUpgradeable.sol";
+import "./IOFTUpgradeable.sol";
 
 // override decimal() function is needed
-contract OFT20Upgradeable is Initializable, OFT20CoreUpgradeable, ERC20Upgradeable, IOFT20Upgradeable {
-    function __OFT20Upgradeable_init(string memory _name, string memory _symbol, address _lzEndpoint) internal onlyInitializing {
+contract OFTUpgradeable is Initializable, OFTCoreUpgradeable, ERC20Upgradeable, IOFTUpgradeable {
+    function __OFTUpgradeable_init(string memory _name, string memory _symbol, address _lzEndpoint) internal onlyInitializing {
         __ERC20_init_unchained(_name, _symbol);
-        __OFT20CoreUpgradeable_init_unchained(_lzEndpoint);
+        __OFTCoreUpgradeable_init_unchained(_lzEndpoint);
     }
 
-    function __OFT20Upgradeable_init_unchained(string memory _name, string memory _symbol, address _lzEndpoint) internal onlyInitializing {}
+    function __OFTUpgradeable_init_unchained(string memory _name, string memory _symbol, address _lzEndpoint) internal onlyInitializing {}
 
-    function supportsInterface(bytes4 interfaceId) public view virtual override(OFT20CoreUpgradeable, IERC165Upgradeable) returns (bool) {
-        return interfaceId == type(IOFT20Upgradeable).interfaceId || interfaceId == type(IERC20Upgradeable).interfaceId || super.supportsInterface(interfaceId);
+    function supportsInterface(bytes4 interfaceId) public view virtual override(OFTCoreUpgradeable, IERC165Upgradeable) returns (bool) {
+        return interfaceId == type(IOFTUpgradeable).interfaceId || interfaceId == type(IERC20Upgradeable).interfaceId || super.supportsInterface(interfaceId);
     }
 
     function circulatingSupply() public view virtual override returns (uint) {

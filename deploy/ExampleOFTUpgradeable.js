@@ -13,7 +13,7 @@ module.exports = async function ({ deployments, getNamedAccounts }) {
         lzEndpointAddress = LZ_ENDPOINTS[hre.network.name]
     }
 
-    await deploy("ExampleOFT20Upgradeable", {
+    await deploy("ExampleOFTUpgradeable", {
         from: deployer,
         log: true,
         waitConfirmations: 1,
@@ -30,4 +30,4 @@ module.exports = async function ({ deployments, getNamedAccounts }) {
     })
 }
 
-module.exports.tags = ["ExampleOFT20Upgradeable"]
+module.exports.tags = ["ExampleOFTUpgradeable"]
