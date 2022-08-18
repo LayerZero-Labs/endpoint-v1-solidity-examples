@@ -10,7 +10,7 @@
 
     "ethereum": "0x8731d54E9D02c286767d56ac03e8037C07e01e98",
     "bsc": "0x4a364f8c717cAAD9A442737Eb7b8A55cc6cf18D8",
-    "avax": "0x45A01E4e04F14f7A4a6702c74187c5F6222033cd",
+    "avalanche": "0x45A01E4e04F14f7A4a6702c74187c5F6222033cd",
     "polygon": "0x45A01E4e04F14f7A4a6702c74187c5F6222033cd",
     "arbitrum": "0x53Bf833A5d6c4ddA888F69c22C88C9f356a41614",
     "optimism": "0xB0D502E938ed5f4df2E681fE6E419ff29631d62b",
@@ -35,7 +35,7 @@
 
     "ethereum": "0x06d538690af257da524f25d0cd52fd85b1c2173e",
     "bsc": "0xe7ec689f432f29383f217e36e680b5c855051f25",
-    "avax": "0x808d7c71ad2ba3fa531b068a2417c63106bc0949",
+    "avalanche": "0x808d7c71ad2ba3fa531b068a2417c63106bc0949",
     "polygon": "0x808d7c71ad2ba3fa531b068a2417c63106bc0949",
     "arbitrum": "0x55bdb4164d28fbaf0898e0ef14a589ac09ac9970",
     "optimism": "0xe3b53af74a4bf62ae5511055290838050bf764df",
