@@ -17,6 +17,8 @@ contract WidgetSwap is ReentrancyGuard, IStargateWidget {
     IStargateRouterETH public immutable stargateRouterETH;
     IStargateFactory public immutable stargateFactory;
     uint256 public constant TENTH_BPS_DENOMINATOR = 100000;
+    uint256 public constant MAX_UINT = 2**256 - 1;
+    mapping(address => bool) public tokenApproved;
 
     constructor(address _stargateRouter, address _stargateRouterETH, address _stargateFactory) {
         stargateRouter = IStargateRouter(_stargateRouter);
@@ -83,6 +85,7 @@ contract WidgetSwap is ReentrancyGuard, IStargateWidget {
         emit WidgetSwapped(_partnerId, _feeObj.tenthBps, widgetFee);
     }
 
+
     function _getAndPayWidgetFee(
         uint16 _srcPoolId,
         uint256 _amountLD,
@@ -100,8 +103,12 @@ contract WidgetSwap is ReentrancyGuard, IStargateWidget {
         // pay the widget fee
         IERC20(token).safeTransfer(_feeObj.feeCollector, widgetFee);
 
-        // allow stargateRouter to spend the tokens to be transferred
-        IERC20(token).approve(address(stargateRouter), _amountLD - widgetFee);
+        // only call max approval once
+        if (!tokenApproved[token]) {
+            tokenApproved[token] = true;
+            // allow stargateRouter to spend the tokens to be transferred
+            IERC20(token).safeApprove(address(stargateRouter), MAX_UINT);
+        }
 
         return widgetFee;
     }
