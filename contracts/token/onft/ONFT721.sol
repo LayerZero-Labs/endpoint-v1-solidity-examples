@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: MIT
 
-pragma solidity 0.8.15;
+pragma solidity 0.8.9;
 
 import "./IONFT721.sol";
 import "./ONFT721Core.sol";
@@ -15,18 +15,22 @@ contract ONFT721 is ONFT721Core, ERC721, IONFT721 {
         return interfaceId == type(IONFT721).interfaceId || super.supportsInterface(interfaceId);
     }
 
-    function _debitFrom(address _from, uint16, bytes memory, uint _tokenId) internal virtual override {
-        require(_isApprovedOrOwner(_msgSender(), _tokenId), "ONFT721: send caller is not owner nor approved");
-        require(ERC721.ownerOf(_tokenId) == _from, "ONFT721: send from incorrect owner");
-        _transfer(_from, address(this), _tokenId);
+    function _debitFrom(address _from, uint16, bytes memory, uint[] memory _tokenIdArray) internal virtual override {
+        for (uint i = 0; i < _tokenIdArray.length; i++) {
+            require(_isApprovedOrOwner(_msgSender(), _tokenIdArray[i]), "ONFT721: send caller is not owner nor approved");
+            require(ERC721.ownerOf(_tokenIdArray[i]) == _from, "ONFT721: send from incorrect owner");
+            _transfer(_from, address(this), _tokenIdArray[i]);
+        }
     }
 
-    function _creditTo(uint16, address _toAddress, uint _tokenId) internal virtual override {
-        require(!_exists(_tokenId) || (_exists(_tokenId) && ERC721.ownerOf(_tokenId) == address(this)));
-        if (!_exists(_tokenId)) {
-            _safeMint(_toAddress, _tokenId);
-        } else {
-            _transfer(address(this), _toAddress, _tokenId);
+    function _creditTo(uint16, address _toAddress, uint[] memory _tokenIdArray) internal virtual override {
+        for (uint i = 0; i < _tokenIdArray.length; i++) {
+            require(!_exists(_tokenIdArray[i]) || (_exists(_tokenIdArray[i]) && ERC721.ownerOf(_tokenIdArray[i]) == address(this)));
+            if (!_exists(_tokenIdArray[i])) {
+                _safeMint(_toAddress, _tokenIdArray[i]);
+            } else {
+                _transfer(address(this), _toAddress, _tokenIdArray[i]);
+            }
         }
     }
 }

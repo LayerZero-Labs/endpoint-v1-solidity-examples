@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: MIT
 
-pragma solidity 0.8.15;
+pragma solidity 0.8.9;
 
 import "@openzeppelin/contracts/access/Ownable.sol";
 import "../interfaces/ILayerZeroReceiver.sol";
@@ -13,10 +13,10 @@ import "../interfaces/ILayerZeroEndpoint.sol";
 abstract contract LzApp is Ownable, ILayerZeroReceiver, ILayerZeroUserApplicationConfig {
     ILayerZeroEndpoint public immutable lzEndpoint;
     mapping(uint16 => bytes) public trustedRemoteLookup;
-    mapping(uint16 => mapping(uint => uint)) public minDstGasLookup;
+    mapping(uint16 => mapping(uint8 => uint)) public minDstGasLookup;
 
     event SetTrustedRemote(uint16 _srcChainId, bytes _srcAddress);
-    event SetMinDstGasLookup(uint16 _dstChainId, uint _type, uint _dstGasAmount);
+    event SetMinDstGasLookup(uint16 _dstChainId, uint8 _type, uint _dstGasAmount);
 
     constructor(address _endpoint) {
         lzEndpoint = ILayerZeroEndpoint(_endpoint);
@@ -42,7 +42,7 @@ abstract contract LzApp is Ownable, ILayerZeroReceiver, ILayerZeroUserApplicatio
         lzEndpoint.send{value: msg.value}(_dstChainId, trustedRemote, _payload, _refundAddress, _zroPaymentAddress, _adapterParams);
     }
 
-    function _checkGasLimit(uint16 _dstChainId, uint _type, bytes memory _adapterParams, uint _extraGas) internal view {
+    function _checkGasLimit(uint16 _dstChainId, uint8 _type, bytes memory _adapterParams, uint _extraGas) internal view {
         uint providedGasLimit = getGasLimit(_adapterParams);
         uint minGasLimit = minDstGasLookup[_dstChainId][_type] + _extraGas;
         require(minGasLimit > 0, "LzApp: minGasLimit not set");
@@ -83,7 +83,7 @@ abstract contract LzApp is Ownable, ILayerZeroReceiver, ILayerZeroUserApplicatio
         emit SetTrustedRemote(_srcChainId, _srcAddress);
     }
 
-    function setMinDstGasLookup(uint16 _dstChainId, uint _type, uint _dstGasAmount) external onlyOwner {
+    function setMinDstGasLookup(uint16 _dstChainId, uint8 _type, uint _dstGasAmount) external onlyOwner {
         require(_dstGasAmount > 0, "LzApp: invalid _dstGasAmount");
         minDstGasLookup[_dstChainId][_type] = _dstGasAmount;
         emit SetMinDstGasLookup(_dstChainId, _type, _dstGasAmount);

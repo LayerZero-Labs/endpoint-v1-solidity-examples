@@ -51,7 +51,7 @@ describe("UniversalONFT721: ", function () {
         // v1 adapterParams, encoded for version 1 style, and 200k gas quote
         const adapterParam = ethers.utils.solidityPack(["uint16", "uint256"], [1, 225000])
 
-        await ONFTSrc.sendFrom(
+        await ONFTSrc["sendFrom(address,uint16,bytes,uint256,address,address,bytes)"](
             owner.address,
             chainIdDst,
             owner.address,
