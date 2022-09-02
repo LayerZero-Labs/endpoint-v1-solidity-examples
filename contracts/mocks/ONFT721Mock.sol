@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: BUSL-1.1
 
-pragma solidity 0.8.15;
+pragma solidity ^0.8.0;
 
 import "../token/onft/ONFT721.sol";
 
