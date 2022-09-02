@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: MIT
 
-pragma solidity ^0.8.0;
+pragma solidity ^0.8.2;
 
 import "@openzeppelin/contracts/access/Ownable.sol";
 import "../interfaces/ILayerZeroReceiver.sol";
@@ -49,7 +49,8 @@ abstract contract LzApp is Ownable, ILayerZeroReceiver, ILayerZeroUserApplicatio
         require(providedGasLimit >= minGasLimit, "LzApp: gas limit is too low");
     }
 
-    function getGasLimit(bytes memory _adapterParams) public pure returns (uint gasLimit) {
+    function getGasLimit(bytes memory _adapterParams) internal view returns (uint gasLimit) {
+        require(_adapterParams.length >= 34, "LzApp: invalid adapterParams");
         assembly {
             gasLimit := mload(add(_adapterParams, 34))
         }

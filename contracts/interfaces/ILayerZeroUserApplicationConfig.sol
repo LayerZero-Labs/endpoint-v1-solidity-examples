@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: MIT
 
-pragma solidity ^0.8.0;
+pragma solidity >=0.5.0;
 
 interface ILayerZeroUserApplicationConfig {
     // @notice set the configuration of the LayerZero messaging library of the specified version
