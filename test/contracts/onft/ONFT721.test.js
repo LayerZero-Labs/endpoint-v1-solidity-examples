@@ -12,7 +12,6 @@ describe("ONFT721: ", function () {
     before(async function () {
         owner = (await ethers.getSigners())[0]
         warlock = (await ethers.getSigners())[1]
-
         LZEndpointMock = await ethers.getContractFactory("LZEndpointMock")
         ONFT = await ethers.getContractFactory("ONFT721Mock")
     })
@@ -42,7 +41,7 @@ describe("ONFT721: ", function () {
         expect(await ONFT_A.ownerOf(tokenId)).to.be.equal(owner.address)
 
         // token doesn't exist on other chain
-        await expect(ONFT_B.ownerOf(tokenId)).to.be.revertedWith("ERC721: operator query for nonexistent token")
+        await expect(ONFT_B.ownerOf(tokenId)).to.be.revertedWith("ERC721: invalid token ID")
 
         // can transfer token on srcChain as regular erC721
         await ONFT_A.transferFrom(owner.address, warlock.address, tokenId)
@@ -63,7 +62,7 @@ describe("ONFT721: ", function () {
         )
 
         // token is burnt
-        await expect(ONFT_A.ownerOf(tokenId)).to.be.revertedWith("ERC721: operator query for nonexistent token")
+        expect(await ONFT_A.ownerOf(tokenId)).to.be.equal(ONFT_A.address)
 
         // token received on the dst chain
         expect(await ONFT_B.ownerOf(tokenId)).to.be.equal(warlock.address)
@@ -80,7 +79,7 @@ describe("ONFT721: ", function () {
         )
 
         // token is burned on the sending chain
-        await expect(ONFT_B.ownerOf(tokenId)).to.be.revertedWith("ERC721: operator query for nonexistent token")
+        expect(await ONFT_B.ownerOf(tokenId)).to.be.equal(ONFT_B.address)
     })
 
     it("sendFrom() - reverts if not owner on non proxy chain", async function () {

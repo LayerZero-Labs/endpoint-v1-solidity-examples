@@ -11,7 +11,7 @@
 //  2. how to `estimateFees` for a send()'ing a LayerZero message
 //  3. the contract pays the message fee
 
-pragma solidity 0.8.4;
+pragma solidity ^0.8.2;
 pragma abicoder v2;
 
 import "@openzeppelin/contracts/security/Pausable.sol";
