@@ -39,7 +39,7 @@ abstract contract ONFT721Core is NonblockingLzApp, ERC165, IONFT721Core {
         } else {
             require(_adapterParams.length == 0, "LzApp: _adapterParams must be empty.");
         }
-        _lzSend(_dstChainId, payload, _refundAddress, _zroPaymentAddress, _adapterParams);
+        _lzSend(_dstChainId, payload, _refundAddress, _zroPaymentAddress, _adapterParams, msg.value);
 
         emit SendToChain(_dstChainId, _from, _toAddress, _tokenId);
     }

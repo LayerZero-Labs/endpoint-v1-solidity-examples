@@ -46,7 +46,7 @@ abstract contract ONFT1155Core is NonblockingLzApp, ERC165, IONFT1155Core {
             } else {
                 require(_adapterParams.length == 0, "LzApp: _adapterParams must be empty.");
             }
-            _lzSend(_dstChainId, payload, _refundAddress, _zroPaymentAddress, _adapterParams);
+            _lzSend(_dstChainId, payload, _refundAddress, _zroPaymentAddress, _adapterParams, msg.value);
             emit SendToChain(_dstChainId, _from, _toAddress, _tokenIds[0], _amounts[0]);
         } else if (_tokenIds.length > 1) {
             if (useCustomAdapterParams) {
@@ -54,7 +54,7 @@ abstract contract ONFT1155Core is NonblockingLzApp, ERC165, IONFT1155Core {
             } else {
                 require(_adapterParams.length == 0, "LzApp: _adapterParams must be empty.");
             }
-            _lzSend(_dstChainId, payload, _refundAddress, _zroPaymentAddress, _adapterParams);
+            _lzSend(_dstChainId, payload, _refundAddress, _zroPaymentAddress, _adapterParams, msg.value);
             emit SendBatchToChain(_dstChainId, _from, _toAddress, _tokenIds, _amounts);
         }
     }
