@@ -72,7 +72,7 @@ abstract contract OFTCore is NonblockingLzApp, ERC165, IOFTCore {
 
         // call oftReceive() on the toAddress if it is a contract
         if (_isContract(to)) {
-            (bool success, bytes memory reason) = to.excessivelySafeCall(gasleft(), 32, abi.encodeWithSelector(IOFTReceiver.onOFTReceived.selector, _srcChainId, _srcAddress, _nonce, sender, amount, payload));
+            (bool success, bytes memory reason) = to.excessivelySafeCall(gasleft(), 80, abi.encodeWithSelector(IOFTReceiver.onOFTReceived.selector, _srcChainId, _srcAddress, _nonce, sender, amount, payload));
             if (!success) {
                 // todo: how about OOG?
                 // if transfer to non IOFTReceiver implementer, ignore it
@@ -94,7 +94,7 @@ abstract contract OFTCore is NonblockingLzApp, ERC165, IOFTCore {
         if (useCustomAdapterParams) {
             _checkGasLimit(_dstChainId, PT_SEND, _adapterParams, NO_EXTRA_GAS);
         } else {
-            require(_adapterParams.length == 0, "LzApp: _adapterParams must be empty.");
+            require(_adapterParams.length == 0, "OFTCore: _adapterParams must be empty.");
         }
         _lzSend(_dstChainId, lzPayload, _refundAddress, _zroPaymentAddress, _adapterParams, msg.value);
 

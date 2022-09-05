@@ -3,6 +3,7 @@
 pragma solidity ^0.8.2;
 
 import "./LzApp.sol";
+import "@nomad-xyz/excessively-safe-call/src/ExcessivelySafeCall.sol";
 
 /*
  * the default LayerZero messaging behaviour is blocking, i.e. any failed message will block the channel
@@ -10,21 +11,20 @@ import "./LzApp.sol";
  * NOTE: if the srcAddress is not configured properly, it will still block the message pathway from (srcChainId, srcAddress)
  */
 abstract contract NonblockingLzApp is LzApp {
+    using ExcessivelySafeCall for address;
+
     constructor(address _endpoint) LzApp(_endpoint) {}
 
     mapping(uint16 => mapping(bytes => mapping(uint64 => bytes32))) public failedMessages;
 
-    event MessageFailed(uint16 _srcChainId, bytes _srcAddress, uint64 _nonce, bytes _payload);
+    event MessageFailed(uint16 _srcChainId, bytes _srcAddress, uint64 _nonce, bytes _payload, bytes _reason);
 
     // overriding the virtual function in LzReceiver
     function _blockingLzReceive(uint16 _srcChainId, bytes memory _srcAddress, uint64 _nonce, bytes memory _payload) internal virtual override {
-        // try-catch all errors/exceptions
-        try this.nonblockingLzReceive(_srcChainId, _srcAddress, _nonce, _payload) {
-            // do nothing
-        } catch {
-            // error / exception
+        (bool success, bytes memory reason) = address(this).excessivelySafeCall(gasleft(), 80, abi.encodeWithSelector(this.nonblockingLzReceive.selector, _srcChainId, _srcAddress, _nonce, _payload));
+        if (!success) {
             failedMessages[_srcChainId][_srcAddress][_nonce] = keccak256(_payload);
-            emit MessageFailed(_srcChainId, _srcAddress, _nonce, _payload);
+            emit MessageFailed(_srcChainId, _srcAddress, _nonce, _payload, reason);
         }
     }
 
