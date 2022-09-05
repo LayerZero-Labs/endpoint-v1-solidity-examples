@@ -8,8 +8,8 @@ import "@openzeppelin/contracts/utils/introspection/ERC165.sol";
 
 abstract contract ONFT1155Core is NonblockingLzApp, ERC165, IONFT1155Core {
     uint public constant NO_EXTRA_GAS = 0;
-    uint public constant FUNCTION_TYPE_SEND = 1;
-    uint public constant FUNCTION_TYPE_SEND_BATCH = 2;
+    uint16 public constant FUNCTION_TYPE_SEND = 1;
+    uint16 public constant FUNCTION_TYPE_SEND_BATCH = 2;
     bool public useCustomAdapterParams;
 
     event SetUseCustomAdapterParams(bool _useCustomAdapterParams);

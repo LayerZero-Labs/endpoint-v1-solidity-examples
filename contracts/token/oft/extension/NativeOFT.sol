@@ -12,7 +12,7 @@ contract NativeOFT is NonblockingLzApp, ReentrancyGuard, ERC20, ERC165 {
     using SafeERC20 for IERC20;
 
     uint public constant NO_EXTRA_GAS = 0;
-    uint public constant FUNCTION_TYPE_SEND = 1;
+    uint16 public constant FUNCTION_TYPE_SEND = 1;
     bool public useCustomAdapterParams;
 
     event SetUseCustomAdapterParams(bool _useCustomAdapterParams);

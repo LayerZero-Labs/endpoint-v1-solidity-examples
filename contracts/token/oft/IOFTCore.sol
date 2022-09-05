@@ -29,7 +29,9 @@ interface IOFTCore is IERC165 {
      * `_zroPaymentAddress` set to address(0x0) if not paying in ZRO (LayerZero Token)
      * `_adapterParams` is a flexible bytes array to indicate messaging adapter services
      */
-    function sendFrom(address _from, uint16 _dstChainId, bytes calldata _toAddress, uint _amount, address payable _refundAddress, address _zroPaymentAddress, bytes calldata _adapterParams) external payable;
+    function sendFrom(address _from, uint16 _dstChainId, bytes calldata _toAddress, uint _amount, bytes calldata _payload, address payable _refundAddress, address _zroPaymentAddress, bytes calldata _adapterParams) external payable;
+
+    function retryOFTReceived(uint16 _srcChainId, bytes calldata _srcOFTAddress, uint64 _nonce, bytes calldata _fromAddress, address _to, uint _amount, bytes calldata _payload) external;
 
     /**
      * @dev returns the circulating amount of tokens on current chain
@@ -46,5 +48,13 @@ interface IOFTCore is IERC165 {
      * @dev Emitted when `_amount` tokens are received from `_srcChainId` into the `_toAddress` on the local chain.
      * `_nonce` is the inbound nonce.
      */
-    event ReceiveFromChain(uint16 indexed _srcChainId, bytes indexed _srcAddress, address indexed _toAddress, uint _amount);
+    event ReceiveFromChain(uint16 indexed _srcChainId, bytes _fromAddress, address indexed _to, uint _amount);
+
+    event CallOFTReceivedFailed(uint16 indexed _srcChainId, bytes _srcAddress, uint64 _nonce, bytes _fromAddress, address indexed _to, uint _amount, bytes _payload, bytes _reason);
+
+    event RetryOFTReceivedSuccess(uint16 indexed _srcChainId, bytes _srcAddress, uint64 _nonce, bytes _fromAddress, address indexed _to, uint _amount, bytes _payload);
+
+    event SetUseCustomAdapterParams(bool _useCustomAdapterParams);
+
+    event InvalidToAddress(bytes _to);
 }

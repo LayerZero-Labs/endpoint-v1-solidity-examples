@@ -13,10 +13,10 @@ import "../interfaces/ILayerZeroEndpoint.sol";
 abstract contract LzApp is Ownable, ILayerZeroReceiver, ILayerZeroUserApplicationConfig {
     ILayerZeroEndpoint public immutable lzEndpoint;
     mapping(uint16 => bytes) public trustedRemoteLookup;
-    mapping(uint16 => mapping(uint => uint)) public minDstGasLookup;
+    mapping(uint16 => mapping(uint16 => uint)) public minDstGasLookup;
 
     event SetTrustedRemote(uint16 _srcChainId, bytes _srcAddress);
-    event SetMinDstGasLookup(uint16 _dstChainId, uint _type, uint _dstGasAmount);
+    event SetMinDstGas(uint16 _dstChainId, uint16 _packetType, uint _minDstGas);
 
     constructor(address _endpoint) {
         lzEndpoint = ILayerZeroEndpoint(_endpoint);
@@ -42,7 +42,7 @@ abstract contract LzApp is Ownable, ILayerZeroReceiver, ILayerZeroUserApplicatio
         lzEndpoint.send{value: _nativeFee}(_dstChainId, trustedRemote, _payload, _refundAddress, _zroPaymentAddress, _adapterParams);
     }
 
-    function _checkGasLimit(uint16 _dstChainId, uint _type, bytes memory _adapterParams, uint _extraGas) internal view {
+    function _checkGasLimit(uint16 _dstChainId, uint16 _type, bytes memory _adapterParams, uint _extraGas) internal view {
         uint providedGasLimit = _getGasLimit(_adapterParams);
         uint minGasLimit = minDstGasLookup[_dstChainId][_type] + _extraGas;
         require(minGasLimit > 0, "LzApp: minGasLimit not set");
@@ -66,6 +66,8 @@ abstract contract LzApp is Ownable, ILayerZeroReceiver, ILayerZeroUserApplicatio
         lzEndpoint.setConfig(_version, _chainId, _configType, _config);
     }
 
+    // todo: more specific getter and setter of UA config?
+
     function setSendVersion(uint16 _version) external override onlyOwner {
         lzEndpoint.setSendVersion(_version);
     }
@@ -84,10 +86,10 @@ abstract contract LzApp is Ownable, ILayerZeroReceiver, ILayerZeroUserApplicatio
         emit SetTrustedRemote(_srcChainId, _srcAddress);
     }
 
-    function setMinDstGasLookup(uint16 _dstChainId, uint _type, uint _dstGasAmount) external onlyOwner {
-        require(_dstGasAmount > 0, "LzApp: invalid _dstGasAmount");
-        minDstGasLookup[_dstChainId][_type] = _dstGasAmount;
-        emit SetMinDstGasLookup(_dstChainId, _type, _dstGasAmount);
+    function setMinDstGas(uint16 _dstChainId, uint16 _packetType, uint _minGas) external onlyOwner {
+        require(_minGas > 0, "LzApp: invalid minGas");
+        minDstGasLookup[_dstChainId][_packetType] = _minGas;
+        emit SetMinDstGas(_dstChainId, _packetType, _minGas);
     }
 
     //--------------------------- VIEW FUNCTION ----------------------------------------

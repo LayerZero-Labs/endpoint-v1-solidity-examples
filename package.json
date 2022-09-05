@@ -14,6 +14,7 @@
     "lint": "yarn prettier && solhint 'contracts/*.sol' && solhint 'contracts/**/*.sol' && solhint 'contracts/**/**/*.sol' && solhint 'contracts/**/**/**/*.sol'"
   },
   "dependencies": {
+    "@nomad-xyz/excessively-safe-call": "^0.0.1-rc.1",
     "@openzeppelin/contracts": "^4.4.1",
     "@openzeppelin/contracts-upgradeable": "^4.6.0",
     "@openzeppelin/hardhat-upgrades": "^1.18.3",
@@ -25,16 +26,16 @@
     "hardhat-gas-reporter": "^1.0.6"
   },
   "devDependencies": {
-    "eslint-config-prettier": "^8.3.0",
-    "eslint-plugin-prettier": "^3.4.1",
     "@layerzerolabs/prettier-plugin-solidity": "^1.0.0-beta.19",
-    "prettier": "^2.4.1",
-    "solhint": "^3.3.6",
     "@nomiclabs/hardhat-ethers": "^2.0.3",
     "@nomiclabs/hardhat-waffle": "^2.0.1",
     "chai": "^4.3.4",
+    "eslint-config-prettier": "^8.3.0",
+    "eslint-plugin-prettier": "^3.4.1",
     "ethereum-waffle": "^3.4.0",
     "ethers": "^5.5.2",
+    "prettier": "^2.4.1",
+    "solhint": "^3.3.6",
     "solidity-coverage": "^0.7.17"
   }
 }
