@@ -37,8 +37,8 @@ describe("PausableOFT: ", function () {
         await OFTDst.setTrustedRemote(chainIdSrc, OFTSrc.address) // for B, set A
 
         //set destination min gas
-        await OFTSrc.setMinDstGasLookup(chainIdDst, parseInt(await OFTSrc.FUNCTION_TYPE_SEND()), 225000)
-        await OFTDst.setMinDstGasLookup(chainIdSrc, parseInt(await OFTDst.FUNCTION_TYPE_SEND()), 225000)
+        await OFTSrc.setMinDstGas(chainIdDst, parseInt(await OFTSrc.PT_SEND()), 225000)
+        await OFTDst.setMinDstGas(chainIdSrc, parseInt(await OFTDst.PT_SEND()), 225000)
 
         await OFTSrc.setUseCustomAdapterParams(true)
         await OFTDst.setUseCustomAdapterParams(true)
