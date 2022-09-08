@@ -6,10 +6,11 @@ import "../../lzApp/NonblockingLzApp.sol";
 import "./IOFTCore.sol";
 import "./IOFTReceiver.sol";
 import "@openzeppelin/contracts/utils/introspection/ERC165.sol";
-import "@nomad-xyz/excessively-safe-call/src/ExcessivelySafeCall.sol";
+import "../../util/ExcessivelySafeCall.sol";
 
 abstract contract OFTCore is NonblockingLzApp, ERC165, IOFTCore {
     using ExcessivelySafeCall for address;
+    using BytesLib for bytes;
 
     uint public constant NO_EXTRA_GAS = 0;
 
@@ -86,11 +87,7 @@ abstract contract OFTCore is NonblockingLzApp, ERC165, IOFTCore {
     function _sendAck(uint16 _srcChainId, bytes memory, uint64, bytes memory _payload) internal virtual {
         (, bytes memory from, bytes memory toAddressBytes, uint amount) = abi.decode(_payload, (uint16, bytes, bytes, uint));
 
-        (bool valid, address to) = _bytesToAddress(toAddressBytes);
-        if (!valid) {
-            emit InvalidToAddress(toAddressBytes);
-            return;
-        }
+        address to = toAddressBytes.toAddress(0);
 
         _creditTo(_srcChainId, to, amount);
         emit ReceiveFromChain(_srcChainId, from, to, amount);
@@ -110,15 +107,12 @@ abstract contract OFTCore is NonblockingLzApp, ERC165, IOFTCore {
     function _sendAndCallAck(uint16 _srcChainId, bytes memory _srcAddress, uint64 _nonce, bytes memory _payload) internal virtual {
         (, bytes memory from, bytes memory toAddressBytes, uint amount, bytes memory payload, uint gasForCall) = abi.decode(_payload, (uint16, bytes, bytes, uint, bytes, uint));
 
-        (bool valid, address to) = _bytesToAddress(toAddressBytes);
-        if (!valid) {
-            emit InvalidToAddress(toAddressBytes);
-            return;
-        }
+        address to = toAddressBytes.toAddress(0);
 
         _creditTo(_srcChainId, to, amount);
         emit ReceiveFromChain(_srcChainId, from, to, amount);
 
+        // todo: should we separate the token receiver and the receiver contract?
         if (!_isContract(to)) {
             emit NonContractAddress(to);
             return;
@@ -144,18 +138,6 @@ abstract contract OFTCore is NonblockingLzApp, ERC165, IOFTCore {
         } else {
             require(_adapterParams.length == 0, "OFTCore: _adapterParams must be empty.");
         }
-    }
-
-    function _bytesToAddress(bytes memory _addressBytes) internal pure returns (bool, address) {
-        if (_addressBytes.length != 20) {
-            return (false, address(0));
-        }
-
-        address to;
-        assembly {
-            to := mload(add(_addressBytes, 20))
-        }
-        return (true, to);
     }
 
     function _isContract(address _account) internal view returns (bool) {

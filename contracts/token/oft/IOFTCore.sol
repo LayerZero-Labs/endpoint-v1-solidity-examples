@@ -59,8 +59,6 @@ interface IOFTCore is IERC165 {
 
     event SetUseCustomAdapterParams(bool _useCustomAdapterParams);
 
-    event InvalidToAddress(bytes _to);
-
     event NonContractAddress(address _address);
 
     event NonIOFTReceiverImplementer(address _address);
