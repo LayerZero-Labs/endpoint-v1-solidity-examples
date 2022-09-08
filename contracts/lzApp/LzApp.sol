@@ -6,16 +6,20 @@ import "@openzeppelin/contracts/access/Ownable.sol";
 import "../interfaces/ILayerZeroReceiver.sol";
 import "../interfaces/ILayerZeroUserApplicationConfig.sol";
 import "../interfaces/ILayerZeroEndpoint.sol";
+import "../util/BytesLib.sol";
 
 /*
  * a generic LzReceiver implementation
  */
 abstract contract LzApp is Ownable, ILayerZeroReceiver, ILayerZeroUserApplicationConfig {
+    using BytesLib for bytes;
+
     ILayerZeroEndpoint public immutable lzEndpoint;
     mapping(uint16 => bytes) public trustedRemoteLookup;
     mapping(uint16 => mapping(uint16 => uint)) public minDstGasLookup;
 
-    event SetTrustedRemote(uint16 _srcChainId, bytes _srcAddress);
+    event SetTrustedRemote(uint16 _remoteChainId, bytes _path);
+    event SetTrustedRemoteAddress(uint16 _remoteChainId, bytes _remoteAddress);
     event SetMinDstGas(uint16 _dstChainId, uint16 _type, uint _minDstGas);
 
     constructor(address _endpoint) {
@@ -66,8 +70,6 @@ abstract contract LzApp is Ownable, ILayerZeroReceiver, ILayerZeroUserApplicatio
         lzEndpoint.setConfig(_version, _chainId, _configType, _config);
     }
 
-    // todo: more specific getter and setter of UA config?
-
     function setSendVersion(uint16 _version) external override onlyOwner {
         lzEndpoint.setSendVersion(_version);
     }
@@ -80,10 +82,22 @@ abstract contract LzApp is Ownable, ILayerZeroReceiver, ILayerZeroUserApplicatio
         lzEndpoint.forceResumeReceive(_srcChainId, _srcAddress);
     }
 
-    // allow owner to set it multiple times.
-    function setTrustedRemote(uint16 _srcChainId, bytes calldata _srcAddress) external onlyOwner {
-        trustedRemoteLookup[_srcChainId] = _srcAddress;
-        emit SetTrustedRemote(_srcChainId, _srcAddress);
+    // _path = abi.encodePacked(remoteAddress, localAddress)
+    // this function set the trusted path for the cross-chain communication
+    function setTrustedRemote(uint16 _srcChainId, bytes calldata _path) external onlyOwner {
+        trustedRemoteLookup[_srcChainId] = _path;
+        emit SetTrustedRemote(_srcChainId, _path);
+    }
+
+    function setTrustedRemoteAddress(uint16 _remoteChainId, bytes calldata _remoteAddress) external onlyOwner {
+        trustedRemoteLookup[_remoteChainId] = abi.encodePacked(_remoteAddress, address(this));
+        emit SetTrustedRemoteAddress(_remoteChainId, _remoteAddress);
+    }
+
+    function getTrustedRemoteAddress(uint16 _remoteChainId) external view returns (bytes memory) {
+        bytes memory path = trustedRemoteLookup[_remoteChainId];
+        require(path.length != 0, "LzApp: no trusted path record");
+        return path.slice(0, path.length - 20); // the last 20 bytes should be address(this)
     }
 
     function setMinDstGas(uint16 _dstChainId, uint16 _packetType, uint _minGas) external onlyOwner {
