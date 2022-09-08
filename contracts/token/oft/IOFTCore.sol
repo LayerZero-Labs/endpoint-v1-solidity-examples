@@ -52,7 +52,8 @@ interface IOFTCore is IERC165 {
      */
     event ReceiveFromChain(uint16 indexed _srcChainId, bytes _fromAddress, address indexed _to, uint _amount);
 
-    event CallOFTReceivedFailed(uint16 indexed _srcChainId, bytes _srcAddress, uint64 _nonce, bytes _fromAddress, address indexed _to, uint _amount, bytes _payload, bytes _reason);
+    event CallOFTReceivedFailure(uint16 indexed _srcChainId, bytes _srcAddress, uint64 _nonce, bytes _fromAddress, address indexed _to, uint _amount, bytes _payload, bytes _reason);
+    event CallOFTReceivedSuccess(uint16 indexed _srcChainId, bytes _srcAddress, uint64 _nonce, bytes32 _hash);
 
     event RetryOFTReceivedSuccess(bytes32 _messageHash);
 

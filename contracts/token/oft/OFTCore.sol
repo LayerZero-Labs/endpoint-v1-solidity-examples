@@ -127,15 +127,11 @@ abstract contract OFTCore is NonblockingLzApp, ERC165, IOFTCore {
     function _safeCallOnOFTReceived(uint16 _srcChainId, bytes memory _srcAddress, uint64 _nonce, bytes memory _from, address _to, uint _amount, bytes memory _payload, uint _gasForCall) internal virtual {
         (bool success, bytes memory reason) = _to.excessivelySafeCall(_gasForCall, 80, abi.encodeWithSelector(IOFTReceiver.onOFTReceived.selector, _srcChainId, _srcAddress, _nonce, _from, _amount, _payload));
         if (!success) {
-            // todo: how about OOG?
-            // if transfer to non IOFTReceiver implementer, ignore it
-            if (reason.length == 0) {
-                emit NonIOFTReceiverImplementer(_to);
-                return;
-            }
-
             failedOFTReceivedMessages[_srcChainId][_srcAddress][_nonce] = keccak256(abi.encode(_from, _to, _amount, _payload));
-            emit CallOFTReceivedFailed(_srcChainId, _srcAddress, _nonce, _from, _to, _amount, _payload, reason);
+            emit CallOFTReceivedFailure(_srcChainId, _srcAddress, _nonce, _from, _to, _amount, _payload, reason);
+        } else {
+            bytes32 hash = keccak256(abi.encode(_from, _to, _amount, _payload));
+            emit CallOFTReceivedSuccess(_srcChainId, _srcAddress, _nonce, hash);
         }
     }
 
