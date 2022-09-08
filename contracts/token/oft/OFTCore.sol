@@ -15,6 +15,7 @@ abstract contract OFTCore is NonblockingLzApp, ERC165, IOFTCore {
 
     // packet type
     uint16 public constant PT_SEND = 0;
+    uint16 public constant PT_SEND_AND_CALL = 0;
 
     mapping(uint16 => mapping(bytes => mapping(uint64 => bytes32))) public failedOFTReceivedMessages;
     bool public useCustomAdapterParams;
@@ -31,20 +32,24 @@ abstract contract OFTCore is NonblockingLzApp, ERC165, IOFTCore {
         return lzEndpoint.estimateFees(_dstChainId, address(this), payload, _useZro, _adapterParams);
     }
 
-    function sendFrom(address _from, uint16 _dstChainId, bytes memory _toAddress, uint _amount, bytes memory _payload, address payable _refundAddress, address _zroPaymentAddress, bytes memory _adapterParams) public payable virtual override {
-        _send(_from, _dstChainId, _toAddress, _amount, _payload, _refundAddress, _zroPaymentAddress, _adapterParams);
+    function sendFrom(address _from, uint16 _dstChainId, bytes memory _toAddress, uint _amount, address payable _refundAddress, address _zroPaymentAddress, bytes memory _adapterParams) public payable virtual override {
+        _send(_from, _dstChainId, _toAddress, _amount, _refundAddress, _zroPaymentAddress, _adapterParams);
     }
 
-    function retryOFTReceived(uint16 _srcChainId, bytes calldata _srcOFTAddress, uint64 _nonce, bytes calldata _fromAddress, address _to, uint _amount, bytes calldata _payload) public virtual override {
-        bytes32 failedMessageHash = failedOFTReceivedMessages[_srcChainId][_srcOFTAddress][_nonce];
-        require(failedMessageHash != bytes32(0), "OFTCore: no failed message to retry");
+    function sendAndCall(address _from, uint16 _dstChainId, bytes calldata _toAddress, uint _amount, bytes calldata _payload, uint _dstGasForCall, address payable _refundAddress, address _zroPaymentAddress, bytes calldata _adapterParams) external payable override {
+        _sendAndCall(_from, _dstChainId, _toAddress, _amount, _payload, _dstGasForCall, _refundAddress, _zroPaymentAddress, _adapterParams);
+    }
 
-        bytes32 hash = keccak256(abi.encode(_fromAddress, _to, _amount, _payload));
-        require(hash == failedMessageHash, "OFTCore: failed message hash mismatch");
+    function retryOFTReceived(uint16 _srcChainId, bytes calldata _srcAddress, uint64 _nonce, bytes calldata _from, address _to, uint _amount, bytes calldata _payload) public virtual override {
+        bytes32 msgHash = failedOFTReceivedMessages[_srcChainId][_srcAddress][_nonce];
+        require(msgHash != bytes32(0), "OFTCore: no failed message to retry");
 
-        delete failedOFTReceivedMessages[_srcChainId][_srcOFTAddress][_nonce];
-        IOFTReceiver(_to).onOFTReceived(_srcChainId, _srcOFTAddress, _nonce, _fromAddress, _amount, _payload);
-        emit RetryOFTReceivedSuccess(_srcChainId, _srcOFTAddress, _nonce, _fromAddress, _to, _amount, _payload);
+        bytes32 hash = keccak256(abi.encode(_from, _to, _amount, _payload));
+        require(hash == msgHash, "OFTCore: failed message hash mismatch");
+
+        delete failedOFTReceivedMessages[_srcChainId][_srcAddress][_nonce];
+        IOFTReceiver(_to).onOFTReceived(_srcChainId, _srcAddress, _nonce, _from, _amount, _payload);
+        emit RetryOFTReceivedSuccess(hash);
     }
 
     function setUseCustomAdapterParams(bool _useCustomAdapterParams) public virtual onlyOwner {
@@ -53,52 +58,108 @@ abstract contract OFTCore is NonblockingLzApp, ERC165, IOFTCore {
     }
 
     function _nonblockingLzReceive(uint16 _srcChainId, bytes memory _srcAddress, uint64 _nonce, bytes memory _payload) internal virtual override {
-        // decode and load the toAddress
-        (bytes memory sender, bytes memory toAddressBytes, uint amount, bytes memory payload) = abi.decode(_payload, (bytes, bytes, uint, bytes));
+        uint16 packetType;
+        assembly {
+            packetType := mload(add(_payload, 32))
+        }
 
-        require(toAddressBytes.length == 20, "OFTCore: invalid to address");
-        if (toAddressBytes.length != 20) {
+        if (packetType == PT_SEND) {
+            _sendAck(_srcChainId, _srcAddress, _nonce, _payload);
+        } else if (packetType == PT_SEND_AND_CALL) {
+            _sendAndCallAck(_srcChainId, _srcAddress, _nonce, _payload);
+        } else {
+            revert("OFTCore: unknown packet type");
+        }
+    }
+
+    function _send(address _from, uint16 _dstChainId, bytes memory _toAddress, uint _amount, address payable _refundAddress, address _zroPaymentAddress, bytes memory _adapterParams) internal virtual {
+        _checkAdapterParams(_dstChainId, PT_SEND, _adapterParams, NO_EXTRA_GAS);
+
+        _debitFrom(_from, _dstChainId, _toAddress, _amount);
+
+        bytes memory lzPayload = abi.encode(PT_SEND, abi.encodePacked(_from), _toAddress, _amount);
+        _lzSend(_dstChainId, lzPayload, _refundAddress, _zroPaymentAddress, _adapterParams, msg.value);
+
+        emit SendToChain(_dstChainId, _from, _toAddress, _amount);
+    }
+
+    function _sendAck(uint16 _srcChainId, bytes memory, uint64, bytes memory _payload) internal virtual {
+        (, bytes memory from, bytes memory toAddressBytes, uint amount) = abi.decode(_payload, (uint16, bytes, bytes, uint));
+
+        (bool valid, address to) = _bytesToAddress(toAddressBytes);
+        if (!valid) {
             emit InvalidToAddress(toAddressBytes);
             return;
         }
 
-        address to;
-        assembly {
-            to := mload(add(toAddressBytes, 20))
-        }
-
         _creditTo(_srcChainId, to, amount);
-        emit ReceiveFromChain(_srcChainId, sender, to, amount);
-
-        // call oftReceive() on the toAddress if it is a contract
-        if (_isContract(to)) {
-            (bool success, bytes memory reason) = to.excessivelySafeCall(gasleft(), 80, abi.encodeWithSelector(IOFTReceiver.onOFTReceived.selector, _srcChainId, _srcAddress, _nonce, sender, amount, payload));
-            if (!success) {
-                // todo: how about OOG?
-                // if transfer to non IOFTReceiver implementer, ignore it
-                if (reason.length == 0) {
-                    return;
-                }
-
-                failedOFTReceivedMessages[_srcChainId][_srcAddress][_nonce] = keccak256(abi.encode(sender, to, amount, payload));
-                emit CallOFTReceivedFailed(_srcChainId, _srcAddress, _nonce, sender, to, amount, payload, reason);
-            }
-        }
+        emit ReceiveFromChain(_srcChainId, from, to, amount);
     }
 
-    function _send(address _from, uint16 _dstChainId, bytes memory _toAddress, uint _amount, bytes memory _payload, address payable _refundAddress, address _zroPaymentAddress, bytes memory _adapterParams) internal virtual {
+    function _sendAndCall(address _from, uint16 _dstChainId, bytes memory _toAddress, uint _amount, bytes calldata _payload, uint _dstGasForCall, address payable _refundAddress, address _zroPaymentAddress, bytes memory _adapterParams) internal virtual {
+        _checkAdapterParams(_dstChainId, PT_SEND_AND_CALL, _adapterParams, _dstGasForCall);
+
         _debitFrom(_from, _dstChainId, _toAddress, _amount);
 
-        bytes memory lzPayload = abi.encode(abi.encodePacked(_from), _toAddress, _amount, _payload);
-
-        if (useCustomAdapterParams) {
-            _checkGasLimit(_dstChainId, PT_SEND, _adapterParams, NO_EXTRA_GAS);
-        } else {
-            require(_adapterParams.length == 0, "OFTCore: _adapterParams must be empty.");
-        }
+        bytes memory lzPayload = abi.encode(PT_SEND_AND_CALL, abi.encodePacked(_from), _toAddress, _amount, _payload, _dstGasForCall);
         _lzSend(_dstChainId, lzPayload, _refundAddress, _zroPaymentAddress, _adapterParams, msg.value);
 
         emit SendToChain(_dstChainId, _from, _toAddress, _amount);
+    }
+
+    function _sendAndCallAck(uint16 _srcChainId, bytes memory _srcAddress, uint64 _nonce, bytes memory _payload) internal virtual {
+        (, bytes memory from, bytes memory toAddressBytes, uint amount, bytes memory payload, uint gasForCall) = abi.decode(_payload, (uint16, bytes, bytes, uint, bytes, uint));
+
+        (bool valid, address to) = _bytesToAddress(toAddressBytes);
+        if (!valid) {
+            emit InvalidToAddress(toAddressBytes);
+            return;
+        }
+
+        _creditTo(_srcChainId, to, amount);
+        emit ReceiveFromChain(_srcChainId, from, to, amount);
+
+        if (!_isContract(to)) {
+            emit NonContractAddress(to);
+            return;
+        }
+
+        _safeCallOnOFTReceived(_srcChainId, _srcAddress, _nonce, from, to, amount, payload, gasForCall);
+    }
+
+    function _safeCallOnOFTReceived(uint16 _srcChainId, bytes memory _srcAddress, uint64 _nonce, bytes memory _from, address _to, uint _amount, bytes memory _payload, uint _gasForCall) internal virtual {
+        (bool success, bytes memory reason) = _to.excessivelySafeCall(_gasForCall, 80, abi.encodeWithSelector(IOFTReceiver.onOFTReceived.selector, _srcChainId, _srcAddress, _nonce, _from, _amount, _payload));
+        if (!success) {
+            // todo: how about OOG?
+            // if transfer to non IOFTReceiver implementer, ignore it
+            if (reason.length == 0) {
+                emit NonIOFTReceiverImplementer(_to);
+                return;
+            }
+
+            failedOFTReceivedMessages[_srcChainId][_srcAddress][_nonce] = keccak256(abi.encode(_from, _to, _amount, _payload));
+            emit CallOFTReceivedFailed(_srcChainId, _srcAddress, _nonce, _from, _to, _amount, _payload, reason);
+        }
+    }
+
+    function _checkAdapterParams(uint16 _dstChainId, uint16 _pkType, bytes memory _adapterParams, uint _extraGas) internal virtual {
+        if (useCustomAdapterParams) {
+            _checkGasLimit(_dstChainId, _pkType, _adapterParams, _extraGas);
+        } else {
+            require(_adapterParams.length == 0, "OFTCore: _adapterParams must be empty.");
+        }
+    }
+
+    function _bytesToAddress(bytes memory _addressBytes) internal pure returns (bool, address) {
+        if (_addressBytes.length != 20) {
+            return (false, address(0));
+        }
+
+        address to;
+        assembly {
+            to := mload(add(_addressBytes, 20))
+        }
+        return (true, to);
     }
 
     function _isContract(address _account) internal view returns (bool) {
