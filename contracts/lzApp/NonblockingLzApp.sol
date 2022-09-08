@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: MIT
 
-pragma solidity ^0.8.2;
+pragma solidity ^0.8.0;
 
 import "./LzApp.sol";
 import "@nomad-xyz/excessively-safe-call/src/ExcessivelySafeCall.sol";
