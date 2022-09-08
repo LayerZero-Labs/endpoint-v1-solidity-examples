@@ -1,7 +1,7 @@
 const { expect } = require("chai")
 const { ethers } = require("hardhat")
 
-describe("NativeOFT: ", function () {
+describe.skip("NativeOFT: ", function () {
     const baseChainId = 1
     const otherChainId = 2
     const name = "OmnichainFungibleToken"

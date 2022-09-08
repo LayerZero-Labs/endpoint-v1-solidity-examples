@@ -16,7 +16,7 @@ abstract contract LzApp is Ownable, ILayerZeroReceiver, ILayerZeroUserApplicatio
     mapping(uint16 => mapping(uint16 => uint)) public minDstGasLookup;
 
     event SetTrustedRemote(uint16 _srcChainId, bytes _srcAddress);
-    event SetMinDstGas(uint16 _dstChainId, uint16 _packetType, uint _minDstGas);
+    event SetMinDstGas(uint16 _dstChainId, uint16 _type, uint _minDstGas);
 
     constructor(address _endpoint) {
         lzEndpoint = ILayerZeroEndpoint(_endpoint);

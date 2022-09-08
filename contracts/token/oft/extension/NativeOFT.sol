@@ -8,6 +8,7 @@ import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
 import "@openzeppelin/contracts/utils/introspection/ERC165.sol";
 import "../../../lzApp/NonblockingLzApp.sol";
 
+// todo: should inherit from OFT/OFTCore
 contract NativeOFT is NonblockingLzApp, ReentrancyGuard, ERC20, ERC165 {
     using SafeERC20 for IERC20;
 
