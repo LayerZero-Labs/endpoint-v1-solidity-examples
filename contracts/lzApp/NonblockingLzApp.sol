@@ -18,6 +18,7 @@ abstract contract NonblockingLzApp is LzApp {
     mapping(uint16 => mapping(bytes => mapping(uint64 => bytes32))) public failedMessages;
 
     event MessageFailed(uint16 _srcChainId, bytes _srcAddress, uint64 _nonce, bytes _payload, bytes _reason);
+    event RetryMessageSuccess(bytes32 _payloadHash);
 
     // overriding the virtual function in LzReceiver
     function _blockingLzReceive(uint16 _srcChainId, bytes calldata _srcAddress, uint64 _nonce, bytes calldata _payload) internal virtual override {
@@ -46,5 +47,6 @@ abstract contract NonblockingLzApp is LzApp {
         failedMessages[_srcChainId][_srcAddress][_nonce] = bytes32(0);
         // execute the message. revert if it fails again
         _nonblockingLzReceive(_srcChainId, _srcAddress, _nonce, _payload);
+        emit RetryMessageSuccess(payloadHash);
     }
 }
