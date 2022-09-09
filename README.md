@@ -6,7 +6,7 @@
 
 # MAINNET chainIds WERE UPDATED ON SEPTEMBER 6. PLEASE REFER TO https://github.com/LayerZero-Labs/set-trusted-remotes 
 
-# TESTNET will undergo a similar update towards the end of September
+# TESTNET will undergo a similar update in the future
 
 
 # LayerZero Omnichain Contract Examples
