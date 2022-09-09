@@ -31,10 +31,6 @@ interface IOFTCore is IERC165 {
      */
     function sendFrom(address _from, uint16 _dstChainId, bytes calldata _toAddress, uint _amount, address payable _refundAddress, address _zroPaymentAddress, bytes calldata _adapterParams) external payable;
 
-    function sendAndCall(address _from, uint16 _dstChainId, bytes calldata _toAddress, uint _amount, bytes calldata _payload, uint _dstGasForCall, address payable _refundAddress, address _zroPaymentAddress, bytes calldata _adapterParams) external payable;
-
-    function retryOFTReceived(uint16 _srcChainId, bytes calldata _srcAddress, uint64 _nonce, bytes calldata _fromAddress, address _to, uint _amount, bytes calldata _payload) external;
-
     /**
      * @dev returns the circulating amount of tokens on current chain
      */
@@ -52,14 +48,5 @@ interface IOFTCore is IERC165 {
      */
     event ReceiveFromChain(uint16 indexed _srcChainId, bytes _fromAddress, address indexed _to, uint _amount);
 
-    event CallOFTReceivedFailure(uint16 indexed _srcChainId, bytes _srcAddress, uint64 _nonce, bytes _fromAddress, address indexed _to, uint _amount, bytes _payload, bytes _reason);
-    event CallOFTReceivedSuccess(uint16 indexed _srcChainId, bytes _srcAddress, uint64 _nonce, bytes32 _hash);
-
-    event RetryOFTReceivedSuccess(bytes32 _messageHash);
-
     event SetUseCustomAdapterParams(bool _useCustomAdapterParams);
-
-    event NonContractAddress(address _address);
-
-    event NonIOFTReceiverImplementer(address _address);
 }
