@@ -112,7 +112,6 @@ abstract contract OFTCore is NonblockingLzApp, ERC165, IOFTCore {
         _creditTo(_srcChainId, to, amount);
         emit ReceiveFromChain(_srcChainId, from, to, amount);
 
-        // todo: should we separate the token receiver and the receiver contract?
         if (!_isContract(to)) {
             emit NonContractAddress(to);
             return;
