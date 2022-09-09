@@ -4,6 +4,11 @@
 
 ---
 
+# MAINNET chainIds WERE UPDATED ON SEPTEMBER 6. PLEASE REFER TO https://github.com/LayerZero-Labs/set-trusted-remotes 
+
+# TESTNET will undergo a similar update towards the end of September
+
+
 # LayerZero Omnichain Contract Examples
 
 * A formal audit (May 21, 2022) can in /audit folder *
