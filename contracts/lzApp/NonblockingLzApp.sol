@@ -18,7 +18,7 @@ abstract contract NonblockingLzApp is LzApp {
     event RetryMessageSuccess(uint16 _srcChainId, bytes _srcAddress, uint64 _nonce, bytes32 _payloadHash);
 
     // overriding the virtual function in LzReceiver
-    function _blockingLzReceive(uint16 _srcChainId, bytes calldata _srcAddress, uint64 _nonce, bytes memory _payload) internal virtual override {
+    function _blockingLzReceive(uint16 _srcChainId, bytes memory _srcAddress, uint64 _nonce, bytes memory _payload) internal virtual override {
         // try-catch all errors/exceptions
         try this.nonblockingLzReceive(_srcChainId, _srcAddress, _nonce, _payload) {
             // do nothing
@@ -36,7 +36,7 @@ abstract contract NonblockingLzApp is LzApp {
     }
 
     //@notice override this function
-    function _nonblockingLzReceive(uint16 _srcChainId, bytes calldata _srcAddress, uint64 _nonce, bytes calldata _payload) internal virtual;
+    function _nonblockingLzReceive(uint16 _srcChainId, bytes memory _srcAddress, uint64 _nonce, bytes memory _payload) internal virtual;
 
     function retryMessage(uint16 _srcChainId, bytes calldata _srcAddress, uint64 _nonce, bytes calldata _payload) public payable virtual {
         // assert there is message to retry
