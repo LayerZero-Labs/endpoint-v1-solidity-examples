@@ -34,10 +34,10 @@ abstract contract ComposableOFTCore is OFTCore, IComposableOFTCore {
 
     function retryOFTReceived(uint16 _srcChainId, bytes calldata _srcAddress, uint64 _nonce, bytes calldata _from, address _to, uint _amount, bytes calldata _payload) public virtual override {
         bytes32 msgHash = failedOFTReceivedMessages[_srcChainId][_srcAddress][_nonce];
-        require(msgHash != bytes32(0), "OFTCore: no failed message to retry");
+        require(msgHash != bytes32(0), "ComposableOFTCore: no failed message to retry");
 
         bytes32 hash = keccak256(abi.encode(_from, _to, _amount, _payload));
-        require(hash == msgHash, "OFTCore: failed message hash mismatch");
+        require(hash == msgHash, "ComposableOFTCore: failed message hash mismatch");
 
         delete failedOFTReceivedMessages[_srcChainId][_srcAddress][_nonce];
         IOFTReceiver(_to).onOFTReceived(_srcChainId, _srcAddress, _nonce, _from, _amount, _payload);
@@ -46,15 +46,15 @@ abstract contract ComposableOFTCore is OFTCore, IComposableOFTCore {
 
     function tryRetryOFTReceived(uint16 _srcChainId, bytes calldata _srcAddress, uint64 _nonce, bytes calldata _from, address _to, uint _amount, bytes calldata _payload) public view override {
         bytes32 msgHash = failedOFTReceivedMessages[_srcChainId][_srcAddress][_nonce];
-        require(msgHash != bytes32(0), "OFTCore: no failed message to retry");
+        require(msgHash != bytes32(0), "ComposableOFTCore: no failed message to retry");
 
         bytes32 hash = keccak256(abi.encode(_from, _to, _amount, _payload));
-        require(hash == msgHash, "OFTCore: failed message hash mismatch");
+        require(hash == msgHash, "ComposableOFTCore: failed message hash mismatch");
 
         IOFTReceiver(_to).tryOnOFTReceived(_srcChainId, _srcAddress, _nonce, _from, _amount, _payload);
     }
 
-    function _nonblockingLzReceive(uint16 _srcChainId, bytes calldata _srcAddress, uint64 _nonce, bytes memory _payload) internal virtual override {
+    function _nonblockingLzReceive(uint16 _srcChainId, bytes memory _srcAddress, uint64 _nonce, bytes memory _payload) internal virtual override {
         uint16 packetType;
         assembly {
             packetType := mload(add(_payload, 32))
@@ -65,7 +65,7 @@ abstract contract ComposableOFTCore is OFTCore, IComposableOFTCore {
         } else if (packetType == PT_SEND_AND_CALL) {
             _sendAndCallAck(_srcChainId, _srcAddress, _nonce, _payload);
         } else {
-            revert("OFTCore: unknown packet type");
+            revert("ComposableOFTCore: unknown packet type");
         }
     }
 
