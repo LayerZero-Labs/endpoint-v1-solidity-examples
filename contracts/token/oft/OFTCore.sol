@@ -37,8 +37,17 @@ abstract contract OFTCore is NonblockingLzApp, ERC165, IOFTCore {
         emit SetUseCustomAdapterParams(_useCustomAdapterParams);
     }
 
-    function _nonblockingLzReceive(uint16 _srcChainId, bytes calldata _srcAddress, uint64 _nonce, bytes calldata _payload) internal virtual override {
-        _sendAck(_srcChainId, _srcAddress, _nonce, _payload);
+    function _nonblockingLzReceive(uint16 _srcChainId, bytes calldata _srcAddress, uint64 _nonce, bytes memory _payload) internal virtual override {
+        uint16 packetType;
+        assembly {
+            packetType := mload(add(_payload, 32))
+        }
+
+        if (packetType == PT_SEND) {
+            _sendAck(_srcChainId, _srcAddress, _nonce, _payload);
+        } else {
+            revert("OFTCore: unknown packet type");
+        }
     }
 
     function _send(address _from, uint16 _dstChainId, bytes memory _toAddress, uint _amount, address payable _refundAddress, address _zroPaymentAddress, bytes memory _adapterParams) internal virtual {
@@ -53,8 +62,7 @@ abstract contract OFTCore is NonblockingLzApp, ERC165, IOFTCore {
     }
 
     function _sendAck(uint16 _srcChainId, bytes memory, uint64, bytes memory _payload) internal virtual {
-        (uint16 pkType, bytes memory from, bytes memory toAddressBytes, uint amount) = abi.decode(_payload, (uint16, bytes, bytes, uint));
-        require(pkType == PT_SEND, "OFTCore: unknown packet type");
+        (, bytes memory from, bytes memory toAddressBytes, uint amount) = abi.decode(_payload, (uint16, bytes, bytes, uint));
 
         address to = toAddressBytes.toAddress(0);
 

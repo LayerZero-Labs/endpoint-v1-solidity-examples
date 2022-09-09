@@ -44,6 +44,16 @@ abstract contract ComposableOFTCore is OFTCore, IComposableOFTCore {
         emit RetryOFTReceivedSuccess(hash);
     }
 
+    function tryRetryOFTReceived(uint16 _srcChainId, bytes calldata _srcAddress, uint64 _nonce, bytes calldata _from, address _to, uint _amount, bytes calldata _payload) public view override {
+        bytes32 msgHash = failedOFTReceivedMessages[_srcChainId][_srcAddress][_nonce];
+        require(msgHash != bytes32(0), "OFTCore: no failed message to retry");
+
+        bytes32 hash = keccak256(abi.encode(_from, _to, _amount, _payload));
+        require(hash == msgHash, "OFTCore: failed message hash mismatch");
+
+        IOFTReceiver(_to).tryOnOFTReceived(_srcChainId, _srcAddress, _nonce, _from, _amount, _payload);
+    }
+
     function _nonblockingLzReceive(uint16 _srcChainId, bytes calldata _srcAddress, uint64 _nonce, bytes memory _payload) internal virtual override {
         uint16 packetType;
         assembly {

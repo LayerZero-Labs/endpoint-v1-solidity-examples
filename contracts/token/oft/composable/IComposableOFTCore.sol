@@ -15,6 +15,8 @@ interface IComposableOFTCore is IOFTCore {
 
     function retryOFTReceived(uint16 _srcChainId, bytes calldata _srcAddress, uint64 _nonce, bytes calldata _fromAddress, address _to, uint _amount, bytes calldata _payload) external;
 
+    function tryRetryOFTReceived(uint16 _srcChainId, bytes calldata _srcAddress, uint64 _nonce, bytes calldata _fromAddress, address _to, uint _amount, bytes calldata _payload) external view;
+
     event CallOFTReceivedFailure(uint16 indexed _srcChainId, bytes _srcAddress, uint64 _nonce, bytes _fromAddress, address indexed _to, uint _amount, bytes _payload, bytes _reason);
 
     event CallOFTReceivedSuccess(uint16 indexed _srcChainId, bytes _srcAddress, uint64 _nonce, bytes32 _hash);
