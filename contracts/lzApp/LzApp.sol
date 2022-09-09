@@ -17,7 +17,9 @@ abstract contract LzApp is Ownable, ILayerZeroReceiver, ILayerZeroUserApplicatio
     ILayerZeroEndpoint public immutable lzEndpoint;
     mapping(uint16 => bytes) public trustedRemoteLookup;
     mapping(uint16 => mapping(uint16 => uint)) public minDstGasLookup;
+    address public precrime;
 
+    event SetPrecrime(address precrime);
     event SetTrustedRemote(uint16 _remoteChainId, bytes _path);
     event SetTrustedRemoteAddress(uint16 _remoteChainId, bytes _remoteAddress);
     event SetMinDstGas(uint16 _dstChainId, uint16 _type, uint _minDstGas);
@@ -32,7 +34,9 @@ abstract contract LzApp is Ownable, ILayerZeroReceiver, ILayerZeroUserApplicatio
 
         bytes memory trustedRemote = trustedRemoteLookup[_srcChainId];
         // if will still block the message pathway from (srcChainId, srcAddress). should not receive message from untrusted remote.
-        require(_srcAddress.length == trustedRemote.length && keccak256(_srcAddress) == keccak256(trustedRemote), "LzApp: invalid source sending contract");
+        require(_srcAddress.length == trustedRemote.length
+            && trustedRemote.length > 0
+            && keccak256(_srcAddress) == keccak256(trustedRemote), "LzApp: invalid source sending contract");
 
         _blockingLzReceive(_srcChainId, _srcAddress, _nonce, _payload);
     }
@@ -98,6 +102,11 @@ abstract contract LzApp is Ownable, ILayerZeroReceiver, ILayerZeroUserApplicatio
         bytes memory path = trustedRemoteLookup[_remoteChainId];
         require(path.length != 0, "LzApp: no trusted path record");
         return path.slice(0, path.length - 20); // the last 20 bytes should be address(this)
+    }
+
+    function setPrecrime(address _precrime) external onlyOwner {
+        precrime = _precrime;
+        emit SetPrecrime(_precrime);
     }
 
     function setMinDstGas(uint16 _dstChainId, uint16 _packetType, uint _minGas) external onlyOwner {
