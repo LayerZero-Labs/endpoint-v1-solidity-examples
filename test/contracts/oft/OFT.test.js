@@ -34,7 +34,7 @@ describe("OFT: ", function () {
         await OFTDst.setTrustedRemote(chainIdSrc, OFTSrc.address) // for B, set A
 
         //set destination min gas
-        await OFTSrc.setMinDstGasLookup(chainIdDst, parseInt(await OFTSrc.FUNCTION_TYPE_SEND()), 225000)
+        await OFTSrc.setMinDstGas(chainIdDst, parseInt(await OFTSrc.PT_SEND()), 225000)
         await OFTSrc.setUseCustomAdapterParams(true)
     })
 
@@ -98,7 +98,7 @@ describe("OFT: ", function () {
             // balance before transfer is 0
             expect(await OFTDst.balanceOf(owner.address)).to.be.equal(0)
 
-            const payload = ethers.utils.defaultAbiCoder.encode(["bytes", "uint256"], [owner.address, sendQty])
+            const payload = ethers.utils.defaultAbiCoder.encode(["uint16", "bytes", "bytes", "uint256"], [0, owner.address, owner.address, sendQty])
             await expect(lzEndpointDstMock.retryPayload(chainIdSrc, OFTSrc.address, payload)).to.emit(lzEndpointDstMock, "PayloadCleared")
 
             // balance after transfer is sendQty

@@ -2,10 +2,10 @@
 
 pragma solidity ^0.8.0;
 
-import "../OFT.sol";
+import "./ComposableOFT.sol";
 
-contract BasedOFT is OFT {
-    constructor(string memory _name, string memory _symbol, address _lzEndpoint) OFT(_name, _symbol, _lzEndpoint) {}
+contract ComposableBasedOFT is ComposableOFT {
+    constructor(string memory _name, string memory _symbol, address _lzEndpoint) ComposableOFT(_name, _symbol, _lzEndpoint) {}
 
     function circulatingSupply() public view virtual override returns (uint) {
         unchecked {

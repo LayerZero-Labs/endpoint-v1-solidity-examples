@@ -738,6 +738,11 @@
     "@nodelib/fs.scandir" "2.1.5"
     fastq "^1.6.0"
 
+"@nomad-xyz/excessively-safe-call@^0.0.1-rc.1":
+  version "0.0.1-rc.1"
+  resolved "https://registry.yarnpkg.com/@nomad-xyz/excessively-safe-call/-/excessively-safe-call-0.0.1-rc.1.tgz#fdec5cb293a625680bdacb2759def7048f0dbc3a"
+  integrity sha512-Q5GVakBy8J1kWjydH6W5LNbkYY+Cw2doBiLodOfbFGujeng6zM+EtMLb/V+vkWbskbM81y2r+LG5NmxsxyElPA==
+
 "@nomiclabs/hardhat-ethers@^2.0.3":
   version "2.1.0"
   resolved "https://registry.npmjs.org/@nomiclabs/hardhat-ethers/-/hardhat-ethers-2.1.0.tgz"

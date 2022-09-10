@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: MIT
 
-pragma solidity ^0.8.2;
+pragma solidity ^0.8.0;
 
 import "./IONFT721Core.sol";
 import "../../lzApp/NonblockingLzApp.sol";
@@ -8,7 +8,7 @@ import "@openzeppelin/contracts/utils/introspection/ERC165.sol";
 
 abstract contract ONFT721Core is NonblockingLzApp, ERC165, IONFT721Core {
     uint public constant NO_EXTRA_GAS = 0;
-    uint public constant FUNCTION_TYPE_SEND = 1;
+    uint16 public constant FUNCTION_TYPE_SEND = 1;
     bool public useCustomAdapterParams;
 
     event SetUseCustomAdapterParams(bool _useCustomAdapterParams);
