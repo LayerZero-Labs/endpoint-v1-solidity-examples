@@ -22,7 +22,7 @@ abstract contract NonblockingLzApp is LzApp {
         // try-catch all errors/exceptions
         try this.nonblockingLzReceive(_srcChainId, _srcAddress, _nonce, _payload) {
             // do nothing
-        } catch (bytes memory reason){
+        } catch (bytes memory reason) {
             // error / exception
             failedMessages[_srcChainId][_srcAddress][_nonce] = keccak256(_payload);
             emit MessageFailed(_srcChainId, _srcAddress, _nonce, _payload, reason);
