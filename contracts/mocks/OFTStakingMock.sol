@@ -26,6 +26,7 @@ contract OFTStakingMock is IOFTReceiver {
     address public oft;
     mapping(uint16 => bytes) public remoteStakingContracts;
     mapping(address => uint) public balances;
+    bool public paused; // for testing try/catch
 
     event Deposit(address from, uint amount);
     event Withdrawal(address to, uint amount);
@@ -46,10 +47,10 @@ contract OFTStakingMock is IOFTReceiver {
     }
 
     function withdraw(uint _amount) external {
-        withdraw(_amount, msg.sender);
+        withdrawTo(_amount, msg.sender);
     }
 
-    function withdraw(uint _amount, address _to) public {
+    function withdrawTo(uint _amount, address _to) public {
         require(balances[msg.sender] >= _amount);
         balances[msg.sender] -= _amount;
         IERC20(oft).safeTransfer(_to, _amount);
@@ -86,6 +87,7 @@ contract OFTStakingMock is IOFTReceiver {
 
     //-----------------------------------------------------------------------------------------------------------------------
     function onOFTReceived(uint16 _srcChainId, bytes calldata, uint64, bytes calldata, uint _amount, bytes memory _payload) external override {
+        require(!paused, "paused"); // for testing safe call
         require(msg.sender == oft, "only oft can call onOFTReceived()");
 
         uint8 pkType;
@@ -118,5 +120,9 @@ contract OFTStakingMock is IOFTReceiver {
         } else {
             revert("invalid deposit type");
         }
+    }
+
+    function setPaused(bool _paused) external {
+        paused = _paused;
     }
 }
