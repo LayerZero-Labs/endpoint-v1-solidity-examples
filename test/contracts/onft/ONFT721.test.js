@@ -48,10 +48,10 @@ describe("ONFT721: ", function () {
         expect(await ONFT_A.ownerOf(tokenId)).to.be.equal(warlock.address)
 
         // approve the proxy to swap your token
-        // await ONFT_A.connect(warlock).approve(ONFT_A.address, tokenId)
+        await ONFT_A.connect(warlock).approve(ONFT_A.address, tokenId)
 
         // swaps token to other chain
-        await ONFT_A.connect(warlock)["sendFrom(address,uint16,bytes,uint256,address,address,bytes)"](
+        await ONFT_A.connect(warlock).sendFrom(
             warlock.address,
             chainId_B,
             warlock.address,
@@ -68,7 +68,7 @@ describe("ONFT721: ", function () {
         expect(await ONFT_B.ownerOf(tokenId)).to.be.equal(warlock.address)
 
         // can send to other onft contract eg. not the original nft contract chain
-        await ONFT_B.connect(warlock)["sendFrom(address,uint16,bytes,uint256,address,address,bytes)"](
+        await ONFT_B.connect(warlock).sendFrom(
             warlock.address,
             chainId_A,
             warlock.address,
@@ -82,61 +82,6 @@ describe("ONFT721: ", function () {
         expect(await ONFT_B.ownerOf(tokenId)).to.be.equal(ONFT_B.address)
     })
 
-    it("sendFrom() - multiple tokens", async function () {
-        const tokenId1 = 1
-        const tokenId2 = 2
-        const tokenId3 = 3
-        const tokenId4 = 4
-        await ONFT_A.mint(owner.address, tokenId1)
-        await ONFT_A.mint(owner.address, tokenId2)
-        await ONFT_A.mint(owner.address, tokenId3)
-        await ONFT_A.mint(owner.address, tokenId4)
-
-        // verify the owner of the token is on the source chain
-        expect(await ONFT_A.ownerOf(tokenId1)).to.be.equal(owner.address)
-        expect(await ONFT_A.ownerOf(tokenId2)).to.be.equal(owner.address)
-        expect(await ONFT_A.ownerOf(tokenId3)).to.be.equal(owner.address)
-        expect(await ONFT_A.ownerOf(tokenId4)).to.be.equal(owner.address)
-
-        // token doesn't exist on other chain
-        await expect(ONFT_B.ownerOf(tokenId1)).to.be.revertedWith("ERC721: invalid token ID")
-
-        // approve the proxy to swap your token
-        // await ONFT_A.approve(ONFT_A.address, tokenId1)
-        // await ONFT_A.approve(ONFT_A.address, tokenId2)
-        // await ONFT_A.approve(ONFT_A.address, tokenId3)
-        // await ONFT_A.approve(ONFT_A.address, tokenId4)
-
-        // swaps token to other chain
-        await ONFT_A["sendFrom(address,uint16,bytes,uint256[],address,address,bytes)"](
-            owner.address,
-            chainId_B,
-            owner.address,
-            [tokenId1, tokenId2, tokenId3, tokenId4],
-            owner.address,
-            ethers.constants.AddressZero,
-            "0x"
-        )
-
-        // token is burnt
-        expect(await ONFT_A.ownerOf(tokenId1)).to.be.equal(ONFT_A.address)
-        expect(await ONFT_A.ownerOf(tokenId2)).to.be.equal(ONFT_A.address)
-        expect(await ONFT_A.ownerOf(tokenId3)).to.be.equal(ONFT_A.address)
-        expect(await ONFT_A.ownerOf(tokenId4)).to.be.equal(ONFT_A.address)
-
-        // tokens no longer belong to owner
-        expect(await ONFT_A.ownerOf(tokenId1)).to.not.be.equal(owner.address)
-        expect(await ONFT_A.ownerOf(tokenId2)).to.not.be.equal(owner.address)
-        expect(await ONFT_A.ownerOf(tokenId3)).to.not.be.equal(owner.address)
-        expect(await ONFT_A.ownerOf(tokenId4)).to.not.be.equal(owner.address)
-
-        // token received on the dst chain
-        expect(await ONFT_B.ownerOf(tokenId1)).to.be.equal(owner.address)
-        expect(await ONFT_B.ownerOf(tokenId2)).to.be.equal(owner.address)
-        expect(await ONFT_B.ownerOf(tokenId3)).to.be.equal(owner.address)
-        expect(await ONFT_B.ownerOf(tokenId4)).to.be.equal(owner.address)
-    })
-
     it("sendFrom() - reverts if not owner on non proxy chain", async function () {
         const tokenId = 123
         await ONFT_A.mint(owner.address, tokenId)
@@ -145,14 +90,14 @@ describe("ONFT721: ", function () {
         await ONFT_A.approve(ONFT_A.address, tokenId)
 
         // swaps token to other chain
-        await ONFT_A["sendFrom(address,uint16,bytes,uint256,address,address,bytes)"](owner.address, chainId_B, owner.address, tokenId, owner.address, ethers.constants.AddressZero, "0x")
+        await ONFT_A.sendFrom(owner.address, chainId_B, owner.address, tokenId, owner.address, ethers.constants.AddressZero, "0x")
 
         // token received on the dst chain
         expect(await ONFT_B.ownerOf(tokenId)).to.be.equal(owner.address)
 
         // reverts because other address does not own it
         await expect(
-            ONFT_B.connect(warlock)["sendFrom(address,uint16,bytes,uint256,address,address,bytes)"](
+            ONFT_B.connect(warlock).sendFrom(
                 warlock.address,
                 chainId_A,
                 warlock.address,
@@ -172,7 +117,7 @@ describe("ONFT721: ", function () {
         await ONFT_A.approve(ONFT_A.address, tokenId)
 
         // swaps token to other chain
-        await ONFT_A["sendFrom(address,uint16,bytes,uint256,address,address,bytes)"](owner.address, chainId_B, owner.address, tokenId, owner.address, ethers.constants.AddressZero, "0x")
+        await ONFT_A.sendFrom(owner.address, chainId_B, owner.address, tokenId, owner.address, ethers.constants.AddressZero, "0x")
 
         // token received on the dst chain
         expect(await ONFT_B.ownerOf(tokenId)).to.be.equal(owner.address)
@@ -181,7 +126,7 @@ describe("ONFT721: ", function () {
         await ONFT_B.approve(warlock.address, tokenId)
 
         // sends across
-        await ONFT_B.connect(warlock)["sendFrom(address,uint16,bytes,uint256,address,address,bytes)"](
+        await ONFT_B.connect(warlock).sendFrom(
             owner.address,
             chainId_A,
             warlock.address,
@@ -203,7 +148,7 @@ describe("ONFT721: ", function () {
         await ONFT_A.approve(ONFT_A.address, tokenId)
 
         // swaps token to other chain
-        await ONFT_A["sendFrom(address,uint16,bytes,uint256,address,address,bytes)"](owner.address, chainId_B, owner.address, tokenId, owner.address, ethers.constants.AddressZero, "0x")
+        await ONFT_A.sendFrom(owner.address, chainId_B, owner.address, tokenId, owner.address, ethers.constants.AddressZero, "0x")
 
         // token received on the dst chain
         expect(await ONFT_B.ownerOf(tokenId)).to.be.equal(owner.address)
@@ -213,7 +158,7 @@ describe("ONFT721: ", function () {
 
         // reverts because contract is approved, not the user
         await expect(
-            ONFT_B.connect(warlock)["sendFrom(address,uint16,bytes,uint256,address,address,bytes)"](
+            ONFT_B.connect(warlock).sendFrom(
                 owner.address,
                 chainId_A,
                 warlock.address,
@@ -233,14 +178,14 @@ describe("ONFT721: ", function () {
         await ONFT_A.approve(ONFT_A.address, tokenId)
 
         // swaps token to other chain
-        await ONFT_A["sendFrom(address,uint16,bytes,uint256,address,address,bytes)"](owner.address, chainId_B, owner.address, tokenId, owner.address, ethers.constants.AddressZero, "0x")
+        await ONFT_A.sendFrom(owner.address, chainId_B, owner.address, tokenId, owner.address, ethers.constants.AddressZero, "0x")
 
         // token received on the dst chain
         expect(await ONFT_B.ownerOf(tokenId)).to.be.equal(owner.address)
 
         // reverts because user is not approved
         await expect(
-            ONFT_B.connect(warlock)["sendFrom(address,uint16,bytes,uint256,address,address,bytes)"](
+            ONFT_B.connect(warlock).sendFrom(
                 owner.address,
                 chainId_A,
                 warlock.address,
@@ -263,7 +208,7 @@ describe("ONFT721: ", function () {
         await ONFT_A.setApprovalForAll(ONFT_A.address, true)
 
         await expect(
-            ONFT_A.connect(warlock)["sendFrom(address,uint16,bytes,uint256,address,address,bytes)"](
+            ONFT_A.connect(warlock).sendFrom(
                 warlock.address,
                 chainId_B,
                 warlock.address,
@@ -274,7 +219,7 @@ describe("ONFT721: ", function () {
             )
         ).to.be.revertedWith("ONFT721: send caller is not owner nor approved")
         await expect(
-            ONFT_A.connect(warlock)["sendFrom(address,uint16,bytes,uint256,address,address,bytes)"](
+            ONFT_A.connect(warlock).sendFrom(
                 warlock.address,
                 chainId_B,
                 owner.address,

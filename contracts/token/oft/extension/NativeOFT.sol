@@ -1,18 +1,19 @@
 // SPDX-License-Identifier: MIT
 
-pragma solidity 0.8.9;
+pragma solidity ^0.8.0;
 
+import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
 import "@openzeppelin/contracts/utils/introspection/ERC165.sol";
-import "@openzeppelin/contracts/utils/introspection/IERC165.sol";
 import "../../../lzApp/NonblockingLzApp.sol";
-import "../IOFT.sol";
-import "../OFTCore.sol";
 
+// todo: should inherit from OFT/OFTCore
 contract NativeOFT is NonblockingLzApp, ReentrancyGuard, ERC20, ERC165 {
+    using SafeERC20 for IERC20;
+
     uint public constant NO_EXTRA_GAS = 0;
-    uint8 public constant FUNCTION_TYPE_SEND = 1;
+    uint16 public constant FUNCTION_TYPE_SEND = 1;
     bool public useCustomAdapterParams;
 
     event SetUseCustomAdapterParams(bool _useCustomAdapterParams);
@@ -23,16 +24,12 @@ contract NativeOFT is NonblockingLzApp, ReentrancyGuard, ERC20, ERC165 {
 
     constructor(string memory _name, string memory _symbol, address _lzEndpoint) ERC20(_name, _symbol) NonblockingLzApp(_lzEndpoint) {}
 
-    function supportsInterface(bytes4 interfaceId) public view virtual override(ERC165) returns (bool) {
-        return interfaceId == type(IERC20).interfaceId || super.supportsInterface(interfaceId);
-    }
-
-    function estimateSendFee(uint16 _dstChainId, bytes memory _toAddress, uint _amount, bool _useZro, bytes memory _adapterParams) external view returns (uint nativeFee, uint zroFee) {
+    function estimateSendFee(uint16 _dstChainId, bytes memory _toAddress, uint _amount, bool _useZro, bytes memory _adapterParams) public view returns (uint nativeFee, uint zroFee) {
         bytes memory payload = abi.encode(_toAddress, _amount);
         return lzEndpoint.estimateFees(_dstChainId, address(this), payload, _useZro, _adapterParams);
     }
 
-    function sendFrom(address _from, uint16 _dstChainId, bytes memory _toAddress, uint _amount, address payable _refundAddress, address _zroPaymentAddress, bytes memory _adapterParams) external payable {
+    function sendFrom(address _from, uint16 _dstChainId, bytes memory _toAddress, uint _amount, address payable _refundAddress, address _zroPaymentAddress, bytes memory _adapterParams) public payable {
         _send(_from, _dstChainId, _toAddress, _amount, _refundAddress, _zroPaymentAddress, _adapterParams);
     }
 
@@ -53,7 +50,7 @@ contract NativeOFT is NonblockingLzApp, ReentrancyGuard, ERC20, ERC165 {
         emit ReceiveFromChain(_srcChainId, _srcAddress, toAddress, amount);
     }
 
-    function _send(address _from, uint16 _dstChainId, bytes memory _toAddress, uint _amount, address payable _refundAddress, address _zroPaymentAddress, bytes memory _adapterParams) internal {
+    function _send(address _from, uint16 _dstChainId, bytes memory _toAddress, uint _amount, address payable _refundAddress, address _zroPaymentAddress, bytes memory _adapterParams) public payable {
         uint messageFee = _debitFrom(_from, _dstChainId, _toAddress, _amount);
 
         bytes memory payload = abi.encode(_toAddress, _amount);
@@ -79,7 +76,7 @@ contract NativeOFT is NonblockingLzApp, ReentrancyGuard, ERC20, ERC165 {
         emit Deposit(msg.sender, msg.value);
     }
 
-    function withdraw(uint _amount) external nonReentrant {
+    function withdraw(uint _amount) public nonReentrant {
         require(balanceOf(msg.sender) >= _amount, "NativeOFT: Insufficient balance.");
         _burn(msg.sender, _amount);
         (bool success, ) = msg.sender.call{value: _amount}("");

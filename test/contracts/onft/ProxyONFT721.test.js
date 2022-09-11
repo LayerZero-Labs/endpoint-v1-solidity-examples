@@ -69,7 +69,7 @@ describe("ProxyONFT721: ", function () {
         await ERC721Src.connect(warlock).approve(ProxyONFT_A.address, tokenId)
 
         // swaps token to other chain
-        await ProxyONFT_A.connect(warlock)["sendFrom(address,uint16,bytes,uint256,address,address,bytes)"](
+        await ProxyONFT_A.connect(warlock).sendFrom(
             warlock.address,
             chainId_B,
             warlock.address,
@@ -86,7 +86,7 @@ describe("ProxyONFT721: ", function () {
         expect(await ONFT_B.ownerOf(tokenId)).to.be.equal(warlock.address)
 
         // can send to other onft contract eg. not the original nft contract chain
-        await ONFT_B.connect(warlock)["sendFrom(address,uint16,bytes,uint256,address,address,bytes)"](
+        await ONFT_B.connect(warlock).sendFrom(
             warlock.address,
             chainId_C,
             warlock.address,
@@ -103,7 +103,7 @@ describe("ProxyONFT721: ", function () {
         expect(await ONFT_C.ownerOf(tokenId)).to.be.equal(warlock.address)
 
         // send it back to the original chain
-        await ONFT_C.connect(warlock)["sendFrom(address,uint16,bytes,uint256,address,address,bytes)"](
+        await ONFT_C.connect(warlock).sendFrom(
             warlock.address,
             chainId_A,
             warlock.address,
@@ -124,7 +124,7 @@ describe("ProxyONFT721: ", function () {
         const tokenId = 123
         await ERC721Src.mint(owner.address, tokenId)
         await expect(
-            ProxyONFT_A["sendFrom(address,uint16,bytes,uint256,address,address,bytes)"](owner.address, chainId_B, owner.address, tokenId, owner.address, ethers.constants.AddressZero, "0x")
+            ProxyONFT_A.sendFrom(owner.address, chainId_B, owner.address, tokenId, owner.address, ethers.constants.AddressZero, "0x")
         ).to.be.revertedWith("ERC721: caller is not token owner nor approved")
     })
 
@@ -137,7 +137,7 @@ describe("ProxyONFT721: ", function () {
 
         // swaps token to other chain
         await expect(
-            ProxyONFT_A.connect(warlock)["sendFrom(address,uint16,bytes,uint256,address,address,bytes)"](
+            ProxyONFT_A.connect(warlock).sendFrom(
                 owner.address,
                 chainId_B,
                 owner.address,
@@ -157,14 +157,14 @@ describe("ProxyONFT721: ", function () {
         await ERC721Src.approve(ProxyONFT_A.address, tokenId)
 
         // swaps token to other chain
-        await ProxyONFT_A["sendFrom(address,uint16,bytes,uint256,address,address,bytes)"](owner.address, chainId_B, owner.address, tokenId, owner.address, ethers.constants.AddressZero, "0x")
+        await ProxyONFT_A.sendFrom(owner.address, chainId_B, owner.address, tokenId, owner.address, ethers.constants.AddressZero, "0x")
 
         // token received on the dst chain
         expect(await ONFT_B.ownerOf(tokenId)).to.be.equal(owner.address)
 
         // reverts because other address does not own it
         await expect(
-            ONFT_B.connect(warlock)["sendFrom(address,uint16,bytes,uint256,address,address,bytes)"](
+            ONFT_B.connect(warlock).sendFrom(
                 warlock.address,
                 chainId_C,
                 warlock.address,
@@ -184,7 +184,7 @@ describe("ProxyONFT721: ", function () {
         await ERC721Src.approve(ProxyONFT_A.address, tokenId)
 
         // swaps token to other chain
-        await ProxyONFT_A["sendFrom(address,uint16,bytes,uint256,address,address,bytes)"](owner.address, chainId_B, owner.address, tokenId, owner.address, ethers.constants.AddressZero, "0x")
+        await ProxyONFT_A.sendFrom(owner.address, chainId_B, owner.address, tokenId, owner.address, ethers.constants.AddressZero, "0x")
 
         // token received on the dst chain
         expect(await ONFT_B.ownerOf(tokenId)).to.be.equal(owner.address)
@@ -193,7 +193,7 @@ describe("ProxyONFT721: ", function () {
         await ONFT_B.approve(warlock.address, tokenId)
 
         // sends across
-        await ONFT_B.connect(warlock)["sendFrom(address,uint16,bytes,uint256,address,address,bytes)"](
+        await ONFT_B.connect(warlock).sendFrom(
             owner.address,
             chainId_C,
             warlock.address,
@@ -215,7 +215,7 @@ describe("ProxyONFT721: ", function () {
         await ERC721Src.approve(ProxyONFT_A.address, tokenId)
 
         // swaps token to other chain
-        await ProxyONFT_A["sendFrom(address,uint16,bytes,uint256,address,address,bytes)"](owner.address, chainId_B, owner.address, tokenId, owner.address, ethers.constants.AddressZero, "0x")
+        await ProxyONFT_A.sendFrom(owner.address, chainId_B, owner.address, tokenId, owner.address, ethers.constants.AddressZero, "0x")
 
         // token received on the dst chain
         expect(await ONFT_B.ownerOf(tokenId)).to.be.equal(owner.address)
@@ -225,7 +225,7 @@ describe("ProxyONFT721: ", function () {
 
         // reverts because contract is approved, not the user
         await expect(
-            ONFT_B.connect(warlock)["sendFrom(address,uint16,bytes,uint256,address,address,bytes)"](
+            ONFT_B.connect(warlock).sendFrom(
                 owner.address,
                 chainId_C,
                 warlock.address,
@@ -245,14 +245,14 @@ describe("ProxyONFT721: ", function () {
         await ERC721Src.approve(ProxyONFT_A.address, tokenId)
 
         // swaps token to other chain
-        await ProxyONFT_A["sendFrom(address,uint16,bytes,uint256,address,address,bytes)"](owner.address, chainId_B, owner.address, tokenId, owner.address, ethers.constants.AddressZero, "0x")
+        await ProxyONFT_A.sendFrom(owner.address, chainId_B, owner.address, tokenId, owner.address, ethers.constants.AddressZero, "0x")
 
         // token received on the dst chain
         expect(await ONFT_B.ownerOf(tokenId)).to.be.equal(owner.address)
 
         // reverts because user is not approved
         await expect(
-            ONFT_B.connect(warlock)["sendFrom(address,uint16,bytes,uint256,address,address,bytes)"](
+            ONFT_B.connect(warlock).sendFrom(
                 owner.address,
                 chainId_C,
                 warlock.address,
@@ -275,7 +275,7 @@ describe("ProxyONFT721: ", function () {
         await ERC721Src.setApprovalForAll(ProxyONFT_A.address, true)
 
         await expect(
-            ProxyONFT_A.connect(warlock)["sendFrom(address,uint16,bytes,uint256,address,address,bytes)"](
+            ProxyONFT_A.connect(warlock).sendFrom(
                 warlock.address,
                 chainId_B,
                 warlock.address,
@@ -286,7 +286,7 @@ describe("ProxyONFT721: ", function () {
             )
         ).to.be.revertedWith("ERC721: caller is not token owner nor approved")
         await expect(
-            ProxyONFT_A.connect(warlock)["sendFrom(address,uint16,bytes,uint256,address,address,bytes)"](
+            ProxyONFT_A.connect(warlock).sendFrom(
                 warlock.address,
                 chainId_B,
                 owner.address,
@@ -309,7 +309,7 @@ describe("ProxyONFT721: ", function () {
         await ERC721Src.setApprovalForAll(ProxyONFT_A.address, true)
 
         await expect(
-            ProxyONFT_A.connect(warlock)["sendFrom(address,uint16,bytes,uint256,address,address,bytes)"](
+            ProxyONFT_A.connect(warlock).sendFrom(
                 warlock.address,
                 chainId_B,
                 warlock.address,
@@ -320,7 +320,7 @@ describe("ProxyONFT721: ", function () {
             )
         ).to.be.revertedWith("ERC721: transfer from incorrect owner")
         await expect(
-            ProxyONFT_A.connect(warlock)["sendFrom(address,uint16,bytes,uint256,address,address,bytes)"](
+            ProxyONFT_A.connect(warlock).sendFrom(
                 warlock.address,
                 chainId_B,
                 owner.address,

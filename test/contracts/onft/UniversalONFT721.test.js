@@ -33,7 +33,7 @@ describe("UniversalONFT721: ", function () {
         await ONFTDst.setTrustedRemote(chainIdSrc, ONFTSrc.address) // for B, set A
 
         //set destination min gas
-        await ONFTSrc.setMinDstGasLookup(chainIdDst, parseInt(await ONFTSrc.FUNCTION_TYPE_SEND()), 225000)
+        await ONFTSrc.setMinDstGas(chainIdDst, parseInt(await ONFTSrc.FUNCTION_TYPE_SEND()), 225000)
 
         await ONFTSrc.setUseCustomAdapterParams(true)
     })
@@ -51,7 +51,7 @@ describe("UniversalONFT721: ", function () {
         // v1 adapterParams, encoded for version 1 style, and 200k gas quote
         const adapterParam = ethers.utils.solidityPack(["uint16", "uint256"], [1, 225000])
 
-        await ONFTSrc["sendFrom(address,uint16,bytes,uint256,address,address,bytes)"](
+        await ONFTSrc.sendFrom(
             owner.address,
             chainIdDst,
             owner.address,
