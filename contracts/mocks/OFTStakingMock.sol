@@ -82,13 +82,14 @@ contract OFTStakingMock is IOFTReceiver {
         require(keccak256(dstStakingContract) != keccak256(""), "invalid _dstChainId");
 
         bytes memory payload = abi.encode(PT_DEPOSIT_TO_REMOTE_CHAIN, _to);
-        return IComposableOFT(oft).estimateSendAndCallFee(_dstChainId, dstStakingContract, _amount, payload, DST_GAS_FOR_CALL, false, _adapterParams);
+        return IComposableOFT(oft).estimateSendAndCallFee(msg.sender, _dstChainId, dstStakingContract, _amount, payload, DST_GAS_FOR_CALL, false, _adapterParams);
     }
 
     //-----------------------------------------------------------------------------------------------------------------------
-    function onOFTReceived(uint16 _srcChainId, bytes calldata, uint64, bytes calldata, uint _amount, bytes memory _payload) external override {
+    function onOFTReceived(uint16 _srcChainId, bytes calldata, uint64, bytes calldata _srcCaller, bytes calldata, uint _amount, bytes memory _payload) external override {
         require(!paused, "paused"); // for testing safe call
         require(msg.sender == oft, "only oft can call onOFTReceived()");
+        require(keccak256(_srcCaller) == keccak256(remoteStakingContracts[_srcChainId]), "invalid _srcCaller");
 
         uint8 pkType;
         assembly {
@@ -100,23 +101,6 @@ contract OFTStakingMock is IOFTReceiver {
 
             address to = toAddrBytes.toAddress(0);
             balances[to] += _amount;
-        } else {
-            revert("invalid deposit type");
-        }
-    }
-
-    function tryOnOFTReceived(uint16 _srcChainId, bytes calldata _srcAddress, uint64, bytes calldata, uint, bytes memory _payload) external view override {
-        require(msg.sender == oft, "only oft can call onOFTReceived()");
-        require(keccak256(remoteStakingContracts[_srcChainId]) == keccak256(_srcAddress), "invalid _srcAddress");
-
-        uint8 pkType;
-        assembly {
-            pkType := mload(add(_payload, 32))
-        }
-
-        if (pkType == PT_DEPOSIT_TO_REMOTE_CHAIN) {
-            (, bytes memory toAddrBytes) = abi.decode(_payload, (uint8, bytes));
-            toAddrBytes.toAddress(0);
         } else {
             revert("invalid deposit type");
         }

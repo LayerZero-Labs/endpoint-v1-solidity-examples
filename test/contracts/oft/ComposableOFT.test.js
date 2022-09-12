@@ -104,7 +104,7 @@ describe("ComposableOFT: ", function () {
         // console.log("_to", dstOFT.address)
         // console.log("_amount", amount)
         // console.log("payload", payload)
-        await dstOFT.retryOFTReceived(srcChainId, srcOFT.address, 2, alice.address, dstStaking.address, amount, payload)
+        await dstOFT.retryOFTReceived(srcChainId, srcOFT.address, 2, srcStaking.address, alice.address, dstStaking.address, amount, payload)
         expect(await dstStaking.balances(carol.address)).to.equal(amount)
     })
 })
