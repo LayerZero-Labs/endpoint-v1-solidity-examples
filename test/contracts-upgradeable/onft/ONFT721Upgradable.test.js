@@ -63,7 +63,7 @@ describe("ONFT721Upgradeable: ", function () {
             warlock.address,
             ethers.constants.AddressZero,
             "0x",
-            {value: nativeFee}
+            { value: nativeFee }
         )
 
         // token is burnt
@@ -84,7 +84,7 @@ describe("ONFT721Upgradeable: ", function () {
             warlock.address,
             ethers.constants.AddressZero,
             "0x",
-            {value: nativeFee}
+            { value: nativeFee }
         )
 
         // token is burned on the sending chain
@@ -102,16 +102,9 @@ describe("ONFT721Upgradeable: ", function () {
         let nativeFee = (await ONFT_A.estimateSendFee(chainId_B, owner.address, tokenId, false, "0x")).nativeFee
 
         // swaps token to other chain
-        await ONFT_A.sendFrom(
-            owner.address,
-            chainId_B,
-            owner.address,
-            tokenId,
-            owner.address,
-            ethers.constants.AddressZero,
-            "0x",
-            {value: nativeFee}
-        )
+        await ONFT_A.sendFrom(owner.address, chainId_B, owner.address, tokenId, owner.address, ethers.constants.AddressZero, "0x", {
+            value: nativeFee,
+        })
 
         // token received on the dst chain
         expect(await ONFT_B.ownerOf(tokenId)).to.be.equal(owner.address)
@@ -141,16 +134,9 @@ describe("ONFT721Upgradeable: ", function () {
         let nativeFee = (await ONFT_A.estimateSendFee(chainId_B, owner.address, tokenId, false, "0x")).nativeFee
 
         // swaps token to other chain
-        await ONFT_A.sendFrom(
-            owner.address,
-            chainId_B,
-            owner.address,
-            tokenId,
-            owner.address,
-            ethers.constants.AddressZero,
-            "0x",
-            {value: nativeFee}
-        )
+        await ONFT_A.sendFrom(owner.address, chainId_B, owner.address, tokenId, owner.address, ethers.constants.AddressZero, "0x", {
+            value: nativeFee,
+        })
 
         // token received on the dst chain
         expect(await ONFT_B.ownerOf(tokenId)).to.be.equal(owner.address)
@@ -170,7 +156,7 @@ describe("ONFT721Upgradeable: ", function () {
             warlock.address,
             ethers.constants.AddressZero,
             "0x",
-            {value: nativeFee}
+            { value: nativeFee }
         )
 
         // token received on the dst chain
@@ -188,16 +174,9 @@ describe("ONFT721Upgradeable: ", function () {
         let nativeFee = (await ONFT_A.estimateSendFee(chainId_B, owner.address, tokenId, false, "0x")).nativeFee
 
         // swaps token to other chain
-        await ONFT_A.sendFrom(
-            owner.address,
-            chainId_B,
-            owner.address,
-            tokenId,
-            owner.address,
-            ethers.constants.AddressZero,
-            "0x",
-            {value: nativeFee}
-        )
+        await ONFT_A.sendFrom(owner.address, chainId_B, owner.address, tokenId, owner.address, ethers.constants.AddressZero, "0x", {
+            value: nativeFee,
+        })
 
         // token received on the dst chain
         expect(await ONFT_B.ownerOf(tokenId)).to.be.equal(owner.address)
@@ -230,16 +209,9 @@ describe("ONFT721Upgradeable: ", function () {
         let nativeFee = (await ONFT_A.estimateSendFee(chainId_B, owner.address, tokenId, false, "0x")).nativeFee
 
         // swaps token to other chain
-        await ONFT_A.sendFrom(
-            owner.address,
-            chainId_B,
-            owner.address,
-            tokenId,
-            owner.address,
-            ethers.constants.AddressZero,
-            "0x",
-            {value: nativeFee}
-        )
+        await ONFT_A.sendFrom(owner.address, chainId_B, owner.address, tokenId, owner.address, ethers.constants.AddressZero, "0x", {
+            value: nativeFee,
+        })
 
         // token received on the dst chain
         expect(await ONFT_B.ownerOf(tokenId)).to.be.equal(owner.address)

@@ -18,11 +18,7 @@ library LzLib {
         bytes32 airdropAddress;
     }
 
-    function buildAdapterParams(LzLib.AirdropParams memory _airdropParams, uint _uaGasLimit)
-    internal
-    pure
-    returns (bytes memory adapterParams)
-    {
+    function buildAdapterParams(LzLib.AirdropParams memory _airdropParams, uint _uaGasLimit) internal pure returns (bytes memory adapterParams) {
         if (_airdropParams.airdropAmount == 0 && _airdropParams.airdropAddress == bytes32(0x0)) {
             adapterParams = buildDefaultAdapterParams(_uaGasLimit);
         } else {
@@ -38,11 +34,7 @@ library LzLib {
         return abi.encodePacked(uint16(1), _uaGas);
     }
 
-    function buildAirdropAdapterParams(uint _uaGas, AirdropParams memory _params)
-    internal
-    pure
-    returns (bytes memory)
-    {
+    function buildAirdropAdapterParams(uint _uaGas, AirdropParams memory _params) internal pure returns (bytes memory) {
         require(_params.airdropAmount > 0, "Airdrop amount must be greater than 0");
         require(_params.airdropAddress != bytes32(0x0), "Airdrop address must be set");
 
@@ -60,16 +52,7 @@ library LzLib {
     }
 
     // Decode Adapter Params
-    function decodeAdapterParams(bytes memory _adapterParams)
-    internal
-    pure
-    returns (
-        uint16 txType,
-        uint uaGas,
-        uint airdropAmount,
-        address payable airdropAddress
-    )
-    {
+    function decodeAdapterParams(bytes memory _adapterParams) internal pure returns (uint16 txType, uint uaGas, uint airdropAmount, address payable airdropAddress) {
         require(_adapterParams.length == 34 || _adapterParams.length > 66, "Invalid adapterParams");
         assembly {
             txType := mload(add(_adapterParams, 2))

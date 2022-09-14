@@ -80,7 +80,7 @@ describe("ProxyOFT: ", function () {
             warlock.address,
             ethers.constants.AddressZero,
             "0x",
-            {value: nativeFee}
+            { value: nativeFee }
         )
 
         // tokens are now owned by the proxy contract, because this is the original oft chain
@@ -101,7 +101,7 @@ describe("ProxyOFT: ", function () {
             warlock.address,
             ethers.constants.AddressZero,
             "0x",
-            {value: nativeFee}
+            { value: nativeFee }
         )
 
         // tokens are burned on the sending chain
@@ -122,7 +122,7 @@ describe("ProxyOFT: ", function () {
             warlock.address,
             ethers.constants.AddressZero,
             "0x",
-            {value: nativeFee}
+            { value: nativeFee }
         )
 
         // tokens are burned on the sending chain
@@ -172,16 +172,9 @@ describe("ProxyOFT: ", function () {
         let nativeFee = (await ProxyOFT_A.estimateSendFee(chainId_B, owner.address, tokenAmount, false, "0x")).nativeFee
 
         // swaps tokens to other chain
-        await ProxyOFT_A.sendFrom(
-            owner.address,
-            chainId_B,
-            owner.address,
-            tokenAmount,
-            owner.address,
-            ethers.constants.AddressZero,
-            "0x",
-            {value: nativeFee}
-        )
+        await ProxyOFT_A.sendFrom(owner.address, chainId_B, owner.address, tokenAmount, owner.address, ethers.constants.AddressZero, "0x", {
+            value: nativeFee,
+        })
 
         // tokens received on the dst chain
         expect(await OFT_B.balanceOf(owner.address)).to.be.equal(tokenAmount)
@@ -211,16 +204,9 @@ describe("ProxyOFT: ", function () {
         let nativeFee = (await ProxyOFT_A.estimateSendFee(chainId_B, owner.address, tokenAmount, false, "0x")).nativeFee
 
         // swaps tokens to other chain
-        await ProxyOFT_A.sendFrom(
-            owner.address,
-            chainId_B,
-            owner.address,
-            tokenAmount,
-            owner.address,
-            ethers.constants.AddressZero,
-            "0x",
-            {value: nativeFee}
-        )
+        await ProxyOFT_A.sendFrom(owner.address, chainId_B, owner.address, tokenAmount, owner.address, ethers.constants.AddressZero, "0x", {
+            value: nativeFee,
+        })
 
         // tokens received on the dst chain
         expect(await OFT_B.balanceOf(owner.address)).to.be.equal(tokenAmount)
@@ -240,7 +226,7 @@ describe("ProxyOFT: ", function () {
             warlock.address,
             ethers.constants.AddressZero,
             "0x",
-            {value: nativeFee}
+            { value: nativeFee }
         )
 
         // tokens received on the dst chain
@@ -258,16 +244,9 @@ describe("ProxyOFT: ", function () {
         let nativeFee = (await ProxyOFT_A.estimateSendFee(chainId_B, owner.address, tokenAmount, false, "0x")).nativeFee
 
         // swaps tokens to other chain
-        await ProxyOFT_A.sendFrom(
-            owner.address,
-            chainId_B,
-            owner.address,
-            tokenAmount,
-            owner.address,
-            ethers.constants.AddressZero,
-            "0x",
-            {value: nativeFee}
-        )
+        await ProxyOFT_A.sendFrom(owner.address, chainId_B, owner.address, tokenAmount, owner.address, ethers.constants.AddressZero, "0x", {
+            value: nativeFee,
+        })
 
         // tokens received on the dst chain
         expect(await OFT_B.balanceOf(owner.address)).to.be.equal(tokenAmount)
@@ -300,16 +279,9 @@ describe("ProxyOFT: ", function () {
         let nativeFee = (await ProxyOFT_A.estimateSendFee(chainId_B, owner.address, tokenAmount, false, "0x")).nativeFee
 
         // swaps tokens to other chain
-        await ProxyOFT_A.sendFrom(
-            owner.address,
-            chainId_B,
-            owner.address,
-            tokenAmount,
-            owner.address,
-            ethers.constants.AddressZero,
-            "0x",
-            {value: nativeFee}
-        )
+        await ProxyOFT_A.sendFrom(owner.address, chainId_B, owner.address, tokenAmount, owner.address, ethers.constants.AddressZero, "0x", {
+            value: nativeFee,
+        })
 
         // tokens received on the dst chain
         expect(await OFT_B.balanceOf(owner.address)).to.be.equal(tokenAmount)

@@ -36,7 +36,7 @@ contract PingPong is NonblockingLzApp, Pausable {
     // pings the destination chain, along with the current number of pings sent
     function ping(
         uint16 _dstChainId, // send a ping to this destination chainId
-        address , // destination address of PingPong contract
+        address, // destination address of PingPong contract
         uint pings // the number of pings
     ) public payable whenNotPaused {
         require(address(this).balance > 0, "the balance of this contract is 0. pls send gas for message fees");

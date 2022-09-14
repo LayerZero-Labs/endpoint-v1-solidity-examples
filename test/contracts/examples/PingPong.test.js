@@ -24,8 +24,14 @@ describe("PingPong", function () {
         this.layerZeroEndpointMockDst.setDestLzEndpoint(this.pingPongA.address, this.layerZeroEndpointMockSrc.address)
 
         // set each contracts source address so it can send to each other
-        await this.pingPongA.setTrustedRemote(this.chainIdDst, ethers.utils.solidityPack(["address", "address"], [this.pingPongB.address, this.pingPongA.address])) // for A, set B
-        await this.pingPongB.setTrustedRemote(this.chainIdSrc, ethers.utils.solidityPack(["address", "address"], [this.pingPongA.address, this.pingPongB.address])) // for B, set A
+        await this.pingPongA.setTrustedRemote(
+            this.chainIdDst,
+            ethers.utils.solidityPack(["address", "address"], [this.pingPongB.address, this.pingPongA.address])
+        ) // for A, set B
+        await this.pingPongB.setTrustedRemote(
+            this.chainIdSrc,
+            ethers.utils.solidityPack(["address", "address"], [this.pingPongA.address, this.pingPongB.address])
+        ) // for B, set A
 
         await this.pingPongA.enable(true)
         await this.pingPongB.enable(true)
@@ -38,6 +44,6 @@ describe("PingPong", function () {
     it("increment the counter of the destination PingPong when unpaused show not revert", async function () {
         await this.pingPongA.enable(false)
         await this.pingPongB.enable(false)
-        await this.pingPongA.ping(this.chainIdDst, this.pingPongB.address, 0, {value: ethers.utils.parseEther("0.5")})
+        await this.pingPongA.ping(this.chainIdDst, this.pingPongB.address, 0, { value: ethers.utils.parseEther("0.5") })
     })
 })

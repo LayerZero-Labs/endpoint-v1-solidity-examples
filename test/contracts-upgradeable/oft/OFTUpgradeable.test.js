@@ -9,15 +9,7 @@ describe("OFTUpgradeable: ", function () {
     const globalSupply = ethers.utils.parseUnits("1000000", 18)
     let dstPath, srcPath
 
-    let deployer,
-        lzEndpointSrcMock,
-        lzEndpointDstMock,
-        OFTSrc,
-        OFTDst,
-        LZEndpointMock,
-        OFTUpgradeable,
-        proxyOwner,
-        OFTUpgradeableContractFactory
+    let deployer, lzEndpointSrcMock, lzEndpointDstMock, OFTSrc, OFTDst, LZEndpointMock, OFTUpgradeable, proxyOwner, OFTUpgradeableContractFactory
 
     before(async function () {
         deployer = (await ethers.getSigners())[0]
@@ -75,7 +67,7 @@ describe("OFTUpgradeable: ", function () {
                     deployer.address,
                     ethers.constants.AddressZero,
                     adapterParam,
-                    {value: nativeFee}
+                    { value: nativeFee }
                 )
             ).to.emit(lzEndpointDstMock, "PayloadStored")
 
@@ -125,7 +117,7 @@ describe("OFTUpgradeable: ", function () {
                     deployer.address,
                     ethers.constants.AddressZero,
                     adapterParam,
-                    {value: nativeFee}
+                    { value: nativeFee }
                 )
             ).to.not.reverted
 
@@ -174,7 +166,7 @@ describe("OFTUpgradeable: ", function () {
                     deployer.address,
                     ethers.constants.AddressZero,
                     adapterParam,
-                    {value: nativeFee}
+                    { value: nativeFee }
                 )
             }
 
@@ -210,7 +202,7 @@ describe("OFTUpgradeable: ", function () {
                     deployer.address,
                     ethers.constants.AddressZero,
                     adapterParam,
-                    {value: nativeFee}
+                    { value: nativeFee }
                 )
             }
 
@@ -239,7 +231,7 @@ describe("OFTUpgradeable: ", function () {
                 deployer.address,
                 ethers.constants.AddressZero,
                 adapterParam,
-                {value: nativeFee}
+                { value: nativeFee }
             )
 
             // forceResumeReceive deletes msgs but since there's nothing in the queue, balance shouldn't increase

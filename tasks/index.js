@@ -36,7 +36,8 @@ task(
     "setTrustedRemote",
     "setTrustedRemote(chainId, sourceAddr) to enable inbound/outbound messages with your other contracts",
     require("./setTrustedRemote")
-).addParam("targetNetwork", "the target network to set as a trusted remote")
+)
+    .addParam("targetNetwork", "the target network to set as a trusted remote")
     .addOptionalParam("srcContract", "")
     .addOptionalParam("dstContract", "")
 
@@ -149,4 +150,3 @@ task("deployWireCheck", "", require("./deployWireCheck"))
     .addParam("contract", "")
     .addOptionalParam("proxyChain", "")
     .addOptionalParam("proxyContract", "")
-

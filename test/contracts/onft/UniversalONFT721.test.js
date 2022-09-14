@@ -64,7 +64,7 @@ describe("UniversalONFT721: ", function () {
             owner.address,
             "0x000000000000000000000000000000000000dEaD",
             adapterParam,
-            {value: nativeFee}
+            { value: nativeFee }
         )
 
         // verify the owner of the token is no longer on the source chain

@@ -61,7 +61,7 @@ describe("PausableOFT: ", function () {
             owner.address,
             ethers.constants.AddressZero,
             adapterParam,
-            {value: nativeFee}
+            { value: nativeFee }
         )
 
         // verify tokens burned on source chain and minted on destination chain
@@ -85,7 +85,7 @@ describe("PausableOFT: ", function () {
             owner.address,
             ethers.constants.AddressZero,
             adapterParam,
-            {value: nativeFee}
+            { value: nativeFee }
         )
 
         // verify tokens burned on source chain and minted on destination chain
@@ -124,7 +124,7 @@ describe("PausableOFT: ", function () {
             owner.address,
             ethers.constants.AddressZero,
             adapterParam,
-            {value: nativeFee}
+            { value: nativeFee }
         )
 
         // verify tokens were sent back

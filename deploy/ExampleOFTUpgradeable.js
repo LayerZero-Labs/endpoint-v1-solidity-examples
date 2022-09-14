@@ -4,8 +4,8 @@ module.exports = async function ({ deployments, getNamedAccounts }) {
     const { deploy } = deployments
     const { deployer, proxyOwner } = await getNamedAccounts()
 
-    let lzEndpointAddress, lzEndpoint, LZEndpointMock;
-    if(hre.network.name === "hardhat") {
+    let lzEndpointAddress, lzEndpoint, LZEndpointMock
+    if (hre.network.name === "hardhat") {
         LZEndpointMock = await ethers.getContractFactory("LZEndpointMock")
         lzEndpoint = await LZEndpointMock.deploy(1)
         lzEndpointAddress = lzEndpoint.address
@@ -24,7 +24,7 @@ module.exports = async function ({ deployments, getNamedAccounts }) {
                 init: {
                     methodName: "initialize",
                     args: ["name", "symbol", 0, lzEndpointAddress],
-                }
+                },
             },
         },
     })

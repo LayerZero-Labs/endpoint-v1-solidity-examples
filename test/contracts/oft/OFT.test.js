@@ -66,7 +66,7 @@ describe("OFT: ", function () {
                     owner.address,
                     ethers.constants.AddressZero,
                     adapterParam,
-                    {value: nativeFee}
+                    { value: nativeFee }
                 )
             ).to.emit(lzEndpointDstMock, "PayloadStored")
 
@@ -96,7 +96,7 @@ describe("OFT: ", function () {
                     owner.address,
                     ethers.constants.AddressZero,
                     adapterParam,
-                    {value: nativeFee}
+                    { value: nativeFee }
                 )
             ).to.not.reverted
 
@@ -145,7 +145,7 @@ describe("OFT: ", function () {
                     owner.address,
                     ethers.constants.AddressZero,
                     adapterParam,
-                    {value: nativeFee}
+                    { value: nativeFee }
                 )
             }
 
@@ -181,7 +181,7 @@ describe("OFT: ", function () {
                     owner.address,
                     ethers.constants.AddressZero,
                     adapterParam,
-                    {value: nativeFee}
+                    { value: nativeFee }
                 )
             }
 
@@ -210,7 +210,7 @@ describe("OFT: ", function () {
                 owner.address,
                 ethers.constants.AddressZero,
                 adapterParam,
-                {value: nativeFee}
+                { value: nativeFee }
             )
 
             // forceResumeReceive deletes msgs but since there's nothing in the queue, balance shouldn't increase
