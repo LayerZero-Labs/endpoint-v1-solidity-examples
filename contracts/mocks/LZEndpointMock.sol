@@ -90,7 +90,6 @@ contract LZEndpointMock is ILayerZeroEndpoint {
 
         require(msg.sender == srcInPath, "LayerZero: wrong path data");
 
-        // get dst address
         bytes calldata dstAddressBytes = _pathData[0:chainAddressSize];
         address dstAddr = packedBytesToAddr(dstAddressBytes);
 
@@ -99,7 +98,7 @@ contract LZEndpointMock is ILayerZeroEndpoint {
 
     // from the receivers perspective
     function flipPathData(uint16, bytes calldata _pathData) internal view returns(bytes memory) {
-        //        uint chainAddressSize = chainAddressSizeMap[_srcChainId];
+        // uint chainAddressSize = chainAddressSizeMap[_srcChainId];
         // if using solana mocks will need to use setter and not rely on this default
         uint chainAddressSize = 20;
         bytes memory path = _pathData; // copy to memory
@@ -109,7 +108,6 @@ contract LZEndpointMock is ILayerZeroEndpoint {
             remoteAddr := mload(add(add(path, 20), chainAddressSize)) // chainAddressSize + 20
         }
 
-        // get dst address
         bytes calldata localAddressBytes = _pathData[0:chainAddressSize];
         address localAddr = packedBytesToAddr(localAddressBytes);
 
@@ -133,6 +131,7 @@ contract LZEndpointMock is ILayerZeroEndpoint {
         {
             (address srcInPath, ) = splitPathData(dstChainId, _destination);
             (, dstAddr) = splitPathData(dstChainId, _destination);
+            // nonce should be tracking via the whole path data, but this is done via the nonceContract.sol inside of real endpoints
             nonce = ++outboundNonce[dstChainId][srcInPath];
         }
 
