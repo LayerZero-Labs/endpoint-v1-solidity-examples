@@ -8,12 +8,11 @@ describe("ProxyONFT1155: ", function () {
     const uri = "www.warlock.com"
 
     let owner, warlock, lzEndpointMockA, lzEndpointMockB, lzEndpointMockC
-    let ONFT_B, ONFT_C, LZEndpointMock, ONFT, ERC1155, ERC1155Src, ProxyONFT_A, ProxyONFT
+    let ONFT_B, ONFT_C, LZEndpointMock, ONFT, ERC1155, ERC1155Src, ProxyONFT_A, ProxyONFT, LzLibFactory, lzLib
 
     before(async function () {
         owner = (await ethers.getSigners())[0]
         warlock = (await ethers.getSigners())[1]
-
         LZEndpointMock = await ethers.getContractFactory("LZEndpointMock")
         ONFT = await ethers.getContractFactory("ONFT1155")
         ProxyONFT = await ethers.getContractFactory("ProxyONFT1155")
@@ -136,7 +135,7 @@ describe("ProxyONFT1155: ", function () {
 
         await expect(
             ProxyONFT_A.sendFrom(owner.address, chainId_B, owner.address, tokenId, amount, owner.address, ethers.constants.AddressZero, "0x")
-        ).to.be.revertedWith("ERC1155: transfer caller is not owner nor approved")
+        ).to.be.revertedWith("ERC1155: caller is not token owner nor approved")
     })
 
     it("sendFrom() - reverts if from is not msgSender", async function () {
@@ -183,7 +182,7 @@ describe("ProxyONFT1155: ", function () {
                 ethers.constants.AddressZero,
                 "0x"
             )
-        ).to.be.revertedWith("ERC1155: transfer caller is not owner nor approved")
+        ).to.be.revertedWith("ERC1155: caller is not token owner nor approved")
         await expect(
             ProxyONFT_A.connect(warlock).sendFrom(
                 warlock.address,
@@ -195,7 +194,7 @@ describe("ProxyONFT1155: ", function () {
                 ethers.constants.AddressZero,
                 "0x"
             )
-        ).to.be.revertedWith("ERC1155: transfer caller is not owner nor approved")
+        ).to.be.revertedWith("ERC1155: caller is not token owner nor approved")
     })
 
     it("sendFrom() - on non proxy", async function () {
@@ -410,7 +409,7 @@ describe("ProxyONFT1155: ", function () {
                 ethers.constants.AddressZero,
                 "0x"
             )
-        ).to.be.revertedWith("ERC1155: transfer caller is not owner nor approved")
+        ).to.be.revertedWith("ERC1155: caller is not token owner nor approved")
     })
 
     it("sendBatch() - reverts if mismatched amounts and tokenIds", async function () {

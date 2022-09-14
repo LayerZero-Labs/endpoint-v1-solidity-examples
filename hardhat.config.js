@@ -7,7 +7,7 @@ require("solidity-coverage");
 require('hardhat-gas-reporter');
 require('hardhat-deploy');
 require('hardhat-deploy-ethers');
-
+require('@openzeppelin/hardhat-upgrades');
 require('./tasks');
 
 // This is a sample Hardhat task. To learn how to create your own go to
@@ -49,7 +49,7 @@ function accounts(chainKey) {
 module.exports = {
 
   solidity: {
-    version: "0.8.4",
+    version: "0.8.2",
     settings: {
       optimizer: {
         enabled: true,
@@ -68,7 +68,10 @@ module.exports = {
   namedAccounts: {
     deployer: {
       default: 0,    // wallet address 0, of the mnemonic in .env
-    }
+    },
+    proxyOwner: {
+      default: 1,
+    },
   },
 
   networks: {

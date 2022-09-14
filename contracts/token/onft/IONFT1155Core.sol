@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: MIT
 
-pragma solidity ^0.8.0;
+pragma solidity ^0.8.2;
 
 import "@openzeppelin/contracts/utils/introspection/IERC165.sol";
 
@@ -8,10 +8,10 @@ import "@openzeppelin/contracts/utils/introspection/IERC165.sol";
  * @dev Interface of the ONFT Core standard
  */
 interface IONFT1155Core is IERC165 {
-    event SendToChain(address indexed _sender, uint16 indexed _dstChainId, bytes indexed _toAddress, uint _tokenId, uint _amount, uint64 _nonce);
-    event SendBatchToChain(address indexed _sender, uint16 indexed _dstChainId, bytes indexed _toAddress, uint[] _tokenIds, uint[] _amounts, uint64 _nonce);
-    event ReceiveFromChain(uint16 indexed _srcChainId, bytes indexed _srcAddress, address indexed _toAddress, uint _tokenId, uint _amount, uint64 _nonce);
-    event ReceiveBatchFromChain(uint16 indexed _srcChainId, bytes indexed _srcAddress, address indexed _toAddress, uint[] _tokenIds, uint[] _amounts, uint64 _nonce);
+    event SendToChain(uint16 indexed _dstChainId, address indexed _from, bytes indexed _toAddress, uint _tokenId, uint _amount);
+    event SendBatchToChain(uint16 indexed _dstChainId, address indexed _from, bytes indexed _toAddress, uint[] _tokenIds, uint[] _amounts);
+    event ReceiveFromChain(uint16 indexed _srcChainId, bytes indexed _srcAddress, address indexed _toAddress, uint _tokenId, uint _amount);
+    event ReceiveBatchFromChain(uint16 indexed _srcChainId, bytes indexed _srcAddress, address indexed _toAddress, uint[] _tokenIds, uint[] _amounts);
 
     // _from - address where tokens should be deducted from on behalf of
     // _dstChainId - L0 defined chain id to send tokens too
