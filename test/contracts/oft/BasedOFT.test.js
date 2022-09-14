@@ -51,9 +51,11 @@ describe("BasedOFT: ", function () {
         expect(await otherOFT.balanceOf(owner.address)).to.equal(0)
 
         const amount = ethers.utils.parseUnits("100", 18)
-        const messageFee = ethers.utils.parseEther("0.01") // conversion to units of wei
 
         await baseOFT.setUseCustomAdapterParams(false)
+
+        // estimate nativeFees
+        let nativeFee = (await baseOFT.estimateSendFee(otherChainId, owner.address, amount, false, "0x")).nativeFee
 
         await baseOFT.sendFrom(
             owner.address,
@@ -63,7 +65,7 @@ describe("BasedOFT: ", function () {
             owner.address, // LayerZero refund address (if too much fee is sent gets refunded)
             ethers.constants.AddressZero, // future parameter
             "0x", // adapterParameters empty bytes specifies default settings
-            { value: messageFee } // pass a msg.value to pay the LayerZero message fee
+            { value: nativeFee } // pass a msg.value to pay the LayerZero message fee
         )
 
         // verify tokens burned on source chain and minted on destination chain
@@ -77,9 +79,10 @@ describe("BasedOFT: ", function () {
         expect(await otherOFT.balanceOf(owner.address)).to.equal(0)
 
         const amount = ethers.utils.parseUnits("100", 18)
-        const messageFee = ethers.utils.parseEther("0.01") // conversion to units of wei
         await baseOFT.setMinDstGasLookup(otherChainId, parseInt(await baseOFT.FUNCTION_TYPE_SEND()), 225000)
         const adapterParam = ethers.utils.solidityPack(["uint16", "uint256"], [1, 225000])
+        // estimate nativeFees
+        let nativeFee = (await baseOFT.estimateSendFee(otherChainId, owner.address, amount, false, adapterParam)).nativeFee
 
         await baseOFT.sendFrom(
             owner.address,
@@ -89,7 +92,7 @@ describe("BasedOFT: ", function () {
             owner.address, // LayerZero refund address (if too much fee is sent gets refunded)
             ethers.constants.AddressZero, // future parameter
             adapterParam, // adapterParameters empty bytes specifies default settings
-            { value: messageFee } // pass a msg.value to pay the LayerZero message fee
+            { value: nativeFee } // pass a msg.value to pay the LayerZero message fee
         )
 
         // verify tokens burned on source chain and minted on destination chain

@@ -53,6 +53,9 @@ describe("OFT: ", function () {
             // block receiving msgs on the dst lzEndpoint to simulate ua reverts which stores a payload
             await lzEndpointDstMock.blockNextMsg()
 
+            // estimate nativeFees
+            let nativeFee = (await OFTSrc.estimateSendFee(chainIdDst, owner.address, sendQty, false, adapterParam)).nativeFee
+
             // stores a payload
             await expect(
                 OFTSrc.sendFrom(
@@ -62,7 +65,8 @@ describe("OFT: ", function () {
                     sendQty,
                     owner.address,
                     ethers.constants.AddressZero,
-                    adapterParam
+                    adapterParam,
+                    {value: nativeFee}
                 )
             ).to.emit(lzEndpointDstMock, "PayloadStored")
 
@@ -79,6 +83,9 @@ describe("OFT: ", function () {
             // queue is empty
             expect(await lzEndpointDstMock.getLengthOfQueue(chainIdSrc, srcPath)).to.equal(0)
 
+            // estimate nativeFees
+            let nativeFee = (await OFTSrc.estimateSendFee(chainIdDst, owner.address, sendQty, false, adapterParam)).nativeFee
+
             // now that a msg has been stored, subsequent ones will not revert, but will get added to the queue
             await expect(
                 OFTSrc.sendFrom(
@@ -88,7 +95,8 @@ describe("OFT: ", function () {
                     sendQty,
                     owner.address,
                     ethers.constants.AddressZero,
-                    adapterParam
+                    adapterParam,
+                    {value: nativeFee}
                 )
             ).to.not.reverted
 
@@ -124,6 +132,9 @@ describe("OFT: ", function () {
         it("forceResumeReceive() - removes msg, delivers all msgs in the queue", async function () {
             const msgsInQueue = 3
 
+            // estimate nativeFees
+            let nativeFee = (await OFTSrc.estimateSendFee(chainIdDst, owner.address, sendQty, false, adapterParam)).nativeFee
+
             for (let i = 0; i < msgsInQueue; i++) {
                 // first iteration stores a payload, the following get added to queue
                 await OFTSrc.sendFrom(
@@ -133,7 +144,8 @@ describe("OFT: ", function () {
                     sendQty,
                     owner.address,
                     ethers.constants.AddressZero,
-                    adapterParam
+                    adapterParam,
+                    {value: nativeFee}
                 )
             }
 
@@ -156,6 +168,9 @@ describe("OFT: ", function () {
         it("forceResumeReceive() - emptied queue is actually emptied and doesnt get double counted", async function () {
             const msgsInQueue = 3
 
+            // estimate nativeFees
+            let nativeFee = (await OFTSrc.estimateSendFee(chainIdDst, owner.address, sendQty, false, adapterParam)).nativeFee
+
             for (let i = 0; i < msgsInQueue; i++) {
                 // first iteration stores a payload, the following gets added to queue
                 await OFTSrc.sendFrom(
@@ -165,7 +180,8 @@ describe("OFT: ", function () {
                     sendQty,
                     owner.address,
                     ethers.constants.AddressZero,
-                    adapterParam
+                    adapterParam,
+                    {value: nativeFee}
                 )
             }
 
@@ -181,6 +197,9 @@ describe("OFT: ", function () {
             // balance after transfer
             expect(await OFTDst.balanceOf(owner.address)).to.be.equal(sendQty.mul(msgsInQueue))
 
+            // estimate nativeFees
+            nativeFee = (await OFTSrc.estimateSendFee(chainIdDst, owner.address, sendQty, false, adapterParam)).nativeFee
+
             // store a new payload
             await lzEndpointDstMock.blockNextMsg()
             await OFTSrc.sendFrom(
@@ -190,7 +209,8 @@ describe("OFT: ", function () {
                 sendQty,
                 owner.address,
                 ethers.constants.AddressZero,
-                adapterParam
+                adapterParam,
+                {value: nativeFee}
             )
 
             // forceResumeReceive deletes msgs but since there's nothing in the queue, balance shouldn't increase

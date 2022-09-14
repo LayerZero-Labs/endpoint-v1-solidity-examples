@@ -53,6 +53,9 @@ describe("UniversalONFT721: ", function () {
         // v1 adapterParams, encoded for version 1 style, and 200k gas quote
         const adapterParam = ethers.utils.solidityPack(["uint16", "uint256"], [1, 225000])
 
+        // estimate nativeFees
+        const nativeFee = (await ONFTSrc.estimateSendFee(chainIdDst, owner.address, newId, false, adapterParam)).nativeFee
+
         await ONFTSrc.sendFrom(
             owner.address,
             chainIdDst,
@@ -60,7 +63,8 @@ describe("UniversalONFT721: ", function () {
             newId,
             owner.address,
             "0x000000000000000000000000000000000000dEaD",
-            adapterParam
+            adapterParam,
+            {value: nativeFee}
         )
 
         // verify the owner of the token is no longer on the source chain

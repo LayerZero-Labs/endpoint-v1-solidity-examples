@@ -30,12 +30,12 @@ describe("OmniCounter", function () {
 
         // instruct each OmniCounter to increment the other OmniCounter
         // counter A increments counter B
-        await this.omniCounterA.incrementCounter(this.chainId)
+        await this.omniCounterA.incrementCounter(this.chainId, {value: ethers.utils.parseEther("0.5")})
         expect(await this.omniCounterA.counter()).to.be.equal(0) // still 0
         expect(await this.omniCounterB.counter()).to.be.equal(1) // now its 1
 
         // counter B increments counter A
-        await this.omniCounterB.incrementCounter(this.chainId)
+        await this.omniCounterB.incrementCounter(this.chainId, {value: ethers.utils.parseEther("0.5")})
         expect(await this.omniCounterA.counter()).to.be.equal(1) // now its 1
         expect(await this.omniCounterB.counter()).to.be.equal(1) // still 1
     })

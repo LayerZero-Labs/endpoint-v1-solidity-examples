@@ -69,6 +69,9 @@ describe("ProxyONFT1155: ", function () {
         // approve the proxy to swap your token
         await ERC1155Src.connect(warlock).setApprovalForAll(ProxyONFT_A.address, true)
 
+        // estimate nativeFees
+        let nativeFee = (await ProxyONFT_A.estimateSendFee(chainId_B, warlock.address, tokenId, amount, false, "0x")).nativeFee
+
         // swaps token to other chain
         await ProxyONFT_A.connect(warlock).sendFrom(
             warlock.address,
@@ -78,7 +81,8 @@ describe("ProxyONFT1155: ", function () {
             amount,
             warlock.address,
             ethers.constants.AddressZero,
-            "0x"
+            "0x",
+            {value: nativeFee}
         )
 
         // token is now owned by the proxy contract, because this is the original nft chain
@@ -87,6 +91,9 @@ describe("ProxyONFT1155: ", function () {
 
         // token received on the dst chain
         expect(await ONFT_B.balanceOf(warlock.address, tokenId)).to.be.equal(amount)
+
+        // estimate nativeFees
+        nativeFee = (await ONFT_B.estimateSendFee(chainId_C, warlock.address, tokenId, amount, false, "0x")).nativeFee
 
         // can send to other onft contract eg. not the original nft contract chain
         await ONFT_B.connect(warlock).sendFrom(
@@ -97,7 +104,8 @@ describe("ProxyONFT1155: ", function () {
             amount,
             warlock.address,
             ethers.constants.AddressZero,
-            "0x"
+            "0x",
+            {value: nativeFee}
         )
 
         // token is burned on the sending chain
@@ -105,6 +113,9 @@ describe("ProxyONFT1155: ", function () {
 
         // token received on the dst chain
         expect(await ONFT_C.balanceOf(warlock.address, tokenId)).to.be.equal(amount)
+
+        // estimate nativeFees
+        nativeFee = (await ONFT_C.estimateSendFee(chainId_A, warlock.address, tokenId, amount, false, "0x")).nativeFee
 
         // send it back to the original chain
         await ONFT_C.connect(warlock).sendFrom(
@@ -115,7 +126,8 @@ describe("ProxyONFT1155: ", function () {
             amount,
             warlock.address,
             ethers.constants.AddressZero,
-            "0x"
+            "0x",
+            {value: nativeFee}
         )
 
         // token is burned on the sending chain
@@ -205,14 +217,30 @@ describe("ProxyONFT1155: ", function () {
         // approve the proxy to swap your token
         await ERC1155Src.setApprovalForAll(ProxyONFT_A.address, tokenId)
 
+        // estimate nativeFees
+        let nativeFee = (await ProxyONFT_A.estimateSendFee(chainId_B, owner.address, tokenId, amount, false, "0x")).nativeFee
+
         // swaps token to other chain
-        await ProxyONFT_A.sendFrom(owner.address, chainId_B, owner.address, tokenId, amount, owner.address, ethers.constants.AddressZero, "0x")
+        await ProxyONFT_A.sendFrom(
+            owner.address,
+            chainId_B,
+            owner.address,
+            tokenId,
+            amount,
+            owner.address,
+            ethers.constants.AddressZero,
+            "0x",
+            {value: nativeFee}
+        )
 
         // token received on the dst chain
         expect(await ONFT_B.balanceOf(owner.address, tokenId)).to.be.equal(amount)
 
         // approve the other user to send the token
         await ONFT_B.setApprovalForAll(warlock.address, tokenId)
+
+        // estimate nativeFees
+        nativeFee = (await ONFT_B.estimateSendFee(chainId_C, warlock.address, tokenId, amount, false, "0x")).nativeFee
 
         // sends across
         await ONFT_B.connect(warlock).sendFrom(
@@ -223,7 +251,8 @@ describe("ProxyONFT1155: ", function () {
             amount,
             warlock.address,
             ethers.constants.AddressZero,
-            "0x"
+            "0x",
+            {value: nativeFee}
         )
 
         // token received on the dst chain
@@ -238,8 +267,21 @@ describe("ProxyONFT1155: ", function () {
         // approve the proxy to swap your token
         await ERC1155Src.setApprovalForAll(ProxyONFT_A.address, tokenId)
 
+        // estimate nativeFees
+        let nativeFee = (await ProxyONFT_A.estimateSendFee(chainId_B, owner.address, tokenId, amount, false, "0x")).nativeFee
+
         // swaps token to other chain
-        await ProxyONFT_A.sendFrom(owner.address, chainId_B, owner.address, tokenId, amount, owner.address, ethers.constants.AddressZero, "0x")
+        await ProxyONFT_A.sendFrom(
+            owner.address,
+            chainId_B,
+            owner.address,
+            tokenId,
+            amount,
+            owner.address,
+            ethers.constants.AddressZero,
+            "0x",
+            {value: nativeFee}
+        )
 
         // token received on the dst chain
         expect(await ONFT_B.balanceOf(owner.address, tokenId)).to.be.equal(amount)
@@ -270,8 +312,21 @@ describe("ProxyONFT1155: ", function () {
         // approve the proxy to swap your token
         await ERC1155Src.setApprovalForAll(ProxyONFT_A.address, tokenId)
 
+        // estimate nativeFees
+        let nativeFee = (await ProxyONFT_A.estimateSendFee(chainId_B, owner.address, tokenId, amount, false, "0x")).nativeFee
+
         // swaps token to other chain
-        await ProxyONFT_A.sendFrom(owner.address, chainId_B, owner.address, tokenId, amount, owner.address, ethers.constants.AddressZero, "0x")
+        await ProxyONFT_A.sendFrom(
+            owner.address,
+            chainId_B,
+            owner.address,
+            tokenId,
+            amount,
+            owner.address,
+            ethers.constants.AddressZero,
+            "0x",
+            {value: nativeFee}
+        )
 
         // token received on the dst chain
         expect(await ONFT_B.balanceOf(owner.address, tokenId)).to.be.equal(amount)
@@ -323,6 +378,9 @@ describe("ProxyONFT1155: ", function () {
         // approve the proxy to swap your tokens
         await ERC1155Src.connect(warlock).setApprovalForAll(ProxyONFT_A.address, true)
 
+        // estimate nativeFees
+        let nativeFee = (await ProxyONFT_A.estimateSendBatchFee(chainId_B, warlock.address, tokenIds.slice(1), amounts.slice(1), false, "0x")).nativeFee
+
         // swaps tokens to other chain in seperate batches
         await ProxyONFT_A.connect(warlock).sendBatchFrom(
             warlock.address,
@@ -332,8 +390,13 @@ describe("ProxyONFT1155: ", function () {
             amounts.slice(1),
             warlock.address,
             ethers.constants.AddressZero,
-            "0x"
+            "0x",
+            {value: nativeFee}
         )
+
+        // estimate nativeFees
+        nativeFee = (await ProxyONFT_A.estimateSendBatchFee(chainId_B, warlock.address, tokenIds.slice(0, 1), amounts.slice(0, 1), false, "0x")).nativeFee
+
         await ProxyONFT_A.connect(warlock).sendBatchFrom(
             warlock.address,
             chainId_B,
@@ -342,7 +405,8 @@ describe("ProxyONFT1155: ", function () {
             amounts.slice(0, 1),
             warlock.address,
             ethers.constants.AddressZero,
-            "0x"
+            "0x",
+            {value: nativeFee}
         )
 
         // tokens are now owned by the proxy contract, because this is the original nft chain
@@ -351,6 +415,9 @@ describe("ProxyONFT1155: ", function () {
 
         // tokens received on the dst chain
         checkTokenBalance(await ONFT_B.balanceOfBatch(listOfWarlock, tokenIds), amounts)
+
+        // estimate nativeFees
+        nativeFee = (await ONFT_B.estimateSendBatchFee(chainId_C, owner.address, tokenIds, amounts, false, "0x")).nativeFee
 
         // can send to other onft contract eg. not the original nft contract chain, and a different address
         // eg. warlock -> owner
@@ -362,14 +429,18 @@ describe("ProxyONFT1155: ", function () {
             amounts,
             warlock.address,
             ethers.constants.AddressZero,
-            "0x"
+            "0x",
+            {value: nativeFee}
         )
 
         // tokens are burned on the sending chain
-        checkTokenBalance(await ONFT_B.balanceOfBatch(listOfOwner, tokenIds), emptyAmounts)
+        checkTokenBalance(await ONFT_B.balanceOfBatch(listOfWarlock, tokenIds), emptyAmounts)
 
         // tokens received on the dst chain
         checkTokenBalance(await ONFT_C.balanceOfBatch(listOfOwner, tokenIds), amounts)
+
+        // estimate nativeFees
+        nativeFee = (await ONFT_C.estimateSendBatchFee(chainId_A, warlock.address, tokenIds, amounts, false, "0x")).nativeFee
 
         // send it back to the original chain, and original owner
         await ONFT_C.sendBatchFrom(
@@ -380,7 +451,8 @@ describe("ProxyONFT1155: ", function () {
             amounts,
             warlock.address,
             ethers.constants.AddressZero,
-            "0x"
+            "0x",
+            {value: nativeFee}
         )
 
         // tokens are burned on the sending chain
@@ -441,8 +513,6 @@ describe("ProxyONFT1155: ", function () {
         const nativeFee = 123
         const zroFee = 666
 
-        await lzEndpointMockA.setEstimatedFees(nativeFee, zroFee)
-
         // mint large batch of tokens
         await ERC1155Src.mint(warlock.address, tokenId, amount)
 
@@ -492,8 +562,6 @@ describe("ProxyONFT1155: ", function () {
         const amounts = [1, 33, 22, 1234566]
         const nativeFee = 123
         const zroFee = 666
-
-        await lzEndpointMockA.setEstimatedFees(nativeFee, zroFee)
 
         // mint large batch of tokens
         await ERC1155Src.mintBatch(warlock.address, tokenIds, amounts)

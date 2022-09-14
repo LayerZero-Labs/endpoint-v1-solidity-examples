@@ -49,6 +49,9 @@ describe("PausableOFT: ", function () {
         expect(await OFTSrc.balanceOf(owner.address)).to.be.equal(globalSupply)
         expect(await OFTDst.balanceOf(owner.address)).to.be.equal("0")
 
+        // estimate nativeFees
+        let nativeFee = (await OFTSrc.estimateSendFee(chainIdDst, owner.address, sendQty, false, adapterParam)).nativeFee
+
         // can transfer accross chain
         await OFTSrc.sendFrom(
             owner.address,
@@ -57,7 +60,8 @@ describe("PausableOFT: ", function () {
             sendQty,
             owner.address,
             ethers.constants.AddressZero,
-            adapterParam
+            adapterParam,
+            {value: nativeFee}
         )
 
         // verify tokens burned on source chain and minted on destination chain
@@ -69,6 +73,9 @@ describe("PausableOFT: ", function () {
         // pause the transfers
         await OFTDst.pauseSendTokens(true)
 
+        // estimate nativeFees
+        let nativeFee = (await OFTSrc.estimateSendFee(chainIdDst, owner.address, sendQty, false, adapterParam)).nativeFee
+
         // transfer to the paused chain are not paused. Only outbound
         await OFTSrc.sendFrom(
             owner.address,
@@ -77,7 +84,8 @@ describe("PausableOFT: ", function () {
             sendQty,
             owner.address,
             ethers.constants.AddressZero,
-            adapterParam
+            adapterParam,
+            {value: nativeFee}
         )
 
         // verify tokens burned on source chain and minted on destination chain
@@ -104,6 +112,9 @@ describe("PausableOFT: ", function () {
         // unpause the transfers
         await OFTDst.pauseSendTokens(false)
 
+        // estimate nativeFees
+        nativeFee = (await OFTDst.estimateSendFee(chainIdSrc, owner.address, sendQty, false, adapterParam)).nativeFee
+
         // transfer succeeds
         await OFTDst.sendFrom(
             owner.address,
@@ -112,7 +123,8 @@ describe("PausableOFT: ", function () {
             sendQty,
             owner.address,
             ethers.constants.AddressZero,
-            adapterParam
+            adapterParam,
+            {value: nativeFee}
         )
 
         // verify tokens were sent back
