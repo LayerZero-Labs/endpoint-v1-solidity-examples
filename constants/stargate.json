@@ -1,0 +1,44 @@
+{
+  "router":{
+    "rinkeby": "0x82A0F5F531F9ce0df1DF5619f74a0d3fA31FF561",
+    "bsc-testnet": "0xbB0f1be1E9CE9cB27EA5b0c3a85B7cc3381d8176",
+    "fuji": "0x13093E05Eb890dfA6DacecBdE51d24DabAb2Faa1",
+    "mumbai": "0x817436a076060D158204d955E5403b6Ed0A5fac0",
+    "arbitrum-rinkeby": "0x6701D9802aDF674E524053bd44AA83ef253efc41",
+    "optimism-kovan": "0xCC68641528B948642bDE1729805d6cf1DECB0B00",
+    "fantom-testnet": "0xa73b0a56B29aD790595763e71505FCa2c1abb77f",
+
+    "ethereum": "0x8731d54E9D02c286767d56ac03e8037C07e01e98",
+    "bsc": "0x4a364f8c717cAAD9A442737Eb7b8A55cc6cf18D8",
+    "avalanche": "0x45A01E4e04F14f7A4a6702c74187c5F6222033cd",
+    "polygon": "0x45A01E4e04F14f7A4a6702c74187c5F6222033cd",
+    "arbitrum": "0x53Bf833A5d6c4ddA888F69c22C88C9f356a41614",
+    "optimism": "0xB0D502E938ed5f4df2E681fE6E419ff29631d62b",
+    "fantom": "0xAf5191B0De278C7286d6C7CC6ab6BB8A73bA2Cd6"
+  },
+  "routerETH": {
+    "rinkeby": "0x2D57DbE0CFbe17FE654a0EBA64dF6a57ee389008",
+    "arbitrum-rinkeby": "0x7f9246106c33ECF3379D2be4664042349284f605",
+    "optimism-kovan": "0x8637D51086D1a7A9d25b8dc233551C54fF8Ee49A",
+    "ethereum": "0x150f94B44927F078737562f0fcF3C95c01Cc2376",
+    "arbitrum": "0xbf22f0f184bCcbeA268dF387a49fF5238dD23E40",
+    "optimism": "0xB49c4e680174E331CB0A7fF3Ab58afC9738d5F8b"
+  },
+  "factory": {
+    "rinkeby": "0xa8CE68CfB645eaBd2c03d4B7129Cae8122930aC3",
+    "bsc-testnet": "0x407210a67cDAe7Aa09E4426109329cd3E90aFe47",
+    "fuji": "0x439C197429036423d42631181afAC655b19972e5",
+    "mumbai": "0x43c3a5348671D868ED9dD9BFDb2859bE984d262e",
+    "arbitrum-rinkeby": "0x5f1daEe0Eb4c237635f970f132B28BD71fd618C9",
+    "optimism-kovan": "0xF22293462b6551C818190F1EC67Ed80c18E4cDb4",
+    "fantom-testnet": "0xEa2aC81591de47ab33408D48c22b10D24AAD6F0F",
+
+    "ethereum": "0x06d538690af257da524f25d0cd52fd85b1c2173e",
+    "bsc": "0xe7ec689f432f29383f217e36e680b5c855051f25",
+    "avalanche": "0x808d7c71ad2ba3fa531b068a2417c63106bc0949",
+    "polygon": "0x808d7c71ad2ba3fa531b068a2417c63106bc0949",
+    "arbitrum": "0x55bdb4164d28fbaf0898e0ef14a589ac09ac9970",
+    "optimism": "0xe3b53af74a4bf62ae5511055290838050bf764df",
+    "fantom": "0x9d1b1669c73b033dfe47ae5a0164ab96df25b944"
+  }
+}

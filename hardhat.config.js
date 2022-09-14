@@ -2,6 +2,7 @@ require("dotenv").config();
 
 require('hardhat-contract-sizer');
 require("@nomiclabs/hardhat-waffle");
+require(`@nomiclabs/hardhat-etherscan`);
 require("solidity-coverage");
 require('hardhat-gas-reporter');
 require('hardhat-deploy');
@@ -79,10 +80,34 @@ module.exports = {
       chainId: 1,
       accounts: accounts(),
     },
-
+    bsc: {
+      url: "https://bsc-dataseed1.binance.org",
+      chainId: 56,
+      accounts: accounts(),
+    },
     avalanche: {
       url: "https://api.avax.network/ext/bc/C/rpc",
       chainId: 43114,
+      accounts: accounts(),
+    },
+    polygon: {
+      url: "https://rpc-mainnet.maticvigil.com",
+      chainId: 137,
+      accounts: accounts(),
+    },
+    arbitrum: {
+      url: `https://arb1.arbitrum.io/rpc`,
+      chainId: 42161,
+      accounts: accounts(),
+    },
+    optimism: {
+      url: `https://mainnet.optimism.io`,
+      chainId: 10,
+      accounts: accounts(),
+    },
+    fantom: {
+      url: `https://rpcapi.fantom.network`,
+      chainId: 250,
       accounts: accounts(),
     },
 
@@ -120,6 +145,32 @@ module.exports = {
       url: `https://rpc.testnet.fantom.network/`,
       chainId: 4002,
       accounts: accounts(),
+    }
+  },
+
+  etherscan: {
+    apiKey: {
+      // ethereum
+      mainnet: process.env.ETHERSCAN_API_KEY,
+      rinkeby: process.env.ETHERSCAN_API_KEY,
+      // binance smart chain
+      bsc: process.env.BSCSCAN_API_KEY,
+      bscTestnet: process.env.BSCSCAN_API_KEY,
+      // fantom mainnet
+      opera: process.env.FTMSCAN_API_KEY,
+      ftmTestnet: process.env.FTMSCAN_API_KEY,
+      // optimism
+      optimisticEthereum: process.env.OPTIMISMSCAN_API_KEY,
+      optimisticKovan: process.env.OPTIMISMSCAN_API_KEY,
+      // polygon
+      polygon: process.env.POLYGONSCAN_API_KEY,
+      polygonMumbai: process.env.POLYGONSCAN_API_KEY,
+      // arbitrum
+      arbitrumOne: process.env.ARBISCAN_API_KEY,
+      arbitrumTestnet: process.env.ARBISCAN_API_KEY,
+      // avalanche
+      avalanche: process.env.SNOWTRACE_API_KEY,
+      avalancheFujiTestnet: process.env.SNOWTRACE_API_KEY,
     }
   }
 
