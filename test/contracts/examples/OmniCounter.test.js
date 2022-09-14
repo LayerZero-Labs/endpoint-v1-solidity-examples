@@ -19,8 +19,8 @@ describe("OmniCounter", function () {
         this.lzEndpointMock.setDestLzEndpoint(this.omniCounterB.address, this.lzEndpointMock.address)
 
         // set each contracts source address so it can send to each other
-        this.omniCounterA.setTrustedRemote(this.chainId, this.omniCounterB.address)
-        this.omniCounterB.setTrustedRemote(this.chainId, this.omniCounterA.address)
+        this.omniCounterA.setTrustedRemote(this.chainId, ethers.utils.solidityPack(["address", "address"], [this.omniCounterB.address, this.omniCounterA.address]))
+        this.omniCounterB.setTrustedRemote(this.chainId, ethers.utils.solidityPack(["address", "address"], [this.omniCounterA.address, this.omniCounterB.address]))
     })
 
     it("increment the counter of the destination OmniCounter", async function () {

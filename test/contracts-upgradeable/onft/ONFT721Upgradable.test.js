@@ -7,7 +7,7 @@ describe("ONFT721Upgradeable: ", function () {
     const name = "OmnichainNonFungibleToken"
     const symbol = "ONFT"
 
-    let owner, warlock, lzEndpointMockA, lzEndpointMockB, LZEndpointMock, ONFT, ONFTv2, ONFT_A, ONFT_B
+    let owner, warlock, lzEndpointMockA, lzEndpointMockB, LZEndpointMock, ONFT, ONFT_A, ONFT_B
 
     before(async function () {
         owner = (await ethers.getSigners())[0]
@@ -29,8 +29,8 @@ describe("ONFT721Upgradeable: ", function () {
         lzEndpointMockB.setDestLzEndpoint(ONFT_A.address, lzEndpointMockA.address)
 
         // set each contracts source address so it can send to each other
-        await ONFT_A.setTrustedRemote(chainId_B, ONFT_B.address)
-        await ONFT_B.setTrustedRemote(chainId_A, ONFT_A.address)
+        await ONFT_A.setTrustedRemote(chainId_B, ethers.utils.solidityPack(["address", "address"], [ONFT_B.address, ONFT_A.address]))
+        await ONFT_B.setTrustedRemote(chainId_A, ethers.utils.solidityPack(["address", "address"], [ONFT_A.address, ONFT_B.address]))
     })
 
     it("sendFrom() - your own tokens", async function () {

@@ -29,8 +29,8 @@ describe("ONFT721: ", function () {
         lzEndpointMockB.setDestLzEndpoint(ONFT_A.address, lzEndpointMockA.address)
 
         // set each contracts source address so it can send to each other
-        await ONFT_A.setTrustedRemote(chainId_B, ONFT_B.address)
-        await ONFT_B.setTrustedRemote(chainId_A, ONFT_A.address)
+        await ONFT_A.setTrustedRemote(chainId_B, ethers.utils.solidityPack(["address", "address"], [ONFT_B.address, ONFT_A.address]))
+        await ONFT_B.setTrustedRemote(chainId_A, ethers.utils.solidityPack(["address", "address"], [ONFT_A.address, ONFT_B.address]))
     })
 
     it("sendFrom() - your own tokens", async function () {

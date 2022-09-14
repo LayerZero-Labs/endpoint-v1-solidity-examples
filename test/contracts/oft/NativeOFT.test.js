@@ -8,7 +8,7 @@ describe("NativeOFT: ", function () {
     const symbol = "OFT"
     const globalSupply = ethers.utils.parseUnits("1000000", 18)
 
-    let owner, alice, lzEndpointBase, lzEndpointOther, nativeOFT, otherOFT, LZEndpointMock, NativeOFT, OFT, LzLibFactory, lzLib
+    let owner, alice, lzEndpointBase, lzEndpointOther, nativeOFT, otherOFT, LZEndpointMock, NativeOFT, OFT
 
     before(async function () {
         owner = (await ethers.getSigners())[0]
@@ -39,8 +39,8 @@ describe("NativeOFT: ", function () {
         //------  setTrustedRemote(s) -------------------------------------------------------
         // for each OFT, setTrustedRemote to allow it to receive from the remote OFT contract.
         // Note: This is sometimes referred to as the "wire-up" process.
-        await nativeOFT.setTrustedRemote(otherChainId, otherOFT.address)
-        await otherOFT.setTrustedRemote(baseChainId, nativeOFT.address)
+        await nativeOFT.setTrustedRemote(otherChainId, ethers.utils.solidityPack(["address", "address"], [otherOFT.address, nativeOFT.address]))
+        await otherOFT.setTrustedRemote(baseChainId, ethers.utils.solidityPack(["address", "address"], [nativeOFT.address, otherOFT.address]))
 
         await nativeOFT.setUseCustomAdapterParams(true)
         // ... the deployed OFTs are ready now!

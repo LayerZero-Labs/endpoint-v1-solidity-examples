@@ -8,7 +8,7 @@ describe("ProxyONFT1155: ", function () {
     const uri = "www.warlock.com"
 
     let owner, warlock, lzEndpointMockA, lzEndpointMockB, lzEndpointMockC
-    let ONFT_B, ONFT_C, LZEndpointMock, ONFT, ERC1155, ERC1155Src, ProxyONFT_A, ProxyONFT, LzLibFactory, lzLib
+    let ONFT_B, ONFT_C, LZEndpointMock, ONFT, ERC1155, ERC1155Src, ProxyONFT_A, ProxyONFT
 
     before(async function () {
         owner = (await ethers.getSigners())[0]
@@ -42,12 +42,12 @@ describe("ProxyONFT1155: ", function () {
         lzEndpointMockC.setDestLzEndpoint(ONFT_B.address, lzEndpointMockB.address)
 
         // set each contracts source address so it can send to each other
-        await ProxyONFT_A.setTrustedRemote(chainId_B, ONFT_B.address)
-        await ProxyONFT_A.setTrustedRemote(chainId_C, ONFT_C.address)
-        await ONFT_B.setTrustedRemote(chainId_A, ProxyONFT_A.address)
-        await ONFT_B.setTrustedRemote(chainId_C, ONFT_C.address)
-        await ONFT_C.setTrustedRemote(chainId_A, ProxyONFT_A.address)
-        await ONFT_C.setTrustedRemote(chainId_B, ONFT_B.address)
+        await ProxyONFT_A.setTrustedRemote(chainId_B, ethers.utils.solidityPack(["address", "address"], [ONFT_B.address, ProxyONFT_A.address]))
+        await ProxyONFT_A.setTrustedRemote(chainId_C, ethers.utils.solidityPack(["address", "address"], [ONFT_C.address, ProxyONFT_A.address]))
+        await ONFT_B.setTrustedRemote(chainId_A, ethers.utils.solidityPack(["address", "address"], [ProxyONFT_A.address, ONFT_B.address]))
+        await ONFT_B.setTrustedRemote(chainId_C, ethers.utils.solidityPack(["address", "address"], [ONFT_C.address, ONFT_B.address]))
+        await ONFT_C.setTrustedRemote(chainId_A, ethers.utils.solidityPack(["address", "address"], [ProxyONFT_A.address, ONFT_C.address]))
+        await ONFT_C.setTrustedRemote(chainId_B, ethers.utils.solidityPack(["address", "address"], [ONFT_B.address, ONFT_C.address]))
     })
 
     it("sendFrom()", async function () {

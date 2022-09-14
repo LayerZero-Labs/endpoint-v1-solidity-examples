@@ -10,7 +10,7 @@ describe("PausableOFT: ", function () {
     const adapterParam = ethers.utils.solidityPack(["uint16", "uint256"], [1, 225000])
     const sendQty = ethers.utils.parseUnits("1", 18) // amount to be sent across
 
-    let owner, warlock, lzEndpointSrcMock, lzEndpointDstMock, OFTSrc, OFTDst, LZEndpointMock, BasedOFT, PausableOFT, LzLibFactory, lzLib
+    let owner, warlock, lzEndpointSrcMock, lzEndpointDstMock, OFTSrc, OFTDst, LZEndpointMock, BasedOFT, PausableOFT
 
     before(async function () {
         owner = (await ethers.getSigners())[0]
@@ -33,8 +33,8 @@ describe("PausableOFT: ", function () {
         lzEndpointDstMock.setDestLzEndpoint(OFTSrc.address, lzEndpointSrcMock.address)
 
         // set each contracts source address so it can send to each other
-        await OFTSrc.setTrustedRemote(chainIdDst, OFTDst.address) // for A, set B
-        await OFTDst.setTrustedRemote(chainIdSrc, OFTSrc.address) // for B, set A
+        await OFTSrc.setTrustedRemote(chainIdDst, ethers.utils.solidityPack(["address", "address"], [OFTDst.address, OFTSrc.address])) // for A, set B
+        await OFTDst.setTrustedRemote(chainIdSrc, ethers.utils.solidityPack(["address", "address"], [OFTSrc.address, OFTDst.address])) // for B, set A
 
         //set destination min gas
         await OFTSrc.setMinDstGasLookup(chainIdDst, parseInt(await OFTSrc.FUNCTION_TYPE_SEND()), 225000)

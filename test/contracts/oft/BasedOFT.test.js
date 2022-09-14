@@ -38,8 +38,8 @@ describe("BasedOFT: ", function () {
         //------  setTrustedRemote(s) -------------------------------------------------------
         // for each OFT, setTrustedRemote to allow it to receive from the remote OFT contract.
         // Note: This is sometimes referred to as the "wire-up" process.
-        await baseOFT.setTrustedRemote(otherChainId, otherOFT.address)
-        await otherOFT.setTrustedRemote(baseChainId, baseOFT.address)
+        await baseOFT.setTrustedRemote(otherChainId, ethers.utils.solidityPack(["address", "address"], [otherOFT.address, baseOFT.address]))
+        await otherOFT.setTrustedRemote(baseChainId, ethers.utils.solidityPack(["address", "address"], [baseOFT.address, otherOFT.address]))
 
         await baseOFT.setUseCustomAdapterParams(true)
         // ... the deployed OFTs are ready now!

@@ -24,21 +24,12 @@ describe("PingPong", function () {
         this.pingPongA = await PingPong.deploy(this.layerZeroEndpointMockSrc.address)
         this.pingPongB = await PingPong.deploy(this.layerZeroEndpointMockDst.address)
 
-        await this.owner.sendTransaction({
-            to: this.pingPongA.address,
-            value: ethers.utils.parseEther("10"),
-        })
-        await this.owner.sendTransaction({
-            to: this.pingPongB.address,
-            value: ethers.utils.parseEther("10"),
-        })
-
         this.layerZeroEndpointMockSrc.setDestLzEndpoint(this.pingPongB.address, this.layerZeroEndpointMockDst.address)
         this.layerZeroEndpointMockDst.setDestLzEndpoint(this.pingPongA.address, this.layerZeroEndpointMockSrc.address)
 
         // set each contracts source address so it can send to each other
-        await this.pingPongA.setTrustedRemote(this.chainIdDst, this.pingPongB.address) // for A, set B
-        await this.pingPongB.setTrustedRemote(this.chainIdSrc, this.pingPongA.address) // for B, set A
+        await this.pingPongA.setTrustedRemote(this.chainIdDst, ethers.utils.solidityPack(["address", "address"], [this.pingPongB.address, this.pingPongA.address])) // for A, set B
+        await this.pingPongB.setTrustedRemote(this.chainIdSrc, ethers.utils.solidityPack(["address", "address"], [this.pingPongA.address, this.pingPongB.address])) // for B, set A
 
         await this.pingPongA.enable(true)
         await this.pingPongB.enable(true)
@@ -51,6 +42,6 @@ describe("PingPong", function () {
     it("increment the counter of the destination PingPong when unpaused show not revert", async function () {
         await this.pingPongA.enable(false)
         await this.pingPongB.enable(false)
-        await this.pingPongA.ping(this.chainIdDst, this.pingPongB.address, 0)
+        await this.pingPongA.ping(this.chainIdDst, this.pingPongB.address, 0, {value: ethers.utils.parseEther("0.5")})
     })
 })

@@ -39,6 +39,7 @@ contract LZEndpointMock is ILayerZeroEndpoint {
         bytes payload;
     }
 
+    mapping(uint16 => uint) public chainAddressSizeMap;
     // inboundNonce = [srcChainId][srcAddress].
     mapping(uint16 => mapping(bytes => uint64)) public inboundNonce;
     // outboundNonce = [dstChainId][srcAddress].
@@ -72,25 +73,73 @@ contract LZEndpointMock is ILayerZeroEndpoint {
         lzEndpointLookup[destAddr] = lzEndpointAddr;
     }
 
+//    function setChainAddressSize(uint16 _chainId, uint _size) external {
+//        chainAddressSizeMap[_chainId] = _size;
+//    }
+
+    function splitPathData(uint16, bytes calldata _pathData) internal view returns(address, address) {
+        // uint chainAddressSize = chainAddressSizeMap[_dstChainId];
+        // if using solana mocks will need to use setter and not rely on this default
+        uint chainAddressSize = 20;
+        bytes memory path = _pathData; // copy to memory
+
+        address srcInPath;
+        assembly {
+            srcInPath := mload(add(add(path, 20), chainAddressSize)) // chainAddressSize + 20
+        }
+
+        require(msg.sender == srcInPath, "LayerZero: wrong path data");
+
+        // get dst address
+        bytes calldata dstAddressBytes = _pathData[0:chainAddressSize];
+        address dstAddr = packedBytesToAddr(dstAddressBytes);
+
+        return (srcInPath, dstAddr);
+    }
+
+    // from the receivers perspective
+    function flipPathData(uint16, bytes calldata _pathData) internal view returns(bytes memory) {
+        //        uint chainAddressSize = chainAddressSizeMap[_srcChainId];
+        // if using solana mocks will need to use setter and not rely on this default
+        uint chainAddressSize = 20;
+        bytes memory path = _pathData; // copy to memory
+
+        address remoteAddr;
+        assembly {
+            remoteAddr := mload(add(add(path, 20), chainAddressSize)) // chainAddressSize + 20
+        }
+
+        // get dst address
+        bytes calldata localAddressBytes = _pathData[0:chainAddressSize];
+        address localAddr = packedBytesToAddr(localAddressBytes);
+
+        return abi.encodePacked(remoteAddr, localAddr);
+    }
+
     function send(
-        uint16 _chainId,
-        bytes calldata _destination,
+        uint16 _dstChainId,
+        bytes calldata _destination,  // pathData now
         bytes calldata _payload,
         address payable, // _refundAddress
         address, // _zroPaymentAddress
         bytes memory _adapterParams
     ) external payable override {
-        address destAddr = packedBytesToAddr(_destination);
-        address lzEndpoint = lzEndpointLookup[destAddr];
+        uint16 dstChainId = _dstChainId;
+        bytes calldata payload = _payload;
+        address dstAddr;
+        uint64 nonce;
 
+        // stack too deep...
+        {
+            (address srcInPath, ) = splitPathData(dstChainId, _destination);
+            (, dstAddr) = splitPathData(dstChainId, _destination);
+            nonce = ++outboundNonce[dstChainId][srcInPath];
+        }
+
+        address lzEndpoint = lzEndpointLookup[dstAddr];
         require(lzEndpoint != address(0), "LayerZeroMock: destination LayerZero Endpoint not found");
 
         require(msg.value >= nativeFee * _payload.length, "LayerZeroMock: not enough native for fees");
-
-        uint64 nonce;
-        {
-            nonce = ++outboundNonce[_chainId][msg.sender];
-        }
 
         // Mock the relayer paying the dstNativeAddr the amount of extra native token
         {
@@ -106,11 +155,9 @@ contract LZEndpointMock is ILayerZeroEndpoint {
             // to simulate actually sending the ether, add a transfer call and ensure the LZEndpointMock contract has an ether balance
         }
 
-        bytes memory bytesSourceUserApplicationAddr = addrToPackedBytes(address(msg.sender)); // cast this address to bytes
-
         // not using the extra gas parameter because this is a single tx call, not split between different chains
         // LZEndpointMock(lzEndpoint).receivePayload(mockChainId, bytesSourceUserApplicationAddr, destAddr, nonce, extraGas, _payload);
-        LZEndpointMock(lzEndpoint).receivePayload(mockChainId, bytesSourceUserApplicationAddr, destAddr, nonce, 0, _payload);
+        LZEndpointMock(lzEndpoint).receivePayload(mockChainId, _destination, dstAddr, nonce, 0, payload);
     }
 
     function receivePayload(
@@ -121,14 +168,17 @@ contract LZEndpointMock is ILayerZeroEndpoint {
         uint, /*_gasLimit*/
         bytes calldata _payload
     ) external override {
-        StoredPayload storage sp = storedPayload[_srcChainId][_srcAddress];
+        // flip the order of src/dst so it matches the trusted remotes
+        bytes memory flippedPathBytes = flipPathData(_srcChainId, _srcAddress);
+
+        StoredPayload storage sp = storedPayload[_srcChainId][flippedPathBytes];
 
         // assert and increment the nonce. no message shuffling
-        require(_nonce == ++inboundNonce[_srcChainId][_srcAddress], "LayerZero: wrong nonce");
+        require(_nonce == ++inboundNonce[_srcChainId][flippedPathBytes], "LayerZero: wrong nonce");
 
         // queue the following msgs inside of a stack to simulate a successful send on src, but not fully delivered on dst
         if (sp.payloadHash != bytes32(0)) {
-            QueuedPayload[] storage msgs = msgsToDeliver[_srcChainId][_srcAddress];
+            QueuedPayload[] storage msgs = msgsToDeliver[_srcChainId][flippedPathBytes];
             QueuedPayload memory newMsg = QueuedPayload(_dstAddress, _nonce, _payload);
 
             // warning, might run into gas issues trying to forward through a bunch of queued msgs
@@ -148,14 +198,14 @@ contract LZEndpointMock is ILayerZeroEndpoint {
                 msgs.push(newMsg);
             }
         } else if (nextMsgBLocked) {
-            storedPayload[_srcChainId][_srcAddress] = StoredPayload(uint64(_payload.length), _dstAddress, keccak256(_payload));
-            emit PayloadStored(_srcChainId, _srcAddress, _dstAddress, _nonce, _payload, bytes(""));
+            storedPayload[_srcChainId][flippedPathBytes] = StoredPayload(uint64(_payload.length), _dstAddress, keccak256(_payload));
+            emit PayloadStored(_srcChainId, flippedPathBytes, _dstAddress, _nonce, _payload, bytes(""));
             // ensure the next msgs that go through are no longer blocked
             nextMsgBLocked = false;
         } else {
             // we ignore the gas limit because this call is made in one tx due to being "same chain"
-            // ILayerZeroReceiver(_dstAddress).lzReceive{gas: _gasLimit}(_srcChainId, _srcAddress, _nonce, _payload); // invoke lzReceive
-            ILayerZeroReceiver(_dstAddress).lzReceive(_srcChainId, _srcAddress, _nonce, _payload); // invoke lzReceive
+            // ILayerZeroReceiver(_dstAddress).lzReceive{gas: _gasLimit}(_srcChainId, flippedPathBytes, _nonce, _payload); // invoke lzReceive
+            ILayerZeroReceiver(_dstAddress).lzReceive(_srcChainId, flippedPathBytes, _nonce, _payload); // invoke lzReceive
         }
     }
 
