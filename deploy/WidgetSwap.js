@@ -1,4 +1,4 @@
-const STARGATE = require('../constants/stargate.json')
+const STARGATE = require("../constants/stargate.json")
 
 module.exports = async function ({ deployments, getNamedAccounts }) {
     const { deploy } = deployments

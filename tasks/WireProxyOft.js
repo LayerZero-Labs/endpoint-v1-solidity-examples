@@ -3,7 +3,7 @@ const { getDeploymentAddresses } = require("../utils/readStatic")
 
 module.exports = async function (taskArgs, hre) {
     const networks = ["fuji", "rinkeby", "bsc-testnet", "mumbai", "arbitrum-rinkeby", "optimism-kovan", "fantom-testnet"]
-    const dstNetworks = networks.filter(net => net !== hre.network.name)
+    const dstNetworks = networks.filter((net) => net !== hre.network.name)
 
     for (const dstNet of dstNetworks) {
         const dstChainId = CHAIN_ID[dstNet]
@@ -15,7 +15,7 @@ module.exports = async function (taskArgs, hre) {
 
         // setTrustedRemote() on the local contract, so it can receive message from the source contract
         try {
-            if (!(await contractInstance.isTrustedRemote(dstChainId, dstAddr))){
+            if (!(await contractInstance.isTrustedRemote(dstChainId, dstAddr))) {
                 let tx = await (await contractInstance.setTrustedRemote(dstChainId, dstAddr)).wait()
                 console.log(`✅ [${hre.network.name}] setTrustedRemote(${dstChainId}, ${dstAddr})`)
                 console.log(` tx: ${tx.transactionHash}`)
@@ -30,5 +30,4 @@ module.exports = async function (taskArgs, hre) {
             }
         }
     }
-
 }

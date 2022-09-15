@@ -1,5 +1,5 @@
-const STARGATE = require('../constants/stargate.json')
-const AMM_ROUTERS = require('../constants/ammRouters.json')
+const STARGATE = require("../constants/stargate.json")
+const AMM_ROUTERS = require("../constants/ammRouters.json")
 
 module.exports = async function ({ deployments, getNamedAccounts }) {
     const { deploy } = deployments

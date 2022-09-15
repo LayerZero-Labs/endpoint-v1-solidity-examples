@@ -22,16 +22,18 @@ module.exports = async function (taskArgs, hre) {
 
     const deadline = (await ethers.provider.getBlock("latest")).timestamp + 10000
 
-    tx = await( await stargateSwap.swap(
-        qty,
-        taskArgs.bridgeToken,
-        dstChainId,
-        taskArgs.srcPoolId,
-        taskArgs.dstPoolId,
-        owner.address,          // to address on destination
-        deadline,
-        dstStargateSwapAddr,
-        {value: ethers.utils.parseEther("4")}
-    )).wait()
+    tx = await (
+        await stargateSwap.swap(
+            qty,
+            taskArgs.bridgeToken,
+            dstChainId,
+            taskArgs.srcPoolId,
+            taskArgs.dstPoolId,
+            owner.address, // to address on destination
+            deadline,
+            dstStargateSwapAddr,
+            { value: ethers.utils.parseEther("4") }
+        )
+    ).wait()
     console.log(`tx: ${tx.transactionHash}`)
 }
