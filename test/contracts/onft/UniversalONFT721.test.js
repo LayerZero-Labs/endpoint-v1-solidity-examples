@@ -7,7 +7,7 @@ describe("UniversalONFT721: ", function () {
     const name = "UniversalONFT"
     const symbol = "UONFT"
 
-    let owner, lzEndpointSrcMock, lzEndpointDstMock, ONFTSrc, ONFTDst, LZEndpointMock, ONFT, ONFTSrcIds, ONFTDstIds, LzLibFactory, lzLib
+    let owner, lzEndpointSrcMock, lzEndpointDstMock, ONFTSrc, ONFTDst, LZEndpointMock, ONFT, ONFTSrcIds, ONFTDstIds, dstPath, srcPath
 
     before(async function () {
         owner = (await ethers.getSigners())[0]
@@ -29,8 +29,10 @@ describe("UniversalONFT721: ", function () {
         lzEndpointDstMock.setDestLzEndpoint(ONFTSrc.address, lzEndpointSrcMock.address)
 
         // set each contracts source address so it can send to each other
-        await ONFTSrc.setTrustedRemote(chainIdDst, ONFTDst.address) // for A, set B
-        await ONFTDst.setTrustedRemote(chainIdSrc, ONFTSrc.address) // for B, set A
+        dstPath = ethers.utils.solidityPack(["address", "address"], [ONFTDst.address, ONFTSrc.address])
+        srcPath = ethers.utils.solidityPack(["address", "address"], [ONFTSrc.address, ONFTDst.address])
+        await ONFTSrc.setTrustedRemote(chainIdDst, dstPath) // for A, set B
+        await ONFTDst.setTrustedRemote(chainIdSrc, srcPath) // for B, set A
 
         //set destination min gas
         await ONFTSrc.setMinDstGasLookup(chainIdDst, parseInt(await ONFTSrc.FUNCTION_TYPE_SEND()), 225000)
@@ -51,6 +53,9 @@ describe("UniversalONFT721: ", function () {
         // v1 adapterParams, encoded for version 1 style, and 200k gas quote
         const adapterParam = ethers.utils.solidityPack(["uint16", "uint256"], [1, 225000])
 
+        // estimate nativeFees
+        const nativeFee = (await ONFTSrc.estimateSendFee(chainIdDst, owner.address, newId, false, adapterParam)).nativeFee
+
         await ONFTSrc.sendFrom(
             owner.address,
             chainIdDst,
@@ -58,7 +63,8 @@ describe("UniversalONFT721: ", function () {
             newId,
             owner.address,
             "0x000000000000000000000000000000000000dEaD",
-            adapterParam
+            adapterParam,
+            { value: nativeFee }
         )
 
         // verify the owner of the token is no longer on the source chain

@@ -27,7 +27,7 @@ module.exports = async function (taskArgs) {
 
     let trustedRemoteTable = {}
 
-    trustedRemoteTable[environment] = taskArgs.e === "mainnet" ? new TrustedRemote() : new TrustedRemoteTestnet();
+    trustedRemoteTable[environment] = taskArgs.e === "mainnet" ? new TrustedRemote() : new TrustedRemoteTestnet()
 
     await Promise.all(
         environmentArray.map(async (env) => {
