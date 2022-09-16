@@ -10,7 +10,6 @@ import "erc721a/contracts/ERC721A.sol";
 // must implement your own minting logic in child classes
 contract ONFT721A is ONFT721ACore, ERC721A, IONFT721A, ERC721A__IERC721Receiver {
 
-
     constructor(string memory _name, string memory _symbol, address _lzEndpoint) ERC721A(_name, _symbol) ONFT721ACore(_lzEndpoint) {}
 
     function supportsInterface(bytes4 interfaceId) public view virtual override(ERC721A, IERC721A) returns (bool) {

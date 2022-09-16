@@ -77,7 +77,7 @@ describe("ONFT721A: ", function () {
         await onft721_B.connect(warlock).sendFrom(
             warlock.address,
             chainId_A,
-            warlock.address,
+            owner.address,
             tokenId,
             warlock.address,
             ethers.constants.AddressZero,
@@ -86,6 +86,7 @@ describe("ONFT721A: ", function () {
         )
 
         // token is burned on the sending chain
+        expect(await onft721a_A.ownerOf(tokenId)).to.be.equal(owner.address)
         expect(await onft721_B.ownerOf(tokenId)).to.be.equal(onft721_B.address)
     })
 

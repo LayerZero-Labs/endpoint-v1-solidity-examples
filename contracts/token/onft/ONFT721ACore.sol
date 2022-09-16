@@ -10,15 +10,10 @@ abstract contract ONFT721ACore is NonblockingLzApp, IONFT721ACore {
     uint public constant NO_EXTRA_GAS = 0;
     uint public constant FUNCTION_TYPE_SEND = 1;
     bool public useCustomAdapterParams;
-    uint public startIndex;
-    uint public endIndex;
 
     event SetUseCustomAdapterParams(bool _useCustomAdapterParams);
 
-    constructor(address _lzEndpoint) NonblockingLzApp(_lzEndpoint) {
-        startIndex = 0;
-        endIndex = 1000;
-    }
+    constructor(address _lzEndpoint) NonblockingLzApp(_lzEndpoint) {}
 
     function estimateSendFee(uint16 _dstChainId, bytes memory _toAddress, uint _tokenId, bool _useZro, bytes memory _adapterParams) public view virtual override returns (uint nativeFee, uint zroFee) {
         // mock the payload for send()
