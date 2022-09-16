@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: MIT
 
-pragma solidity ^0.8.2;
+pragma solidity ^0.8.0;
 
 import "./IONFT721Core.sol";
 import "../../lzApp/NonblockingLzApp.sol";
@@ -39,7 +39,7 @@ abstract contract ONFT721Core is NonblockingLzApp, ERC165, IONFT721Core {
         } else {
             require(_adapterParams.length == 0, "LzApp: _adapterParams must be empty.");
         }
-        _lzSend(_dstChainId, payload, _refundAddress, _zroPaymentAddress, _adapterParams);
+        _lzSend(_dstChainId, payload, _refundAddress, _zroPaymentAddress, _adapterParams, msg.value);
 
         emit SendToChain(_dstChainId, _from, _toAddress, _tokenId);
     }
