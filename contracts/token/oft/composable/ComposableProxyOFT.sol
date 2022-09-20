@@ -15,9 +15,9 @@ contract ComposableProxyOFT is ComposableOFTCore {
     }
 
     function circulatingSupply() public view virtual override returns (uint) {
-    unchecked {
-        return token.totalSupply() - token.balanceOf(address(this));
-    }
+        unchecked {
+            return token.totalSupply() - token.balanceOf(address(this));
+        }
     }
 
     function _debitFrom(address _from, uint16, bytes memory, uint _amount) internal virtual override {
