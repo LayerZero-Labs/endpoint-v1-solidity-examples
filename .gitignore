@@ -109,7 +109,5 @@ package-lock.json
 cache/
 artifacts/
 deployments/
-
-.openzeppelin
-
+.openzeppelin/
 

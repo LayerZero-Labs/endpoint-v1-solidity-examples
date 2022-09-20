@@ -79,7 +79,7 @@ describe("BasedOFT: ", function () {
         expect(await otherOFT.balanceOf(owner.address)).to.equal(0)
 
         const amount = ethers.utils.parseUnits("100", 18)
-        await baseOFT.setMinDstGasLookup(otherChainId, parseInt(await baseOFT.FUNCTION_TYPE_SEND()), 225000)
+        await baseOFT.setMinDstGas(otherChainId, parseInt(await baseOFT.PT_SEND()), 225000)
         const adapterParam = ethers.utils.solidityPack(["uint16", "uint256"], [1, 225000])
         // estimate nativeFees
         let nativeFee = (await baseOFT.estimateSendFee(otherChainId, owner.address, amount, false, adapterParam)).nativeFee
@@ -100,7 +100,7 @@ describe("BasedOFT: ", function () {
         expect(await otherOFT.balanceOf(owner.address)).to.be.equal(amount)
     })
 
-    it("setMinDstGasLookup() - when type is not set on destination chain", async function () {
+    it("setMinDstGas() - when type is not set on destination chain", async function () {
         const amount = ethers.utils.parseUnits("100", 18)
         const messageFee = ethers.utils.parseEther("0.01") // conversion to units of wei
         const adapterParam = ethers.utils.solidityPack(["uint16", "uint256"], [1, 225000])
@@ -118,10 +118,10 @@ describe("BasedOFT: ", function () {
         ).to.be.revertedWith("LzApp: minGasLimit not set")
     })
 
-    it("setMinDstGasLookup() - set min dst gas higher than what we are sending and expect revert", async function () {
+    it("setMinDstGas() - set min dst gas higher than what we are sending and expect revert", async function () {
         const amount = ethers.utils.parseUnits("100", 18)
         const messageFee = ethers.utils.parseEther("0.01") // conversion to units of wei
-        await baseOFT.setMinDstGasLookup(otherChainId, parseInt(await baseOFT.FUNCTION_TYPE_SEND()), 250000)
+        await baseOFT.setMinDstGas(otherChainId, parseInt(await baseOFT.PT_SEND()), 250000)
         const adapterParam = ethers.utils.solidityPack(["uint16", "uint256"], [1, 225000])
         await expect(
             baseOFT.sendFrom(

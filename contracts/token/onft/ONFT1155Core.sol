@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: MIT
 
-pragma solidity ^0.8.2;
+pragma solidity ^0.8.0;
 
 import "./IONFT1155Core.sol";
 import "../../lzApp/NonblockingLzApp.sol";
@@ -8,8 +8,8 @@ import "@openzeppelin/contracts/utils/introspection/ERC165.sol";
 
 abstract contract ONFT1155Core is NonblockingLzApp, ERC165, IONFT1155Core {
     uint public constant NO_EXTRA_GAS = 0;
-    uint public constant FUNCTION_TYPE_SEND = 1;
-    uint public constant FUNCTION_TYPE_SEND_BATCH = 2;
+    uint16 public constant FUNCTION_TYPE_SEND = 1;
+    uint16 public constant FUNCTION_TYPE_SEND_BATCH = 2;
     bool public useCustomAdapterParams;
 
     event SetUseCustomAdapterParams(bool _useCustomAdapterParams);
@@ -46,7 +46,7 @@ abstract contract ONFT1155Core is NonblockingLzApp, ERC165, IONFT1155Core {
             } else {
                 require(_adapterParams.length == 0, "LzApp: _adapterParams must be empty.");
             }
-            _lzSend(_dstChainId, payload, _refundAddress, _zroPaymentAddress, _adapterParams);
+            _lzSend(_dstChainId, payload, _refundAddress, _zroPaymentAddress, _adapterParams, msg.value);
             emit SendToChain(_dstChainId, _from, _toAddress, _tokenIds[0], _amounts[0]);
         } else if (_tokenIds.length > 1) {
             if (useCustomAdapterParams) {
@@ -54,7 +54,7 @@ abstract contract ONFT1155Core is NonblockingLzApp, ERC165, IONFT1155Core {
             } else {
                 require(_adapterParams.length == 0, "LzApp: _adapterParams must be empty.");
             }
-            _lzSend(_dstChainId, payload, _refundAddress, _zroPaymentAddress, _adapterParams);
+            _lzSend(_dstChainId, payload, _refundAddress, _zroPaymentAddress, _adapterParams, msg.value);
             emit SendBatchToChain(_dstChainId, _from, _toAddress, _tokenIds, _amounts);
         }
     }

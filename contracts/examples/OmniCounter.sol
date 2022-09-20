@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: MIT
 
-pragma solidity ^0.8.2;
+pragma solidity ^0.8.0;
 pragma abicoder v2;
 
 import "../lzApp/NonblockingLzApp.sol";
@@ -16,6 +16,6 @@ contract OmniCounter is NonblockingLzApp {
     }
 
     function incrementCounter(uint16 _dstChainId) public payable {
-        _lzSend(_dstChainId, bytes(""), payable(msg.sender), address(0x0), bytes(""));
+        _lzSend(_dstChainId, bytes(""), payable(msg.sender), address(0x0), bytes(""), msg.value);
     }
 }
