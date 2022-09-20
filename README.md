@@ -54,8 +54,8 @@ npx hardhat --network fuji deploy --tags ExampleOFT
 ```
 2. Set the "trusted remotes" (ie: your contracts) so each of them can receive messages from one another, and `only` one another.
 ```angular2html
-npx hardhat --network rinkeby setTrustedRemote --target-network fuji
-npx hardhat --network fuji setTrustedRemote --target-network rinkeby
+npx hardhat --network rinkeby setTrustedRemote --target-network fuji --local-contract ExampleBasedOFT --remote-contract ExampleOFT
+npx hardhat --network fuji setTrustedRemote --target-network rinkeby --local-contract ExampleOFT --remote-contract ExampleBasedOFT
 ```
 3. Send tokens from rinkeby to fuji
 ```angular2html
