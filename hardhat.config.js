@@ -2,6 +2,7 @@ require("dotenv").config();
 
 require('hardhat-contract-sizer');
 require("@nomiclabs/hardhat-waffle");
+require(`@nomiclabs/hardhat-etherscan`);
 require("solidity-coverage");
 require('hardhat-gas-reporter');
 require('hardhat-deploy');
@@ -48,13 +49,28 @@ function accounts(chainKey) {
 module.exports = {
 
   solidity: {
-    version: "0.8.2",
-    settings: {
-      optimizer: {
-        enabled: true,
-        runs: 200,
+    compilers: [
+      {
+        version: "0.8.4",
+        settings: {
+          optimizer: {
+            enabled: true,
+            runs: 200
+          }
+        }
       },
-    },
+      {
+        version: "0.8.12",
+        settings: {
+          optimizer: {
+            enabled: true,
+            runs: 200
+          }
+        }
+      }
+    ]
+
+
   },
 
   // solidity: "0.8.4",
@@ -79,10 +95,34 @@ module.exports = {
       chainId: 1,
       accounts: accounts(),
     },
-
+    bsc: {
+      url: "https://bsc-dataseed1.binance.org",
+      chainId: 56,
+      accounts: accounts(),
+    },
     avalanche: {
       url: "https://api.avax.network/ext/bc/C/rpc",
       chainId: 43114,
+      accounts: accounts(),
+    },
+    polygon: {
+      url: "https://rpc-mainnet.maticvigil.com",
+      chainId: 137,
+      accounts: accounts(),
+    },
+    arbitrum: {
+      url: `https://arb1.arbitrum.io/rpc`,
+      chainId: 42161,
+      accounts: accounts(),
+    },
+    optimism: {
+      url: `https://mainnet.optimism.io`,
+      chainId: 10,
+      accounts: accounts(),
+    },
+    fantom: {
+      url: `https://rpcapi.fantom.network`,
+      chainId: 250,
       accounts: accounts(),
     },
 
@@ -122,5 +162,4 @@ module.exports = {
       accounts: accounts(),
     }
   }
-
 };

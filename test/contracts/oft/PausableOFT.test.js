@@ -10,7 +10,7 @@ describe("PausableOFT: ", function () {
     const adapterParam = ethers.utils.solidityPack(["uint16", "uint256"], [1, 225000])
     const sendQty = ethers.utils.parseUnits("1", 18) // amount to be sent across
 
-    let owner, warlock, lzEndpointSrcMock, lzEndpointDstMock, OFTSrc, OFTDst, LZEndpointMock, BasedOFT, PausableOFT, LzLibFactory, lzLib
+    let owner, warlock, lzEndpointSrcMock, lzEndpointDstMock, OFTSrc, OFTDst, LZEndpointMock, BasedOFT, PausableOFT
 
     before(async function () {
         owner = (await ethers.getSigners())[0]
@@ -33,8 +33,8 @@ describe("PausableOFT: ", function () {
         lzEndpointDstMock.setDestLzEndpoint(OFTSrc.address, lzEndpointSrcMock.address)
 
         // set each contracts source address so it can send to each other
-        await OFTSrc.setTrustedRemote(chainIdDst, OFTDst.address) // for A, set B
-        await OFTDst.setTrustedRemote(chainIdSrc, OFTSrc.address) // for B, set A
+        await OFTSrc.setTrustedRemote(chainIdDst, ethers.utils.solidityPack(["address", "address"], [OFTDst.address, OFTSrc.address])) // for A, set B
+        await OFTDst.setTrustedRemote(chainIdSrc, ethers.utils.solidityPack(["address", "address"], [OFTSrc.address, OFTDst.address])) // for B, set A
 
         //set destination min gas
         await OFTSrc.setMinDstGas(chainIdDst, parseInt(await OFTSrc.PT_SEND()), 225000)
@@ -49,6 +49,9 @@ describe("PausableOFT: ", function () {
         expect(await OFTSrc.balanceOf(owner.address)).to.be.equal(globalSupply)
         expect(await OFTDst.balanceOf(owner.address)).to.be.equal("0")
 
+        // estimate nativeFees
+        let nativeFee = (await OFTSrc.estimateSendFee(chainIdDst, owner.address, sendQty, false, adapterParam)).nativeFee
+
         // can transfer accross chain
         await OFTSrc.sendFrom(
             owner.address,
@@ -57,7 +60,8 @@ describe("PausableOFT: ", function () {
             sendQty,
             owner.address,
             ethers.constants.AddressZero,
-            adapterParam
+            adapterParam,
+            { value: nativeFee }
         )
 
         // verify tokens burned on source chain and minted on destination chain
@@ -69,6 +73,9 @@ describe("PausableOFT: ", function () {
         // pause the transfers
         await OFTDst.pauseSendTokens(true)
 
+        // estimate nativeFees
+        let nativeFee = (await OFTSrc.estimateSendFee(chainIdDst, owner.address, sendQty, false, adapterParam)).nativeFee
+
         // transfer to the paused chain are not paused. Only outbound
         await OFTSrc.sendFrom(
             owner.address,
@@ -77,7 +84,8 @@ describe("PausableOFT: ", function () {
             sendQty,
             owner.address,
             ethers.constants.AddressZero,
-            adapterParam
+            adapterParam,
+            { value: nativeFee }
         )
 
         // verify tokens burned on source chain and minted on destination chain
@@ -104,6 +112,9 @@ describe("PausableOFT: ", function () {
         // unpause the transfers
         await OFTDst.pauseSendTokens(false)
 
+        // estimate nativeFees
+        nativeFee = (await OFTDst.estimateSendFee(chainIdSrc, owner.address, sendQty, false, adapterParam)).nativeFee
+
         // transfer succeeds
         await OFTDst.sendFrom(
             owner.address,
@@ -112,7 +123,8 @@ describe("PausableOFT: ", function () {
             sendQty,
             owner.address,
             ethers.constants.AddressZero,
-            adapterParam
+            adapterParam,
+            { value: nativeFee }
         )
 
         // verify tokens were sent back

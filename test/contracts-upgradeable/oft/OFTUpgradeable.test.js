@@ -7,18 +7,9 @@ describe("OFTUpgradeable: ", function () {
     const name = "OmnichainFungibleToken"
     const symbol = "OFT"
     const globalSupply = ethers.utils.parseUnits("1000000", 18)
+    let dstPath, srcPath
 
-    let deployer,
-        lzEndpointSrcMock,
-        lzEndpointDstMock,
-        OFTSrc,
-        OFTDst,
-        LZEndpointMock,
-        OFTUpgradeable,
-        proxyOwner,
-        OFTUpgradeableContractFactory,
-        LzLibFactory,
-        lzLib
+    let deployer, lzEndpointSrcMock, lzEndpointDstMock, OFTSrc, OFTDst, LZEndpointMock, OFTUpgradeable, proxyOwner, OFTUpgradeableContractFactory
 
     before(async function () {
         deployer = (await ethers.getSigners())[0]
@@ -44,8 +35,10 @@ describe("OFTUpgradeable: ", function () {
         await OFTSrc.setUseCustomAdapterParams(true)
 
         // set each contracts source address so it can send to each other
-        await OFTSrc.setTrustedRemote(chainIdDst, OFTDst.address) // for A, set B
-        await OFTDst.setTrustedRemote(chainIdSrc, OFTSrc.address) // for B, set A
+        dstPath = ethers.utils.solidityPack(["address", "address"], [OFTDst.address, OFTSrc.address])
+        srcPath = ethers.utils.solidityPack(["address", "address"], [OFTSrc.address, OFTDst.address])
+        await OFTSrc.setTrustedRemote(chainIdDst, dstPath) // for A, set B
+        await OFTDst.setTrustedRemote(chainIdSrc, srcPath) // for B, set A
     })
 
     describe("setting up stored payload", async function () {
@@ -61,6 +54,9 @@ describe("OFTUpgradeable: ", function () {
             // block receiving msgs on the dst lzEndpoint to simulate ua reverts which stores a payload
             await lzEndpointDstMock.blockNextMsg()
 
+            // estimate nativeFees
+            const nativeFee = (await OFTSrc.estimateSendFee(chainIdDst, deployer.address, sendQty, false, adapterParam)).nativeFee
+
             // stores a payload
             await expect(
                 OFTSrc.sendFrom(
@@ -70,7 +66,8 @@ describe("OFTUpgradeable: ", function () {
                     sendQty,
                     deployer.address,
                     ethers.constants.AddressZero,
-                    adapterParam
+                    adapterParam,
+                    { value: nativeFee }
                 )
             ).to.emit(lzEndpointDstMock, "PayloadStored")
 
@@ -100,12 +97,15 @@ describe("OFTUpgradeable: ", function () {
         })
 
         it("hasStoredPayload() - stores the payload", async function () {
-            expect(await lzEndpointDstMock.hasStoredPayload(chainIdSrc, OFTSrc.address)).to.equal(true)
+            expect(await lzEndpointDstMock.hasStoredPayload(chainIdSrc, srcPath)).to.equal(true)
         })
 
         it("getLengthOfQueue() - cant send another msg if payload is blocked", async function () {
             // queue is empty
-            expect(await lzEndpointDstMock.getLengthOfQueue(chainIdSrc, OFTSrc.address)).to.equal(0)
+            expect(await lzEndpointDstMock.getLengthOfQueue(chainIdSrc, srcPath)).to.equal(0)
+
+            // estimate nativeFees
+            const nativeFee = (await OFTSrc.estimateSendFee(chainIdDst, deployer.address, sendQty, false, adapterParam)).nativeFee
 
             // now that a msg has been stored, subsequent ones will not revert, but will get added to the queue
             await expect(
@@ -116,12 +116,13 @@ describe("OFTUpgradeable: ", function () {
                     sendQty,
                     deployer.address,
                     ethers.constants.AddressZero,
-                    adapterParam
+                    adapterParam,
+                    { value: nativeFee }
                 )
             ).to.not.reverted
 
             // queue has increased
-            expect(await lzEndpointDstMock.getLengthOfQueue(chainIdSrc, OFTSrc.address)).to.equal(1)
+            expect(await lzEndpointDstMock.getLengthOfQueue(chainIdSrc, srcPath)).to.equal(1)
         })
 
         it("retryPayload() - delivers a stuck msg", async function () {
@@ -129,7 +130,7 @@ describe("OFTUpgradeable: ", function () {
             expect(await OFTDst.balanceOf(deployer.address)).to.be.equal(0)
 
             const payload = ethers.utils.defaultAbiCoder.encode(["bytes", "uint256"], [deployer.address, sendQty])
-            await expect(lzEndpointDstMock.retryPayload(chainIdSrc, OFTSrc.address, payload)).to.emit(lzEndpointDstMock, "PayloadCleared")
+            await expect(lzEndpointDstMock.retryPayload(chainIdSrc, srcPath, payload)).to.emit(lzEndpointDstMock, "PayloadCleared")
 
             // balance after transfer is sendQty
             expect(await OFTDst.balanceOf(deployer.address)).to.be.equal(sendQty)
@@ -140,10 +141,10 @@ describe("OFTUpgradeable: ", function () {
             expect(await OFTDst.balanceOf(deployer.address)).to.be.equal(0)
 
             // forceResumeReceive deletes the stuck msg
-            await expect(OFTDst.forceResumeReceive(chainIdSrc, OFTSrc.address)).to.emit(lzEndpointDstMock, "UaForceResumeReceive")
+            await expect(OFTDst.forceResumeReceive(chainIdSrc, srcPath)).to.emit(lzEndpointDstMock, "UaForceResumeReceive")
 
             // stored payload gone
-            expect(await lzEndpointDstMock.hasStoredPayload(chainIdSrc, OFTSrc.address)).to.equal(false)
+            expect(await lzEndpointDstMock.hasStoredPayload(chainIdSrc, srcPath)).to.equal(false)
 
             // balance after transfer is 0
             expect(await OFTDst.balanceOf(deployer.address)).to.be.equal(0)
@@ -151,6 +152,9 @@ describe("OFTUpgradeable: ", function () {
 
         it("forceResumeReceive() - removes msg, delivers all msgs in the queue", async function () {
             const msgsInQueue = 3
+
+            // estimate nativeFees
+            const nativeFee = (await OFTSrc.estimateSendFee(chainIdDst, deployer.address, sendQty, false, adapterParam)).nativeFee
 
             for (let i = 0; i < msgsInQueue; i++) {
                 // first iteration stores a payload, the following get added to queue
@@ -161,28 +165,32 @@ describe("OFTUpgradeable: ", function () {
                     sendQty,
                     deployer.address,
                     ethers.constants.AddressZero,
-                    adapterParam
+                    adapterParam,
+                    { value: nativeFee }
                 )
             }
 
             // msg queue is full
-            expect(await lzEndpointDstMock.getLengthOfQueue(chainIdSrc, OFTSrc.address)).to.equal(msgsInQueue)
+            expect(await lzEndpointDstMock.getLengthOfQueue(chainIdSrc, srcPath)).to.equal(msgsInQueue)
 
             // balance before is 0
             expect(await OFTDst.balanceOf(deployer.address)).to.be.equal(0)
 
             // forceResumeReceive deletes the stuck msg
-            await expect(OFTDst.forceResumeReceive(chainIdSrc, OFTSrc.address)).to.emit(lzEndpointDstMock, "UaForceResumeReceive")
+            await expect(OFTDst.forceResumeReceive(chainIdSrc, srcPath)).to.emit(lzEndpointDstMock, "UaForceResumeReceive")
 
             // balance after transfer is 0
             expect(await OFTDst.balanceOf(deployer.address)).to.be.equal(sendQty.mul(msgsInQueue))
 
             // msg queue is empty
-            expect(await lzEndpointDstMock.getLengthOfQueue(chainIdSrc, OFTSrc.address)).to.equal(0)
+            expect(await lzEndpointDstMock.getLengthOfQueue(chainIdSrc, srcPath)).to.equal(0)
         })
 
         it("forceResumeReceive() - emptied queue is actually emptied and doesnt get double counted", async function () {
             const msgsInQueue = 3
+
+            // estimate nativeFees
+            let nativeFee = (await OFTSrc.estimateSendFee(chainIdDst, deployer.address, sendQty, false, adapterParam)).nativeFee
 
             for (let i = 0; i < msgsInQueue; i++) {
                 // first iteration stores a payload, the following gets added to queue
@@ -193,21 +201,25 @@ describe("OFTUpgradeable: ", function () {
                     sendQty,
                     deployer.address,
                     ethers.constants.AddressZero,
-                    adapterParam
+                    adapterParam,
+                    { value: nativeFee }
                 )
             }
 
             // msg queue is full
-            expect(await lzEndpointDstMock.getLengthOfQueue(chainIdSrc, OFTSrc.address)).to.equal(msgsInQueue)
+            expect(await lzEndpointDstMock.getLengthOfQueue(chainIdSrc, srcPath)).to.equal(msgsInQueue)
 
             // balance before is 0
             expect(await OFTDst.balanceOf(deployer.address)).to.be.equal(0)
 
             // forceResumeReceive deletes the stuck msg
-            await expect(OFTDst.forceResumeReceive(chainIdSrc, OFTSrc.address)).to.emit(lzEndpointDstMock, "UaForceResumeReceive")
+            await expect(OFTDst.forceResumeReceive(chainIdSrc, srcPath)).to.emit(lzEndpointDstMock, "UaForceResumeReceive")
 
             // balance after transfer
             expect(await OFTDst.balanceOf(deployer.address)).to.be.equal(sendQty.mul(msgsInQueue))
+
+            // estimate nativeFees
+            nativeFee = (await OFTSrc.estimateSendFee(chainIdDst, deployer.address, sendQty, false, adapterParam)).nativeFee
 
             // store a new payload
             await lzEndpointDstMock.blockNextMsg()
@@ -218,11 +230,12 @@ describe("OFTUpgradeable: ", function () {
                 sendQty,
                 deployer.address,
                 ethers.constants.AddressZero,
-                adapterParam
+                adapterParam,
+                { value: nativeFee }
             )
 
             // forceResumeReceive deletes msgs but since there's nothing in the queue, balance shouldn't increase
-            await expect(OFTDst.forceResumeReceive(chainIdSrc, OFTSrc.address)).to.emit(lzEndpointDstMock, "UaForceResumeReceive")
+            await expect(OFTDst.forceResumeReceive(chainIdSrc, srcPath)).to.emit(lzEndpointDstMock, "UaForceResumeReceive")
 
             // balance after transfer remains the same
             expect(await OFTDst.balanceOf(deployer.address)).to.be.equal(sendQty.mul(msgsInQueue))

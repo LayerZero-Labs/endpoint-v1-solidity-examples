@@ -5,7 +5,7 @@ describe("ComposableOFT: ", function () {
     const srcChainId = 1
     const dstChainId = 2
 
-    let srcEndpoint, dstEndpoint, srcOFT, dstOFT, srcStaking, dstStaking
+    let srcEndpoint, dstEndpoint, srcOFT, dstOFT, srcStaking, dstStaking, dstPath, srcPath
     let owner, alice, bob, carol
 
     before(async function () {
@@ -25,13 +25,14 @@ describe("ComposableOFT: ", function () {
         // internal bookkeeping for endpoints (not part of a real deploy, just for this test)
         srcEndpoint.setDestLzEndpoint(dstOFT.address, dstEndpoint.address)
         dstEndpoint.setDestLzEndpoint(srcOFT.address, srcEndpoint.address)
-        srcEndpoint.setEstimatedFees(2, 0)
-        dstEndpoint.setEstimatedFees(2, 0)
 
         // set each contracts source address so it can send to each other
-        await srcOFT.setTrustedRemote(dstChainId, dstOFT.address) // for A, set B
-        await dstOFT.setTrustedRemote(srcChainId, srcOFT.address) // for B, set A
+        dstPath = ethers.utils.solidityPack(["address", "address"], [dstOFT.address, srcOFT.address])
+        srcPath = ethers.utils.solidityPack(["address", "address"], [srcOFT.address, dstOFT.address])
+        await srcOFT.setTrustedRemote(dstChainId, dstPath) // for A, set B
+        await dstOFT.setTrustedRemote(srcChainId, srcPath) // for B, set A
 
+        // set each contracts source address so it can send to each other
         await srcStaking.setRemoteStakingContract(dstChainId, dstStaking.address)
         await dstStaking.setRemoteStakingContract(srcChainId, srcStaking.address)
 
@@ -55,9 +56,9 @@ describe("ComposableOFT: ", function () {
         await srcOFT.connect(alice).approve(srcStaking.address, amount)
 
         const adapterParam = ethers.utils.solidityPack(["uint16", "uint256"], [1, 225000 + 300000]) // min gas of OFT + gas for call
-
         // deposit on dst chain
         const fee = await srcStaking.quoteForDeposit(dstChainId, bob.address, amount, adapterParam)
+
         await srcStaking.connect(alice).depositToDstChain(dstChainId, bob.address, amount, adapterParam, { value: fee[0] })
 
         // check balance
@@ -104,7 +105,8 @@ describe("ComposableOFT: ", function () {
         // console.log("_to", dstOFT.address)
         // console.log("_amount", amount)
         // console.log("payload", payload)
-        await dstOFT.retryOFTReceived(srcChainId, srcOFT.address, 2, srcStaking.address, alice.address, dstStaking.address, amount, payload)
+        let dstPath = ethers.utils.solidityPack(["address", "address"], [srcOFT.address, dstOFT.address]);
+        await dstOFT.retryOFTReceived(srcChainId, dstPath, 2, srcStaking.address, alice.address, dstStaking.address, amount, payload)
         expect(await dstStaking.balances(carol.address)).to.equal(amount)
     })
 })

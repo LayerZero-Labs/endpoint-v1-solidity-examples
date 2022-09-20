@@ -6,9 +6,8 @@ describe.skip("NativeOFT: ", function () {
     const otherChainId = 2
     const name = "OmnichainFungibleToken"
     const symbol = "OFT"
-    const globalSupply = ethers.utils.parseUnits("1000000", 18)
 
-    let owner, alice, lzEndpointBase, lzEndpointOther, nativeOFT, otherOFT, LZEndpointMock, NativeOFT, OFT, LzLibFactory, lzLib
+    let owner, alice, lzEndpointBase, lzEndpointOther, nativeOFT, otherOFT, LZEndpointMock, NativeOFT, OFT
 
     before(async function () {
         owner = (await ethers.getSigners())[0]
@@ -33,22 +32,26 @@ describe.skip("NativeOFT: ", function () {
         otherOFT = await OFT.deploy(name, symbol, lzEndpointOther.address)
 
         // internal bookkeeping for endpoints (not part of a real deploy, just for this test)
-        lzEndpointBase.setDestLzEndpoint(otherOFT.address, lzEndpointOther.address)
-        lzEndpointOther.setDestLzEndpoint(nativeOFT.address, lzEndpointBase.address)
+        await lzEndpointBase.setDestLzEndpoint(otherOFT.address, lzEndpointOther.address)
+        await lzEndpointOther.setDestLzEndpoint(nativeOFT.address, lzEndpointBase.address)
 
         //------  setTrustedRemote(s) -------------------------------------------------------
         // for each OFT, setTrustedRemote to allow it to receive from the remote OFT contract.
         // Note: This is sometimes referred to as the "wire-up" process.
-        await nativeOFT.setTrustedRemote(otherChainId, otherOFT.address)
-        await otherOFT.setTrustedRemote(baseChainId, nativeOFT.address)
+        await nativeOFT.setTrustedRemote(otherChainId, ethers.utils.solidityPack(["address", "address"], [otherOFT.address, nativeOFT.address]))
+        await otherOFT.setTrustedRemote(baseChainId, ethers.utils.solidityPack(["address", "address"], [nativeOFT.address, otherOFT.address]))
 
         await nativeOFT.setUseCustomAdapterParams(true)
         // ... the deployed OFTs are ready now!
     })
 
     it("sendFrom() - tokens from main to other chain using default", async function () {
+        expect(await ethers.provider.getBalance(lzEndpointBase.address)).to.be.equal(ethers.utils.parseUnits("0", 18))
+
+        await nativeOFT.setUseCustomAdapterParams(false)
+        await otherOFT.setUseCustomAdapterParams(false)
+
         // ensure they're both allocated initial amounts
-        let ownerBalance = await ethers.provider.getBalance(owner.address)
         let aliceBalance = await ethers.provider.getBalance(alice.address)
         expect(await nativeOFT.balanceOf(owner.address)).to.equal(0)
         expect(await otherOFT.balanceOf(owner.address)).to.equal(0)
@@ -57,18 +60,16 @@ describe.skip("NativeOFT: ", function () {
         let depositAmount = ethers.utils.parseUnits("7", 18)
         await nativeOFT.deposit({ value: depositAmount })
 
-        let transFee_1 = ownerBalance.sub(await ethers.provider.getBalance(owner.address)).sub(depositAmount)
-
         expect(await nativeOFT.balanceOf(owner.address)).to.equal(depositAmount)
         expect(await ethers.provider.getBalance(nativeOFT.address)).to.be.equal(depositAmount)
 
         let leftOverAmount = ethers.utils.parseUnits("0", 18)
-        let sentFee = ethers.utils.parseUnits("2", 18)
         let totalAmount = ethers.utils.parseUnits("8", 18)
 
-        let messageFee = ethers.utils.parseUnits("3", 18) // conversion to units of wei
-        await nativeOFT.setUseCustomAdapterParams(false)
-        await otherOFT.setUseCustomAdapterParams(false)
+        // estimate nativeFees
+        let nativeFee = (await nativeOFT.estimateSendFee(otherChainId, owner.address, totalAmount, false, "0x")).nativeFee
+
+        expect(await ethers.provider.getBalance(lzEndpointBase.address)).to.be.equal(ethers.utils.parseUnits("0", 18))
 
         await nativeOFT.sendFrom(
             owner.address,
@@ -78,21 +79,20 @@ describe.skip("NativeOFT: ", function () {
             owner.address, // LayerZero refund address (if too much fee is sent gets refunded)
             ethers.constants.AddressZero, // future parameter
             "0x", // adapterParameters empty bytes specifies default settings
-            { value: messageFee } // pass a msg.value to pay the LayerZero message fee
+            { value: nativeFee.add(totalAmount.sub(depositAmount)) } // pass a msg.value to pay the LayerZero message fee
         )
-
-        let transFee_2 = ownerBalance.sub(await ethers.provider.getBalance(owner.address)).sub(messageFee)
 
         // expect(await ethers.provider.getBalance(owner.address)).to.be.equal(ownerBalance.sub(messageFee).sub(transFee).sub(depositAmount))
         expect(await ethers.provider.getBalance(nativeOFT.address)).to.be.equal(totalAmount)
-        expect(await ethers.provider.getBalance(lzEndpointBase.address)).to.be.equal(ethers.utils.parseUnits("2", 18))
-        expect(await ethers.provider.getBalance(lzEndpointOther.address)).to.be.equal(ethers.utils.parseUnits("0", 18))
+        expect(await ethers.provider.getBalance(lzEndpointBase.address)).to.be.equal(nativeFee) // collects
         expect(await nativeOFT.balanceOf(nativeOFT.address)).to.be.equal(totalAmount)
         expect(await nativeOFT.balanceOf(owner.address)).to.be.equal(leftOverAmount)
         expect(await otherOFT.balanceOf(owner.address)).to.be.equal(totalAmount)
 
         let ownerBalance2 = await ethers.provider.getBalance(owner.address)
-        messageFee = ethers.utils.parseEther("0.01")
+
+        // estimate nativeFees
+        nativeFee = (await nativeOFT.estimateSendFee(baseChainId, owner.address, totalAmount, false, "0x")).nativeFee
 
         await otherOFT.sendFrom(
             owner.address,
@@ -102,18 +102,20 @@ describe.skip("NativeOFT: ", function () {
             owner.address, // LayerZero refund address (if too much fee is sent gets refunded)
             ethers.constants.AddressZero, // future parameter
             "0x", // adapterParameters empty bytes specifies default settings
-            { value: messageFee } // pass a msg.value to pay the LayerZero message fee
+            { value: nativeFee.add(totalAmount) } // pass a msg.value to pay the LayerZero message fee
         )
 
-        transFee = ownerBalance2.sub(await ethers.provider.getBalance(owner.address)).sub(messageFee)
-
+        let transFee = ownerBalance2.sub(await ethers.provider.getBalance(owner.address)).sub(nativeFee)
         expect(await ethers.provider.getBalance(alice.address)).to.be.equal(aliceBalance.add(totalAmount))
-        expect(await ethers.provider.getBalance(owner.address)).to.be.equal(ownerBalance2.sub(messageFee).sub(transFee))
+        expect(await ethers.provider.getBalance(owner.address)).to.be.equal(ownerBalance2.sub(nativeFee).sub(transFee))
         expect(await nativeOFT.balanceOf(owner.address)).to.equal(leftOverAmount)
         expect(await otherOFT.balanceOf(owner.address)).to.equal(0)
     })
 
     it("sendFrom() - with enough native", async function () {
+        await nativeOFT.setUseCustomAdapterParams(false)
+        await otherOFT.setUseCustomAdapterParams(false)
+
         // ensure they're both allocated initial amounts
         let ownerBalance = await ethers.provider.getBalance(owner.address)
         let aliceBalance = await ethers.provider.getBalance(alice.address)
@@ -134,8 +136,10 @@ describe.skip("NativeOFT: ", function () {
         let totalAmount = ethers.utils.parseUnits("4", 18)
 
         let messageFee = ethers.utils.parseUnits("1", 18) // conversion to units of wei
-        await nativeOFT.setUseCustomAdapterParams(false)
-        await otherOFT.setUseCustomAdapterParams(false)
+
+        // estimate nativeFees
+        let nativeFee = (await nativeOFT.estimateSendFee(otherChainId, owner.address, totalAmount, false, "0x")).nativeFee
+
         await nativeOFT.sendFrom(
             owner.address,
             otherChainId, // destination chainId
@@ -144,11 +148,11 @@ describe.skip("NativeOFT: ", function () {
             owner.address, // LayerZero refund address (if too much fee is sent gets refunded)
             ethers.constants.AddressZero, // future parameter
             "0x", // adapterParameters empty bytes specifies default settings
-            { value: messageFee } // pass a msg.value to pay the LayerZero message fee
+            { value: nativeFee.add(totalAmount.sub(depositAmount)) } // pass a msg.value to pay the LayerZero message fee
         )
 
         expect(await ethers.provider.getBalance(nativeOFT.address)).to.be.equal(totalAmount)
-        expect(await ethers.provider.getBalance(lzEndpointBase.address)).to.be.equal(ethers.utils.parseUnits("1", 18))
+        expect(await ethers.provider.getBalance(lzEndpointBase.address)).to.be.equal(nativeFee)
         expect(await ethers.provider.getBalance(lzEndpointOther.address)).to.be.equal(ethers.utils.parseUnits("0", 18))
         expect(await nativeOFT.balanceOf(nativeOFT.address)).to.be.equal(totalAmount)
         expect(await nativeOFT.balanceOf(owner.address)).to.be.equal(leftOverAmount)
@@ -156,9 +160,10 @@ describe.skip("NativeOFT: ", function () {
     })
 
     it("sendFrom() - from != sender with enough native", async function () {
+        await nativeOFT.setUseCustomAdapterParams(false)
+        await otherOFT.setUseCustomAdapterParams(false)
+
         // ensure they're both allocated initial amounts
-        let ownerBalance = await ethers.provider.getBalance(owner.address)
-        let aliceBalance = await ethers.provider.getBalance(alice.address)
         expect(await nativeOFT.balanceOf(owner.address)).to.equal(0)
         expect(await otherOFT.balanceOf(owner.address)).to.equal(0)
         expect(await ethers.provider.getBalance(nativeOFT.address)).to.be.equal(0)
@@ -166,21 +171,18 @@ describe.skip("NativeOFT: ", function () {
         let depositAmount = ethers.utils.parseUnits("4", 18)
         await nativeOFT.deposit({ value: depositAmount })
 
-        let transFee_1 = ownerBalance.sub(await ethers.provider.getBalance(owner.address)).sub(depositAmount)
-
         expect(await nativeOFT.balanceOf(owner.address)).to.equal(depositAmount)
         expect(await ethers.provider.getBalance(nativeOFT.address)).to.be.equal(depositAmount)
 
         let leftOverAmount = ethers.utils.parseUnits("0", 18)
-        let sentFee = ethers.utils.parseUnits("2", 18)
         let totalAmount = ethers.utils.parseUnits("4", 18)
 
         // approve the other user to send the tokens
         await nativeOFT.approve(alice.address, totalAmount)
 
-        let messageFee = ethers.utils.parseUnits("1", 18) // conversion to units of wei
-        await nativeOFT.setUseCustomAdapterParams(false)
-        await otherOFT.setUseCustomAdapterParams(false)
+        // estimate nativeFees
+        let nativeFee = (await nativeOFT.estimateSendFee(otherChainId, owner.address, totalAmount, false, "0x")).nativeFee
+
         await nativeOFT.connect(alice).sendFrom(
             owner.address,
             otherChainId, // destination chainId
@@ -189,11 +191,11 @@ describe.skip("NativeOFT: ", function () {
             owner.address, // LayerZero refund address (if too much fee is sent gets refunded)
             ethers.constants.AddressZero, // future parameter
             "0x", // adapterParameters empty bytes specifies default settings
-            { value: messageFee } // pass a msg.value to pay the LayerZero message fee
+            { value: nativeFee.add(totalAmount.sub(depositAmount)) } // pass a msg.value to pay the LayerZero message fee
         )
 
         expect(await ethers.provider.getBalance(nativeOFT.address)).to.be.equal(totalAmount)
-        expect(await ethers.provider.getBalance(lzEndpointBase.address)).to.be.equal(ethers.utils.parseUnits("1", 18))
+        expect(await ethers.provider.getBalance(lzEndpointBase.address)).to.be.equal(nativeFee)
         expect(await ethers.provider.getBalance(lzEndpointOther.address)).to.be.equal(ethers.utils.parseUnits("0", 18))
         expect(await nativeOFT.balanceOf(nativeOFT.address)).to.be.equal(totalAmount)
         expect(await nativeOFT.balanceOf(owner.address)).to.be.equal(leftOverAmount)
@@ -201,17 +203,16 @@ describe.skip("NativeOFT: ", function () {
     })
 
     it("sendFrom() - from != sender with addition msg.value", async function () {
+        await nativeOFT.setUseCustomAdapterParams(false)
+        await otherOFT.setUseCustomAdapterParams(false)
+
         // ensure they're both allocated initial amounts
-        let ownerBalance = await ethers.provider.getBalance(owner.address)
-        let aliceBalance = await ethers.provider.getBalance(alice.address)
         expect(await nativeOFT.balanceOf(owner.address)).to.equal(0)
         expect(await otherOFT.balanceOf(owner.address)).to.equal(0)
         expect(await ethers.provider.getBalance(nativeOFT.address)).to.be.equal(0)
 
         let depositAmount = ethers.utils.parseUnits("3", 18)
         await nativeOFT.deposit({ value: depositAmount })
-
-        let transFee_1 = ownerBalance.sub(await ethers.provider.getBalance(owner.address)).sub(depositAmount)
 
         expect(await nativeOFT.balanceOf(owner.address)).to.equal(depositAmount)
         expect(await ethers.provider.getBalance(nativeOFT.address)).to.be.equal(depositAmount)
@@ -223,9 +224,9 @@ describe.skip("NativeOFT: ", function () {
         // approve the other user to send the tokens
         await nativeOFT.approve(alice.address, totalAmount)
 
-        let messageFee = ethers.utils.parseUnits("2", 18) // conversion to units of wei
-        await nativeOFT.setUseCustomAdapterParams(false)
-        await otherOFT.setUseCustomAdapterParams(false)
+        // estimate nativeFees
+        let nativeFee = (await nativeOFT.estimateSendFee(otherChainId, owner.address, totalAmount, false, "0x")).nativeFee
+
         await nativeOFT.connect(alice).sendFrom(
             owner.address,
             otherChainId, // destination chainId
@@ -234,11 +235,11 @@ describe.skip("NativeOFT: ", function () {
             owner.address, // LayerZero refund address (if too much fee is sent gets refunded)
             ethers.constants.AddressZero, // future parameter
             "0x", // adapterParameters empty bytes specifies default settings
-            { value: messageFee } // pass a msg.value to pay the LayerZero message fee
+            { value: nativeFee.add(totalAmount.sub(depositAmount)) } // pass a msg.value to pay the LayerZero message fee
         )
 
         expect(await ethers.provider.getBalance(nativeOFT.address)).to.be.equal(totalAmount)
-        expect(await ethers.provider.getBalance(lzEndpointBase.address)).to.be.equal(ethers.utils.parseUnits("1", 18))
+        expect(await ethers.provider.getBalance(lzEndpointBase.address)).to.be.equal(nativeFee)
         expect(await ethers.provider.getBalance(lzEndpointOther.address)).to.be.equal(ethers.utils.parseUnits("0", 18))
         expect(await nativeOFT.balanceOf(nativeOFT.address)).to.be.equal(totalAmount)
         expect(await nativeOFT.balanceOf(owner.address)).to.be.equal(leftOverAmount)

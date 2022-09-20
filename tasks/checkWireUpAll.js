@@ -114,7 +114,7 @@ module.exports = async function (taskArgs) {
                         trustedRemoteChecks[environmentArray[j]][envToCamelCase] = "🟩"
                     }
                 } else if (JSON.stringify(actualUaAddress) !== JSON.stringify(currentSetRemoteAddress)) {
-                    console.log({envToCamelCase})
+                    // console.log({envToCamelCase})
                     trustedRemoteChecks[environmentArray[j]][envToCamelCase] = "🟥"
                 }
             }

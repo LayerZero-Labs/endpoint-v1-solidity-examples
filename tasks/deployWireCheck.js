@@ -29,24 +29,33 @@ module.exports = async function (taskArgs) {
     networks.map(async (source) => {
         let srcContract, dstContract
         networks.map(async (destination) => {
-            if(source !== destination) {
-                if(taskArgs.proxyChain) {
-                    if(source === taskArgs.proxyChain) {
-                        srcContract = taskArgs.proxyContract;
-                        dstContract = taskArgs.contract;
-                    } else if(destination === taskArgs.proxyChain) {
-                        srcContract = taskArgs.contract;
-                        dstContract = taskArgs.proxyContract;
-                    } else {
-                        srcContract = taskArgs.contract;
-                        dstContract = taskArgs.contract;
-                    }
-                }
-                else {
+            if(taskArgs.proxyChain) {
+                if(source === taskArgs.proxyChain && destination === taskArgs.proxyChain) {
+                    srcContract = taskArgs.proxyContract;
+                    dstContract = taskArgs.proxyContract;
+                } else if(source === taskArgs.proxyChain) {
+                    srcContract = taskArgs.proxyContract;
+                    dstContract = taskArgs.contract;
+                } else if(destination === taskArgs.proxyChain) {
+                    srcContract = taskArgs.contract;
+                    dstContract = taskArgs.proxyContract;
+                } else {
                     srcContract = taskArgs.contract;
                     dstContract = taskArgs.contract;
                 }
-                const wireUpCommand = `npx hardhat --network ${source} setTrustedRemote --target-network ${destination} --src-contract ${srcContract} --dst-contract ${dstContract}`;
+            }
+            else {
+                srcContract = taskArgs.contract;
+                dstContract = taskArgs.contract;
+            }
+
+            let wireUpCommand;
+            if(taskArgs.trustedRemoteVersion === "1") {
+                wireUpCommand = `npx hardhat --network ${source} setTrustedRemote --target-network ${destination} --local-contract ${srcContract} --remote-contract ${dstContract}`;
+                console.log("wireUpCommand: " + wireUpCommand)
+                shell.exec(wireUpCommand)
+            } else if(taskArgs.trustedRemoteVersion === "2") {
+                wireUpCommand = `npx hardhat --network ${source} setTrustedRemoteAddress --target-network ${destination} --local-contract ${srcContract} --remote-contract ${dstContract}`;
                 console.log("wireUpCommand: " + wireUpCommand)
                 shell.exec(wireUpCommand)
             }

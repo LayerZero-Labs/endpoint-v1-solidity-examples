@@ -35,11 +35,7 @@ module.exports = async function (taskArgs) {
                 const contract = await ethers.getContract(taskArgs.contract)
                 const dstChainId = CHAIN_ID[env]
                 let envToCamelCase = env.replace(/-./g, (m) => m[1].toUpperCase())
-                if (hre.network.name === env) {
-                    trustedRemoteTable[environment][envToCamelCase] = await contract.address.toLowerCase()
-                } else {
-                    trustedRemoteTable[environment][envToCamelCase] = await contract.trustedRemoteLookup(dstChainId)
-                }
+                trustedRemoteTable[environment][envToCamelCase] = await contract.trustedRemoteLookup(dstChainId)
             } catch (error) {
                 //catch error because checkWireUpAll is reading console log as input
             }

@@ -9,7 +9,7 @@ describe("ProxyONFT721: ", function () {
     const symbol = "ONFT"
 
     let owner, warlock, lzEndpointMockA, lzEndpointMockB, lzEndpointMockC
-    let ONFT_B, ONFT_C, LZEndpointMock, ONFT, ERC721, ERC721Src, ProxyONFT_A, ProxyONFT, LzLibFactory, lzLib
+    let ONFT_B, ONFT_C, LZEndpointMock, ONFT, ERC721, ERC721Src, ProxyONFT_A, ProxyONFT
 
     before(async function () {
         owner = (await ethers.getSigners())[0]
@@ -43,12 +43,12 @@ describe("ProxyONFT721: ", function () {
         lzEndpointMockC.setDestLzEndpoint(ONFT_B.address, lzEndpointMockB.address)
 
         // set each contracts source address so it can send to each other
-        await ProxyONFT_A.setTrustedRemote(chainId_B, ONFT_B.address)
-        await ProxyONFT_A.setTrustedRemote(chainId_C, ONFT_C.address)
-        await ONFT_B.setTrustedRemote(chainId_A, ProxyONFT_A.address)
-        await ONFT_B.setTrustedRemote(chainId_C, ONFT_C.address)
-        await ONFT_C.setTrustedRemote(chainId_A, ProxyONFT_A.address)
-        await ONFT_C.setTrustedRemote(chainId_B, ONFT_B.address)
+        await ProxyONFT_A.setTrustedRemote(chainId_B, ethers.utils.solidityPack(["address", "address"], [ONFT_B.address, ProxyONFT_A.address]))
+        await ProxyONFT_A.setTrustedRemote(chainId_C, ethers.utils.solidityPack(["address", "address"], [ONFT_C.address, ProxyONFT_A.address]))
+        await ONFT_B.setTrustedRemote(chainId_A, ethers.utils.solidityPack(["address", "address"], [ProxyONFT_A.address, ONFT_B.address]))
+        await ONFT_B.setTrustedRemote(chainId_C, ethers.utils.solidityPack(["address", "address"], [ONFT_C.address, ONFT_B.address]))
+        await ONFT_C.setTrustedRemote(chainId_A, ethers.utils.solidityPack(["address", "address"], [ProxyONFT_A.address, ONFT_C.address]))
+        await ONFT_C.setTrustedRemote(chainId_B, ethers.utils.solidityPack(["address", "address"], [ONFT_B.address, ONFT_C.address]))
     })
 
     it("sendFrom() - your own tokens", async function () {
@@ -68,6 +68,9 @@ describe("ProxyONFT721: ", function () {
         // approve the proxy to swap your token
         await ERC721Src.connect(warlock).approve(ProxyONFT_A.address, tokenId)
 
+        // estimate nativeFees
+        let nativeFee = (await ProxyONFT_A.estimateSendFee(chainId_B, warlock.address, tokenId, false, "0x")).nativeFee
+
         // swaps token to other chain
         await ProxyONFT_A.connect(warlock).sendFrom(
             warlock.address,
@@ -76,7 +79,8 @@ describe("ProxyONFT721: ", function () {
             tokenId,
             warlock.address,
             ethers.constants.AddressZero,
-            "0x"
+            "0x",
+            { value: nativeFee }
         )
 
         // token is now owned by the proxy contract, because this is the original nft chain
@@ -84,6 +88,9 @@ describe("ProxyONFT721: ", function () {
 
         // token received on the dst chain
         expect(await ONFT_B.ownerOf(tokenId)).to.be.equal(warlock.address)
+
+        // estimate nativeFees
+        nativeFee = (await ONFT_B.estimateSendFee(chainId_C, warlock.address, tokenId, false, "0x")).nativeFee
 
         // can send to other onft contract eg. not the original nft contract chain
         await ONFT_B.connect(warlock).sendFrom(
@@ -93,7 +100,8 @@ describe("ProxyONFT721: ", function () {
             tokenId,
             warlock.address,
             ethers.constants.AddressZero,
-            "0x"
+            "0x",
+            { value: nativeFee }
         )
 
         // token is burned on the sending chain
@@ -101,6 +109,9 @@ describe("ProxyONFT721: ", function () {
 
         // token received on the dst chain
         expect(await ONFT_C.ownerOf(tokenId)).to.be.equal(warlock.address)
+
+        // estimate nativeFees
+        nativeFee = (await ONFT_C.estimateSendFee(chainId_A, warlock.address, tokenId, false, "0x")).nativeFee
 
         // send it back to the original chain
         await ONFT_C.connect(warlock).sendFrom(
@@ -110,7 +121,8 @@ describe("ProxyONFT721: ", function () {
             tokenId,
             warlock.address,
             ethers.constants.AddressZero,
-            "0x"
+            "0x",
+            { value: nativeFee }
         )
 
         // token is burned on the sending chain
@@ -156,8 +168,13 @@ describe("ProxyONFT721: ", function () {
         // approve the proxy to swap your token
         await ERC721Src.approve(ProxyONFT_A.address, tokenId)
 
+        // estimate nativeFees
+        let nativeFee = (await ProxyONFT_A.estimateSendFee(chainId_B, owner.address, tokenId, false, "0x")).nativeFee
+
         // swaps token to other chain
-        await ProxyONFT_A.sendFrom(owner.address, chainId_B, owner.address, tokenId, owner.address, ethers.constants.AddressZero, "0x")
+        await ProxyONFT_A.sendFrom(owner.address, chainId_B, owner.address, tokenId, owner.address, ethers.constants.AddressZero, "0x", {
+            value: nativeFee,
+        })
 
         // token received on the dst chain
         expect(await ONFT_B.ownerOf(tokenId)).to.be.equal(owner.address)
@@ -183,14 +200,22 @@ describe("ProxyONFT721: ", function () {
         // approve the proxy to swap your token
         await ERC721Src.approve(ProxyONFT_A.address, tokenId)
 
+        // estimate nativeFees
+        let nativeFee = (await ProxyONFT_A.estimateSendFee(chainId_B, owner.address, tokenId, false, "0x")).nativeFee
+
         // swaps token to other chain
-        await ProxyONFT_A.sendFrom(owner.address, chainId_B, owner.address, tokenId, owner.address, ethers.constants.AddressZero, "0x")
+        await ProxyONFT_A.sendFrom(owner.address, chainId_B, owner.address, tokenId, owner.address, ethers.constants.AddressZero, "0x", {
+            value: nativeFee,
+        })
 
         // token received on the dst chain
         expect(await ONFT_B.ownerOf(tokenId)).to.be.equal(owner.address)
 
         // approve the other user to send the token
         await ONFT_B.approve(warlock.address, tokenId)
+
+        // estimate nativeFees
+        nativeFee = (await ONFT_B.estimateSendFee(chainId_C, warlock.address, tokenId, false, "0x")).nativeFee
 
         // sends across
         await ONFT_B.connect(warlock).sendFrom(
@@ -200,7 +225,8 @@ describe("ProxyONFT721: ", function () {
             tokenId,
             warlock.address,
             ethers.constants.AddressZero,
-            "0x"
+            "0x",
+            { value: nativeFee }
         )
 
         // token received on the dst chain
@@ -214,8 +240,13 @@ describe("ProxyONFT721: ", function () {
         // approve the proxy to swap your token
         await ERC721Src.approve(ProxyONFT_A.address, tokenId)
 
+        // estimate nativeFees
+        let nativeFee = (await ProxyONFT_A.estimateSendFee(chainId_B, owner.address, tokenId, false, "0x")).nativeFee
+
         // swaps token to other chain
-        await ProxyONFT_A.sendFrom(owner.address, chainId_B, owner.address, tokenId, owner.address, ethers.constants.AddressZero, "0x")
+        await ProxyONFT_A.sendFrom(owner.address, chainId_B, owner.address, tokenId, owner.address, ethers.constants.AddressZero, "0x", {
+            value: nativeFee,
+        })
 
         // token received on the dst chain
         expect(await ONFT_B.ownerOf(tokenId)).to.be.equal(owner.address)
@@ -244,8 +275,13 @@ describe("ProxyONFT721: ", function () {
         // approve the proxy to swap your token
         await ERC721Src.approve(ProxyONFT_A.address, tokenId)
 
+        // estimate nativeFees
+        let nativeFee = (await ProxyONFT_A.estimateSendFee(chainId_B, warlock.address, tokenId, false, "0x")).nativeFee
+
         // swaps token to other chain
-        await ProxyONFT_A.sendFrom(owner.address, chainId_B, owner.address, tokenId, owner.address, ethers.constants.AddressZero, "0x")
+        await ProxyONFT_A.sendFrom(owner.address, chainId_B, owner.address, tokenId, owner.address, ethers.constants.AddressZero, "0x", {
+            value: nativeFee,
+        })
 
         // token received on the dst chain
         expect(await ONFT_B.ownerOf(tokenId)).to.be.equal(owner.address)
