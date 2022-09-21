@@ -85,7 +85,7 @@ describe("ComposableProxyOFT: ", function () {
         // carol 100 ether token to dst chain and transfer to bob
         await token.connect(alice).approve(proxyOFT.address, amount)
         await proxyOFT.connect(alice).approve(srcStaking.address, amount)
-        expect(await proxyOFT._allowances(alice.address, srcStaking.address)).to.equal(amount)
+        expect(await proxyOFT.allowances(alice.address, srcStaking.address)).to.equal(amount)
 
         await dstStaking.setPaused(true) // paused on dst chain
 
@@ -99,7 +99,7 @@ describe("ComposableProxyOFT: ", function () {
         expect(await token.balanceOf(alice.address)).to.equal(0)
         expect(await dstOFT.balanceOf(dstStaking.address)).to.equal(amount)
         expect(await dstStaking.balances(carol.address)).to.equal(0) // failed to call onOFTReceived() for paused
-        expect(await proxyOFT._allowances(alice.address, srcStaking.address)).to.equal(0)
+        expect(await proxyOFT.allowances(alice.address, srcStaking.address)).to.equal(0)
     })
 
     it("retry to call on oft received", async function () {

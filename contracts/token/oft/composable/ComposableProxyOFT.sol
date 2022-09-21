@@ -13,7 +13,7 @@ contract ComposableProxyOFT is ComposableOFTCore {
     event Approval(address indexed owner, address indexed spender, uint256 value);
 
     // user -> wrapper -> amount
-    mapping(address => mapping(address => uint256)) public _allowances;
+    mapping(address => mapping(address => uint256)) public allowances;
 
     constructor(address _lzEndpoint, address _proxyToken) ComposableOFTCore(_lzEndpoint) {
         token = IERC20(_proxyToken);
@@ -51,10 +51,10 @@ contract ComposableProxyOFT is ComposableOFTCore {
         address spender,
         uint256 amount
     ) internal virtual {
-        require(owner != address(0), "ERC20: approve from the zero address");
-        require(spender != address(0), "ERC20: approve to the zero address");
+        require(owner != address(0), "ComposableProxyOFT: approve from the zero address");
+        require(spender != address(0), "ComposableProxyOFT: approve to the zero address");
 
-        _allowances[owner][spender] = amount;
+        allowances[owner][spender] = amount;
         emit Approval(owner, spender, amount);
     }
 
@@ -63,12 +63,12 @@ contract ComposableProxyOFT is ComposableOFTCore {
         address spender,
         uint256 amount
     ) internal virtual {
-        uint256 currentAllowance = _allowances[owner][spender];
+        uint256 currentAllowance = allowances[owner][spender];
         if (currentAllowance != type(uint256).max) {
-            require(currentAllowance >= amount, "ERC20: insufficient allowance");
-        unchecked {
-            _approve(owner, spender, currentAllowance - amount);
-        }
+            require(currentAllowance >= amount, "ComposableProxyOFT: insufficient allowance");
+            unchecked {
+                _approve(owner, spender, currentAllowance - amount);
+            }
         }
     }
 }
