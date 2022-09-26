@@ -1,5 +1,6 @@
 const shell = require("shelljs")
 const environments = require("../constants/environments.json")
+const {getDeploymentAddresses} = require("../utils/readStatic");
 
 let trustedRemoteTable = {}
 let trustedRemoteChecks = {}
@@ -95,19 +96,29 @@ module.exports = async function (taskArgs) {
     for (let i = 0; i < environmentArray.length; i++) {
         if (trustedRemoteTable[environmentArray[i]] === undefined) continue
         const envToCamelCase = environmentArray[i].replace(/-./g, (m) => m[1].toUpperCase())
-        const actualUaAddress = trustedRemoteTable[environmentArray[i]][envToCamelCase]
+        let actualUaAddress
+        try {
+            if(environmentArray[i] === taskArgs.proxyChain) {
+                actualUaAddress = getDeploymentAddresses(environmentArray[i])[taskArgs.proxyContract].toLowerCase()
+            } else {
+                actualUaAddress = getDeploymentAddresses(environmentArray[i])[taskArgs.contract].toLowerCase()
+            }
+        } catch {
+            actualUaAddress = undefined
+        }
+
         if (actualUaAddress === undefined) continue
-        console.log(`${environmentArray[i]}'s actualUaAddress: ${actualUaAddress}`)
         for (let j = 0; j < environmentArray.length; j++) {
             if (trustedRemoteTable[environmentArray[j]] === undefined) continue
             const currentSetRemoteAddress = trustedRemoteTable[environmentArray[j]][envToCamelCase]
             if (currentSetRemoteAddress !== undefined) {
+                console.log(`${environmentArray[i]}'s actualUaAddress: ${actualUaAddress}`)
                 console.log(
                     `${environmentArray[j]}'s currentSetRemoteAddress for ${environmentArray[i]}: ${currentSetRemoteAddress} ${
-                        JSON.stringify(actualUaAddress) === JSON.stringify(currentSetRemoteAddress) ? "✅ " : "❌ "
+                        JSON.stringify(actualUaAddress) === JSON.stringify(currentSetRemoteAddress) && actualUaAddress !== "0x" ? "✅ " : "❌ "
                     }`
                 )
-                if (JSON.stringify(actualUaAddress) === JSON.stringify(currentSetRemoteAddress)) {
+                if (JSON.stringify(actualUaAddress) === JSON.stringify(currentSetRemoteAddress) && actualUaAddress !== "0x") {
                     if(environmentArray[i] === environmentArray[j]) {
                         trustedRemoteChecks[environmentArray[j]][envToCamelCase] = ""
                     } else {
