@@ -161,32 +161,5 @@ module.exports = {
       chainId: 4002,
       accounts: accounts(),
     }
-  },
-
-  etherscan: {
-    apiKey: {
-      // ethereum
-      mainnet: process.env.ETHERSCAN_API_KEY,
-      rinkeby: process.env.ETHERSCAN_API_KEY,
-      // binance smart chain
-      bsc: process.env.BSCSCAN_API_KEY,
-      bscTestnet: process.env.BSCSCAN_API_KEY,
-      // fantom mainnet
-      opera: process.env.FTMSCAN_API_KEY,
-      ftmTestnet: process.env.FTMSCAN_API_KEY,
-      // optimism
-      optimisticEthereum: process.env.OPTIMISMSCAN_API_KEY,
-      optimisticKovan: process.env.OPTIMISMSCAN_API_KEY,
-      // polygon
-      polygon: process.env.POLYGONSCAN_API_KEY,
-      polygonMumbai: process.env.POLYGONSCAN_API_KEY,
-      // arbitrum
-      arbitrumOne: process.env.ARBISCAN_API_KEY,
-      arbitrumTestnet: process.env.ARBISCAN_API_KEY,
-      // avalanche
-      avalanche: process.env.SNOWTRACE_API_KEY,
-      avalancheFujiTestnet: process.env.SNOWTRACE_API_KEY,
-    }
   }
-
 };

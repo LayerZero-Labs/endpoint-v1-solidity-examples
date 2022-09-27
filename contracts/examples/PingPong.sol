@@ -11,7 +11,7 @@
 //  2. how to `estimateFees` for a send()'ing a LayerZero message
 //  3. the contract pays the message fee
 
-pragma solidity ^0.8.2;
+pragma solidity ^0.8.0;
 pragma abicoder v2;
 
 import "@openzeppelin/contracts/security/Pausable.sol";
@@ -57,7 +57,8 @@ contract PingPong is NonblockingLzApp, Pausable {
             payload, // abi.encode()'ed bytes
             payable(this), // (msg.sender will be this contract) refund address (LayerZero will refund any extra gas back to caller of send()
             address(0x0), // future param, unused for this example
-            adapterParams // v1 adapterParams, specify custom destination gas qty
+            adapterParams, // v1 adapterParams, specify custom destination gas qty
+            msg.value
         );
     }
 
