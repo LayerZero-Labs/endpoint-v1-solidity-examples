@@ -33,10 +33,10 @@ The `OmnichainFungibleToken` has two varieties of deployments:
 
  For the `BasedOFT`, the initial supply will be minted entirely on the `Base Chain` on deployment. All tokens transferred out of the `base` chain will be locked in the contract (and minted on destination), and tokens transferred out of `other` chains will be burned on that chain. Tokens returning to the `base` chain will be `unlocked` and transferred to the destination address. This results in the `Base chain` being like the home base, hence the name.
 
-In the example deployment below we use `BasedOFT` and the `base` chain is ```rinkeby```.
+In the example deployment below we use `BasedOFT` and the `base` chain is ```goerli```.
 This setting is configured in ```constants/oftBaseChain.json```.
 The `OmnichainFungibleToken` deployed on other chains will use this configuration to set their `base` chain.
-Using the Ethereum network ```(testnet: rinkeby)``` as a `base` (really its like the source of truth) is a security decision.
+Using the Ethereum network ```(testnet: goerli)``` as a `base` (really its like the source of truth) is a security decision.
 In the event a chain goes rogue, Ethereum will be the final source of truth for OFT tokens.
 
 ## Deploy Setup
@@ -47,19 +47,19 @@ In the event a chain goes rogue, Ethereum will be the final source of truth for 
 
 > WARNING: **You must perform the setTrustedRemote() (step 2).**
 
-1. Deploy two contracts:  ```rinkeby``` is the `base` chain. Fuji is the oft for the other chain.
+1. Deploy two contracts:  ```goerli``` is the `base` chain. Fuji is the oft for the other chain.
 ```angular2html
-npx hardhat --network rinkeby deploy --tags ExampleBasedOFT
+npx hardhat --network goerli deploy --tags ExampleBasedOFT
 npx hardhat --network fuji deploy --tags ExampleOFT
 ```
 2. Set the "trusted remotes" (ie: your contracts) so each of them can receive messages from one another, and `only` one another.
 ```angular2html
-npx hardhat --network rinkeby setTrustedRemote --target-network fuji --local-contract ExampleBasedOFT --remote-contract ExampleOFT
-npx hardhat --network fuji setTrustedRemote --target-network rinkeby --local-contract ExampleOFT --remote-contract ExampleBasedOFT
+npx hardhat --network goerli setTrustedRemote --target-network fuji --local-contract ExampleBasedOFT --remote-contract ExampleOFT
+npx hardhat --network fuji setTrustedRemote --target-network goerli --local-contract ExampleOFT --remote-contract ExampleBasedOFT
 ```
-3. Send tokens from rinkeby to fuji
+3. Send tokens from goerli to fuji
 ```angular2html
-npx hardhat --network rinkeby oftSend --target-network fuji --qty 42
+npx hardhat --network goerli oftSend --target-network fuji --qty 42
 ```
  Pro-tip: Check the ERC20 transactions tab of the destination chain block explorer and await your tokens!
 

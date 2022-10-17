@@ -7,12 +7,12 @@ let trustedRemoteChecks = {}
 const MAX_TRYS = 10
 
 function TrustedRemoteTestnet() {
-    this.rinkeby
+    this.goerli
     this.bscTestnet
     this.fuji
     this.mumbai
-    this.arbitrumRinkeby
-    this.optimismKovan
+    this.arbitrumGoerli
+    this.optimismGoerli
     this.fantomTestnet
 }
 

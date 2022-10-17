@@ -7,7 +7,7 @@
     "startMintId": 11,
     "endMintId": 20
   },
-  "rinkeby": {
+  "goerli": {
     "startMintId": 21,
     "endMintId": 30
   }

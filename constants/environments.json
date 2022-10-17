@@ -9,12 +9,12 @@
     "fantom"
   ],
   "testnet": [
-    "rinkeby",
+    "goerli",
     "bsc-testnet",
     "fuji",
     "mumbai",
-    "arbitrum-rinkeby",
-    "optimism-kovan",
+    "arbitrum-goerli",
+    "optimism-goerli",
     "fantom-testnet"
   ]
 }

@@ -1,17 +1,17 @@
 {
-  "ethereum": 1,
-  "bsc": 2,
-  "avalanche": 6,
-  "polygon": 9,
-  "arbitrum": 10,
-  "optimism": 11,
-  "fantom": 12,
+  "ethereum":         101,
+  "bsc":              102,
+  "avalanche":        106,
+  "polygon":          109,
+  "arbitrum":         110,
+  "optimism":         111,
+  "fantom":           112,
 
-  "rinkeby":          10001,
-  "bsc-testnet":      10002,
-  "fuji":             10006,
-  "mumbai":           10009,
-  "arbitrum-rinkeby": 10010,
-  "optimism-kovan":   10011,
-  "fantom-testnet":   10012
+  "goerli":           10121,
+  "bsc-testnet":      10102,
+  "fuji":             10106,
+  "mumbai":           10109,
+  "arbitrum-goerli":  10143,
+  "optimism-goerli":  10132,
+  "fantom-testnet":   10112
 }
