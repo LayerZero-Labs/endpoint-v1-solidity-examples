@@ -2,73 +2,31 @@
 
 pragma solidity ^0.8.0;
 
-import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
-import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
-import "@openzeppelin/contracts/utils/introspection/ERC165.sol";
-import "../../../lzApp/NonblockingLzApp.sol";
+import "../OFT.sol";
 
-// todo: should inherit from OFT/OFTCore
-contract NativeOFT is NonblockingLzApp, ReentrancyGuard, ERC20, ERC165 {
-    using SafeERC20 for IERC20;
+contract NativeOFT is OFT, ReentrancyGuard {
 
-    uint public constant NO_EXTRA_GAS = 0;
-    uint16 public constant FUNCTION_TYPE_SEND = 1;
-    bool public useCustomAdapterParams;
-
-    event SetUseCustomAdapterParams(bool _useCustomAdapterParams);
-    event SendToChain(uint16 indexed _dstChainId, address indexed _from, bytes indexed _toAddress, uint _amount);
-    event ReceiveFromChain(uint16 indexed _srcChainId, bytes indexed _srcAddress, address indexed _toAddress, uint _amount);
     event Deposit(address indexed _dst, uint _amount);
     event Withdrawal(address indexed _src, uint _amount);
 
-    constructor(string memory _name, string memory _symbol, address _lzEndpoint) ERC20(_name, _symbol) NonblockingLzApp(_lzEndpoint) {}
+    constructor(string memory _name, string memory _symbol, address _lzEndpoint) OFT(_name, _symbol, _lzEndpoint) {}
 
-    function estimateSendFee(uint16 _dstChainId, bytes memory _toAddress, uint _amount, bool _useZro, bytes memory _adapterParams) public view returns (uint nativeFee, uint zroFee) {
-        bytes memory payload = abi.encode(_toAddress, _amount);
-        return lzEndpoint.estimateFees(_dstChainId, address(this), payload, _useZro, _adapterParams);
-    }
-
-    function sendFrom(address _from, uint16 _dstChainId, bytes memory _toAddress, uint _amount, address payable _refundAddress, address _zroPaymentAddress, bytes memory _adapterParams) public payable {
+    function sendFrom(address _from, uint16 _dstChainId, bytes memory _toAddress, uint _amount, address payable _refundAddress, address _zroPaymentAddress, bytes memory _adapterParams) public payable virtual override(OFTCore, IOFTCore) {
         _send(_from, _dstChainId, _toAddress, _amount, _refundAddress, _zroPaymentAddress, _adapterParams);
     }
 
-    function _nonblockingLzReceive(
-        uint16 _srcChainId,
-        bytes memory _srcAddress,
-        uint64, /*_nonce*/
-        bytes memory _payload
-    ) internal virtual override {
-        (bytes memory toAddressBytes, uint amount) = abi.decode(_payload, (bytes, uint));
-        address toAddress;
-        assembly {
-            toAddress := mload(add(toAddressBytes, 20))
-        }
+    function _send(address _from, uint16 _dstChainId, bytes memory _toAddress, uint _amount, address payable _refundAddress, address _zroPaymentAddress, bytes memory _adapterParams) internal virtual override(OFTCore) {
+        uint messageFee = _debitFromNative(_from, _dstChainId, _toAddress, _amount);
+        bytes memory lzPayload = abi.encode(PT_SEND, abi.encodePacked(_from), _toAddress, _amount);
 
-        _creditTo(_srcChainId, toAddress, amount);
-
-        emit ReceiveFromChain(_srcChainId, _srcAddress, toAddress, amount);
-    }
-
-    function _send(address _from, uint16 _dstChainId, bytes memory _toAddress, uint _amount, address payable _refundAddress, address _zroPaymentAddress, bytes memory _adapterParams) public payable {
-        uint messageFee = _debitFrom(_from, _dstChainId, _toAddress, _amount);
-
-        bytes memory payload = abi.encode(_toAddress, _amount);
         if (useCustomAdapterParams) {
-            _checkGasLimit(_dstChainId, FUNCTION_TYPE_SEND, _adapterParams, NO_EXTRA_GAS);
+            _checkGasLimit(_dstChainId, PT_SEND, _adapterParams, NO_EXTRA_GAS);
         } else {
             require(_adapterParams.length == 0, "NativeOFT: _adapterParams must be empty.");
         }
 
-        bytes memory trustedRemote = trustedRemoteLookup[_dstChainId];
-        require(trustedRemote.length != 0, "NativeOFT: destination chain is not a trusted source");
-        lzEndpoint.send{value: messageFee}(_dstChainId, trustedRemote, payload, _refundAddress, _zroPaymentAddress, _adapterParams);
-        emit SendToChain(_dstChainId, _from, _toAddress, _amount);
-    }
-
-    function setUseCustomAdapterParams(bool _useCustomAdapterParams) external onlyOwner {
-        useCustomAdapterParams = _useCustomAdapterParams;
-        emit SetUseCustomAdapterParams(_useCustomAdapterParams);
+        _lzSend(_dstChainId, lzPayload, _refundAddress, _zroPaymentAddress, _adapterParams, messageFee);
     }
 
     function deposit() public payable {
@@ -84,7 +42,7 @@ contract NativeOFT is NonblockingLzApp, ReentrancyGuard, ERC20, ERC165 {
         emit Withdrawal(msg.sender, _amount);
     }
 
-    function _debitFrom(address _from, uint16, bytes memory, uint _amount) internal returns (uint messageFee) {
+    function _debitFromNative(address _from, uint16, bytes memory, uint _amount) internal returns (uint messageFee) {
         messageFee = msg.sender == _from ? _debitMsgSender(_amount) : _debitMsgFrom(_from, _amount);
     }
 
@@ -135,7 +93,7 @@ contract NativeOFT is NonblockingLzApp, ReentrancyGuard, ERC20, ERC165 {
         return messageFee;
     }
 
-    function _creditTo(uint16, address _toAddress, uint _amount) internal {
+    function _creditTo(uint16, address _toAddress, uint _amount) internal override(OFT) {
         _burn(address(this), _amount);
         (bool success, ) = _toAddress.call{value: _amount}("");
         require(success, "NativeOFT: failed to _creditTo");

@@ -1,7 +1,7 @@
 const { expect } = require("chai")
 const { ethers } = require("hardhat")
 
-describe.skip("NativeOFT: ", function () {
+describe("NativeOFT: ", function () {
     const baseChainId = 1
     const otherChainId = 2
     const name = "OmnichainFungibleToken"
@@ -38,8 +38,8 @@ describe.skip("NativeOFT: ", function () {
         //------  setTrustedRemote(s) -------------------------------------------------------
         // for each OFT, setTrustedRemote to allow it to receive from the remote OFT contract.
         // Note: This is sometimes referred to as the "wire-up" process.
-        await nativeOFT.setTrustedRemote(otherChainId, ethers.utils.solidityPack(["address", "address"], [otherOFT.address, nativeOFT.address]))
-        await otherOFT.setTrustedRemote(baseChainId, ethers.utils.solidityPack(["address", "address"], [nativeOFT.address, otherOFT.address]))
+        await nativeOFT.setTrustedRemoteAddress(otherChainId, otherOFT.address)
+        await otherOFT.setTrustedRemoteAddress(baseChainId, nativeOFT.address)
 
         await nativeOFT.setUseCustomAdapterParams(true)
         // ... the deployed OFTs are ready now!
@@ -370,7 +370,7 @@ describe.skip("NativeOFT: ", function () {
 
         const amount = ethers.utils.parseUnits("100", 18)
         const messageFee = ethers.utils.parseEther("101") // conversion to units of wei
-        await nativeOFT.setMinDstGas(otherChainId, parseInt(await nativeOFT.FUNCTION_TYPE_SEND()), 225000)
+        await nativeOFT.setMinDstGas(otherChainId, parseInt(await nativeOFT.PT_SEND()), 225000)
         const adapterParam = ethers.utils.solidityPack(["uint16", "uint256"], [1, 225000])
 
         await nativeOFT.sendFrom(
@@ -410,7 +410,7 @@ describe.skip("NativeOFT: ", function () {
     it("setMinDstGas() - set min dst gas higher than what we are sending and expect revert", async function () {
         const amount = ethers.utils.parseUnits("100", 18)
         const messageFee = ethers.utils.parseEther("101") // conversion to units of wei
-        await nativeOFT.setMinDstGas(otherChainId, parseInt(await nativeOFT.FUNCTION_TYPE_SEND()), 250000)
+        await nativeOFT.setMinDstGas(otherChainId, parseInt(await nativeOFT.PT_SEND()), 250000)
         const adapterParam = ethers.utils.solidityPack(["uint16", "uint256"], [1, 225000])
         await expect(
             nativeOFT.sendFrom(
