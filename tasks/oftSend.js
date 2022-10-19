@@ -1,47 +1,51 @@
 const CHAIN_ID = require("../constants/chainIds.json")
-const { getDeploymentAddresses } = require("../utils/readStatic")
-const OFT_CONFIG = require("../constants/oftConfig.json")
 
 module.exports = async function (taskArgs, hre) {
     let signers = await ethers.getSigners()
     let owner = signers[0]
-    let tx
-    const dstChainId = CHAIN_ID[taskArgs.targetNetwork]
-    const qty = ethers.utils.parseEther(taskArgs.qty)
+    let toAddress = owner.address;
+    let qty = ethers.utils.parseEther(taskArgs.qty)
 
-    let srcContractName = "ExampleOFT"
-    let dstContractName = srcContractName
-    if (taskArgs.targetNetwork == OFT_CONFIG.baseChain) {
-        dstContractName = "ExampleBasedOFT"
+    let localContract, remoteContract;
+
+    if(taskArgs.contract) {
+        localContract = taskArgs.contract;
+        remoteContract = taskArgs.contract;
+    } else {
+        localContract = taskArgs.localContract;
+        remoteContract = taskArgs.remoteContract;
     }
-    if (hre.network.name == OFT_CONFIG.baseChain) {
-        srcContractName = "ExampleBasedOFT"
+
+    if(!localContract || !remoteContract) {
+        console.log("Must pass in contract name OR pass in both localContract name and remoteContract name")
+        return
     }
 
-    // the destination contract address
-    const dstAddr = getDeploymentAddresses(taskArgs.targetNetwork)[dstContractName]
-    // get source contract instance
-    const basedOFT = await ethers.getContract(srcContractName)
-    console.log(`[source] address: ${basedOFT.address}`)
+    // get remote chain id
+    const remoteChainId = CHAIN_ID[taskArgs.targetNetwork]
 
-    tx = await (await basedOFT.approve(basedOFT.address, qty)).wait()
-    console.log(`approve tx: ${tx.transactionHash}`)
+    // get local contract
+    const localContractInstance = await ethers.getContract(localContract)
 
+    // quote fee with default adapterParams
     let adapterParams = ethers.utils.solidityPack(["uint16", "uint256"], [1, 200000]) // default adapterParams example
 
-    tx = await (
-        await basedOFT.sendFrom(
-            owner.address,
-            dstChainId, // destination LayerZero chainId
-            owner.address, // the 'to' address to send tokens
-            qty, // the amount of tokens to send (in wei)
-            owner.address, // the refund address (if too much message fee is sent, it gets refunded)
-            ethers.constants.AddressZero,
-            adapterParams,
-            { value: ethers.utils.parseEther("1") } // estimate/guess 1 eth will cover
+    let fees = await localContractInstance.estimateSendFee(remoteChainId, toAddress, qty, false, adapterParams)
+    console.log(`fees[0] (wei): ${fees[0]} / (eth): ${ethers.utils.formatEther(fees[0])}`)
+
+    let tx = await (
+        await localContractInstance.sendFrom(
+            owner.address,                 // 'from' address to send tokens
+            remoteChainId,                 // remote LayerZero chainId
+            toAddress,                     // 'to' address to send tokens
+            qty,                           // amount of tokens to send (in wei)
+            owner.address,                 // refund address (if too much message fee is sent, it gets refunded)
+            ethers.constants.AddressZero,  // address(0x0) if not paying in ZRO (LayerZero Token)
+            "0x",                          // flexible bytes array to indicate messaging adapter services
+            { value: fees[0] }
         )
     ).wait()
-    console.log(`✅ Message Sent [${hre.network.name}] sendTokens() to OFT @ LZ chainId[${dstChainId}] token:[${dstAddr}]`)
+    console.log(`✅ Message Sent [${hre.network.name}] sendTokens() to OFT @ LZ chainId[${remoteChainId}] token:[${toAddress}]`)
     console.log(` tx: ${tx.transactionHash}`)
     console.log(`* check your address [${owner.address}] on the destination chain, in the ERC20 transaction tab !"`)
 }

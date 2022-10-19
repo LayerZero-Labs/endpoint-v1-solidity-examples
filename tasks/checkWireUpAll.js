@@ -53,6 +53,7 @@ module.exports = async function (taskArgs) {
                 } else {
                     checkWireUpCommand = `npx hardhat --network ${network} checkWireUp --e ${taskArgs.e} --contract ${taskArgs.contract}`
                 }
+
                 console.log("checkWireUp: " + checkWireUpCommand)
                 // remove spaces and new lines from stdout
                 result = shell.exec(checkWireUpCommand).stdout.replace(/(\r\n|\n|\r|\s)/gm, "")
@@ -89,44 +90,32 @@ module.exports = async function (taskArgs) {
         })
     )
 
-    console.table(trustedRemoteTable)
-
     // use filled trustedRemoteTable to make trustedRemoteChecks
     const environmentArray = environments[taskArgs.e]
     for (let i = 0; i < environmentArray.length; i++) {
         if (trustedRemoteTable[environmentArray[i]] === undefined) continue
         const envToCamelCase = environmentArray[i].replace(/-./g, (m) => m[1].toUpperCase())
-        let actualUaAddress
-        try {
-            if(environmentArray[i] === taskArgs.proxyChain) {
-                actualUaAddress = getDeploymentAddresses(environmentArray[i])[taskArgs.proxyContract].toLowerCase()
-            } else {
-                actualUaAddress = getDeploymentAddresses(environmentArray[i])[taskArgs.contract].toLowerCase()
-            }
-        } catch {
-            actualUaAddress = undefined
-        }
-
-        if (actualUaAddress === undefined) continue
+        let actualRemoteAddress = getDeployedAddress(environmentArray[i], taskArgs.proxyChain, taskArgs.contract, taskArgs.proxyContract);
+        if (actualRemoteAddress === undefined) continue
         for (let j = 0; j < environmentArray.length; j++) {
             if (trustedRemoteTable[environmentArray[j]] === undefined) continue
-            const currentSetRemoteAddress = trustedRemoteTable[environmentArray[j]][envToCamelCase]
-            if (currentSetRemoteAddress !== undefined) {
-                console.log(`${environmentArray[i]}'s actualUaAddress: ${actualUaAddress}`)
+            let actualLocalAddress = getDeployedAddress(environmentArray[j], taskArgs.proxyChain, taskArgs.contract, taskArgs.proxyContract);
+            if (actualLocalAddress !== undefined) {
+                const currentlySetTrustedRemote = trustedRemoteTable[environmentArray[j]][envToCamelCase]
+                let actualSetTrustedRemote = actualRemoteAddress + actualLocalAddress.substring(2)
                 console.log(
-                    `${environmentArray[j]}'s currentSetRemoteAddress for ${environmentArray[i]}: ${currentSetRemoteAddress} ${
-                        JSON.stringify(actualUaAddress) === JSON.stringify(currentSetRemoteAddress) && actualUaAddress !== "0x" ? "✅ " : "❌ "
+                    `${environmentArray[j]}'s currentSetRemoteAddress for ${environmentArray[i]}: ${currentlySetTrustedRemote} ${
+                        JSON.stringify(actualSetTrustedRemote) === JSON.stringify(currentlySetTrustedRemote) ? "✅ " : "❌ "
                     }`
                 )
-                if (JSON.stringify(actualUaAddress) === JSON.stringify(currentSetRemoteAddress) && actualUaAddress !== "0x") {
+                if (JSON.stringify(actualSetTrustedRemote) === JSON.stringify(currentlySetTrustedRemote)) {
                     if(environmentArray[i] === environmentArray[j]) {
-                        trustedRemoteChecks[environmentArray[j]][envToCamelCase] = ""
+                        trustedRemoteChecks[environmentArray[j]][environmentArray[i]] = ""
                     } else {
-                        trustedRemoteChecks[environmentArray[j]][envToCamelCase] = "🟩"
+                        trustedRemoteChecks[environmentArray[j]][environmentArray[i]] = "🟩"
                     }
-                } else if (JSON.stringify(actualUaAddress) !== JSON.stringify(currentSetRemoteAddress)) {
-                    // console.log({envToCamelCase})
-                    trustedRemoteChecks[environmentArray[j]][envToCamelCase] = "🟥"
+                } else if (JSON.stringify(actualSetTrustedRemote) !== JSON.stringify(currentlySetTrustedRemote)) {
+                    trustedRemoteChecks[environmentArray[j]][environmentArray[i]] = "🟥"
                 }
             }
         }
@@ -135,4 +124,28 @@ module.exports = async function (taskArgs) {
     console.log("Set: 🟩")
     console.log("Not Set: 🟥")
     console.table(trustedRemoteChecks)
+
+    //print addresses
+    let getAddressesCommand;
+    if(taskArgs.proxyChain !== undefined) {
+        getAddressesCommand = `node utils/getAddresses ${taskArgs.e} ${taskArgs.proxyContract},${taskArgs.contract}`;
+    } else {
+        getAddressesCommand = `node utils/getAddresses ${taskArgs.e} ${taskArgs.contract}`;
+    }
+    console.log("getAddressesCommand: " + getAddressesCommand)
+    shell.exec(getAddressesCommand)
+}
+
+function getDeployedAddress(chain, proxyChain, contract, proxyContract) {
+    let deployedAddress
+    try {
+        if(chain === proxyChain) {
+            deployedAddress = getDeploymentAddresses(chain)[proxyContract].toLowerCase()
+        } else {
+            deployedAddress = getDeploymentAddresses(chain)[contract].toLowerCase()
+        }
+    } catch {
+        deployedAddress = undefined
+    }
+    return deployedAddress;
 }

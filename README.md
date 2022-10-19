@@ -59,7 +59,7 @@ npx hardhat --network fuji setTrustedRemote --target-network goerli --local-cont
 ```
 3. Send tokens from goerli to fuji
 ```angular2html
-npx hardhat --network goerli oftSend --target-network fuji --qty 42
+npx hardhat --network goerli oftSend --target-network fuji --qty 42 --local-contract ExampleBasedOFT --remote-contract ExampleOFT
 ```
  Pro-tip: Check the ERC20 transactions tab of the destination chain block explorer and await your tokens!
 
@@ -78,27 +78,28 @@ Check `constants/onftArgs.json` for the specific test configuration used in this
 ```
 2. Set the "trusted remotes", so each contract can send & receive messages from one another, and `only` one another.
 ```angular2html
- npx hardhat --network bsc-testnet onftSetTrustedRemote --target-network fuji
- npx hardhat --network fuji onftSetTrustedRemote --target-network bsc-testnet
+npx hardhat --network bsc-testnet setTrustedRemote --target-network fuji --contract ExampleUniversalONFT721
+npx hardhat --network fuji setTrustedRemote --target-network bsc-testnet --contract ExampleUniversalONFT721
 ```
 3. Mint an NFT on each chain!
 ```angular2html
- npx hardhat --network bsc-testnet onftMint
- npx hardhat --network fuji onftMint
+npx hardhat --network bsc-testnet onftMint --contract ExampleUniversalONFT721
+npx hardhat --network fuji onftMint --contract ExampleUniversalONFT721
 ```
 4. [Optional] Show the token owner(s)
 ```angular2html
- npx hardhat --network bsc-testnet onftOwnerOf --token-id 1
- npx hardhat --network fuji onftOwnerOf --token-id 11
+npx hardhat --network bsc-testnet ownerOf --token-id 1 --contract ExampleUniversalONFT721
+npx hardhat --network fuji ownerOf --token-id 11 --contract ExampleUniversalONFT721
 ```
 5. Send ONFT across chains
 ```angular2html
-npx hardhat --network bsc-testnet onftSend --target-network fuji --token-id 1
+npx hardhat --network bsc-testnet onftSend --target-network fuji --token-id 1 --contract ExampleUniversalONFT721
+npx hardhat --network fuji onftSend --target-network bsc-testnet --token-id 11 --contract ExampleUniversalONFT721 
 ```
-6. Verify your token no longer exists on the source chain & wait for it to reach the destination side.
+6. Verify your token no longer exists in your wallet on the source chain & wait for it to reach the destination side.
 ```angular2html
- npx hardhat --network bsc-testnet onftOwnerOf --token-id 1
- npx hardhat --network fuji onftOwnerOf --token-id 1
+npx hardhat --network bsc-testnet ownerOf --token-id 1 --contract ExampleUniversalONFT721
+npx hardhat --network fuji ownerOf --token-id 1 --contract ExampleUniversalONFT721
 ```
 
 
@@ -115,12 +116,12 @@ npx hardhat --network fuji deploy --tags OmniCounter
 
 2. Set the remote addresses, so each contract can receive messages
 ```angular2html
-npx hardhat --network bsc-testnet ocSetTrustedRemote --target-network fuji
-npx hardhat --network fuji ocSetTrustedRemote --target-network bsc-testnet
+npx hardhat --network bsc-testnet setTrustedRemote --target-network fuji --contract OmniCounter
+npx hardhat --network fuji setTrustedRemote --target-network bsc-testnet --contract OmniCounter
 ```
 3. Send a cross chain message from `bsc-testnet` to `fuji` !
 ```angular2html
-npx hardhat --network bsc-testnet ocIncrementCounter --target-network fuji
+npx hardhat --network bsc-testnet incrementCounter --target-network fuji
 ```
 
 Optionally use this command in a separate terminal to watch the counter increment in real-time.
@@ -129,7 +130,16 @@ npx hardhat --network fuji ocPoll
 ```
 
 # Check your setTrustedRemote's are wired up correctly
-Just use our checkWireUpAll task by running the following command with the correct Contract parameter
+Just use our checkWireUpAll task to check if your contracts are wired up correctly. You can use it on the example contracts deployed above.
+1) ExampleBasedOFT and ExampleOFT
+```angular2html
+npx hardhat checkWireUpAll --e testnet --contract ExampleOFT --proxy-contract ExampleBasedOFT --proxy-chain goerli
+```
+2) UniversalONFT
+```angular2html
+npx hardhat checkWireUpAll --e testnet --contract ExampleUniversalONFT721
+```
+3) OmniCounter
 ```angular2html
 npx hardhat checkWireUpAll --e testnet --contract OmniCounter
 ```

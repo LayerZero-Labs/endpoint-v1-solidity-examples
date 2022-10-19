@@ -26,6 +26,7 @@ module.exports = async function (taskArgs) {
     })
 
     //wire
+    console.log({networks})
     networks.map(async (source) => {
         let srcContract, dstContract
         networks.map(async (destination) => {
@@ -49,16 +50,9 @@ module.exports = async function (taskArgs) {
                 dstContract = taskArgs.contract;
             }
 
-            let wireUpCommand;
-            if(taskArgs.trustedRemoteVersion === "1") {
-                wireUpCommand = `npx hardhat --network ${source} setTrustedRemote --target-network ${destination} --local-contract ${srcContract} --remote-contract ${dstContract}`;
-                console.log("wireUpCommand: " + wireUpCommand)
-                shell.exec(wireUpCommand)
-            } else if(taskArgs.trustedRemoteVersion === "2") {
-                wireUpCommand = `npx hardhat --network ${source} setTrustedRemoteAddress --target-network ${destination} --local-contract ${srcContract} --remote-contract ${dstContract}`;
-                console.log("wireUpCommand: " + wireUpCommand)
-                shell.exec(wireUpCommand)
-            }
+            let wireUpCommand = `npx hardhat --network ${source} setTrustedRemote --target-network ${destination} --local-contract ${srcContract} --remote-contract ${dstContract}`;
+            console.log("wireUpCommand: " + wireUpCommand)
+            shell.exec(wireUpCommand)
         })
     })
 

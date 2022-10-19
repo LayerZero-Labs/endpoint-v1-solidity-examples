@@ -126,9 +126,9 @@ module.exports = {
       accounts: accounts(),
     },
 
-    rinkeby: {
-      url: "https://rinkeby.infura.io/v3/9aa3d95b3bc440fa88ea12eaa4456161", // public infura endpoint
-      chainId: 4,
+    goerli: {
+      url: "https://goerli.infura.io/v3/9aa3d95b3bc440fa88ea12eaa4456161", // public infura endpoint
+      chainId: 5,
       accounts: accounts(),
     },
     'bsc-testnet': {
@@ -146,14 +146,14 @@ module.exports = {
       chainId: 80001,
       accounts: accounts(),
     },
-    'arbitrum-rinkeby': {
-      url: `https://rinkeby.arbitrum.io/rpc`,
-      chainId: 421611,
+    'arbitrum-goerli': {
+      url: `https://goerli-rollup.arbitrum.io/rpc/`,
+      chainId: 421613,
       accounts: accounts(),
     },
-    'optimism-kovan': {
-      url: `https://kovan.optimism.io/`,
-      chainId: 69,
+    'optimism-goerli': {
+      url: `https://goerli.optimism.io/`,
+      chainId: 420,
       accounts: accounts(),
     },
     'fantom-testnet': {
