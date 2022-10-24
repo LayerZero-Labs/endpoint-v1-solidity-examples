@@ -10,7 +10,7 @@ contract ProxyOFTV2 is OFTCoreV2 {
 
     IERC20 public immutable token;
 
-    constructor(address _lzEndpoint, address _proxyToken, bool _base) OFTCoreV2(_base, _lzEndpoint) {
+    constructor(address _lzEndpoint, address _proxyToken) OFTCoreV2(true, _lzEndpoint) {
         token = IERC20(_proxyToken);
     }
 
