@@ -11,6 +11,7 @@ abstract contract OFTCoreV2 is NonblockingLzApp, ERC165, IOFTCore {
 
     uint8 public constant SHARE_DECIMALS = 6;
     uint public constant NO_EXTRA_GAS = 0;
+    uint public constant BP_DENOMINATOR = 10000;
 
     // packet type
     uint8 public constant PT_SEND = 0;
@@ -18,6 +19,21 @@ abstract contract OFTCoreV2 is NonblockingLzApp, ERC165, IOFTCore {
     bool public useCustomAdapterParams;
     bool public isBaseOFT;
     uint64 public outboundAmountSD; // total outbound amount in share decimals, that is sent to other chains and should not exceed max of uint64
+
+    // fee config
+    mapping(uint16 => Fee) public chainIdToFeeBps;
+    uint16 public globalFeeBp;
+    address public feeOwner; // defaults to owner
+
+    // todo: move into IOFTCore
+    struct Fee {
+        uint16 feeBP;
+        bool enabled;
+    }
+
+    event SetFeeBp(uint16 dstchainId, bool enabled, uint16 feeBp);
+    event SetGlobalFeeBp(uint feeBp);
+    event SetFeeOwner(address feeOwner);
 
     constructor(bool _base, address _lzEndpoint) NonblockingLzApp(_lzEndpoint) {
         isBaseOFT = _base;
@@ -42,6 +58,38 @@ abstract contract OFTCoreV2 is NonblockingLzApp, ERC165, IOFTCore {
         emit SetUseCustomAdapterParams(_useCustomAdapterParams);
     }
 
+    function setGlobalFeeBp(uint16 _feeBp) external onlyOwner {
+        require(_feeBp <= BP_DENOMINATOR,  "OFTCore: fee bp must be <= DP_DENOMINATOR");
+        globalFeeBp = _feeBp;
+        emit SetGlobalFeeBp(globalFeeBp);
+    }
+
+    function setFeeBp(uint16 _dstChainId, bool _enabled, uint16 _feeBp) external onlyOwner {
+        require(_feeBp <= BP_DENOMINATOR,  "OFTCore: fee bp must be <= DP_DENOMINATOR");
+        chainIdToFeeBps[_dstChainId] = Fee(_feeBp, _enabled);
+        emit SetFeeBp(_dstChainId, _enabled, _feeBp);
+    }
+
+    function setFeeOwner(address _feeOwner) external onlyOwner {
+        require(_feeOwner != address(0x0), "OFTFee: feeOwner cannot be 0x");
+        feeOwner = _feeOwner;
+        emit SetFeeOwner(_feeOwner);
+    }
+
+    function quoteOFTFee(uint16 _dstChainId, uint _amount) public view returns (uint amount, uint fee) {
+        Fee memory feeConfig = chainIdToFeeBps[_dstChainId];
+        if (feeConfig.enabled && feeConfig.feeBP > 0) {
+            fee = _amount * feeConfig.feeBP / BP_DENOMINATOR;
+            amount = _amount - fee;
+        } else if (globalFeeBp > 0) {
+            fee = _amount * globalFeeBp / BP_DENOMINATOR;
+            amount = _amount - fee;
+        } else {
+            fee = 0;
+            amount = _amount;
+        }
+    }
+
     function _nonblockingLzReceive(uint16 _srcChainId, bytes memory _srcAddress, uint64 _nonce, bytes memory _payload) internal virtual override {
         uint8 packetType = _payload.toUint8(0);
 
@@ -52,10 +100,15 @@ abstract contract OFTCoreV2 is NonblockingLzApp, ERC165, IOFTCore {
         }
     }
 
+    // todo: remove dust
     function _send(address _from, uint16 _dstChainId, bytes memory _toAddress, uint _amount, address payable _refundAddress, address _zroPaymentAddress, bytes memory _adapterParams) internal virtual {
         _checkAdapterParams(_dstChainId, PT_SEND, _adapterParams, NO_EXTRA_GAS);
 
-        uint amount = _debitFrom(_from, _dstChainId, _toAddress, _amount);
+        (uint amount, uint fee) = quoteOFTFee(_dstChainId, _amount);
+        // todo: transfer fee every time?
+        if (fee > 0) _transfer(_from, owner(), fee); // payout the owner fee
+
+        amount = _debitFrom(_from, _dstChainId, _toAddress, amount);
 
         uint64 amountSD = _LD2SD(amount);
         if (isBaseOFT) {
