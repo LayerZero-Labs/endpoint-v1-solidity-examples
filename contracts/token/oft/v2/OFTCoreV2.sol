@@ -55,9 +55,9 @@ abstract contract OFTCoreV2 is NonblockingLzApp, ERC165, IOFTCore {
     function _send(address _from, uint16 _dstChainId, bytes memory _toAddress, uint _amount, address payable _refundAddress, address _zroPaymentAddress, bytes memory _adapterParams) internal virtual {
         _checkAdapterParams(_dstChainId, PT_SEND, _adapterParams, NO_EXTRA_GAS);
 
-        _debitFrom(_from, _dstChainId, _toAddress, _amount);
+        uint amount = _debitFrom(_from, _dstChainId, _toAddress, _amount);
 
-        uint64 amountSD = _LD2SD(_amount);
+        uint64 amountSD = _LD2SD(amount);
         if (isBaseOFT) {
             require(type(uint32).max - outboundAmountSD >= amountSD, "OFTCore: outboundAmountSD overflow");
             outboundAmountSD += amountSD;
@@ -66,7 +66,7 @@ abstract contract OFTCoreV2 is NonblockingLzApp, ERC165, IOFTCore {
         bytes memory lzPayload = abi.encode(PT_SEND, abi.encodePacked(_from), _toAddress, amountSD);
         _lzSend(_dstChainId, lzPayload, _refundAddress, _zroPaymentAddress, _adapterParams, msg.value);
 
-        emit SendToChain(_dstChainId, _from, _toAddress, _amount);
+        emit SendToChain(_dstChainId, _from, _toAddress, amount);
     }
 
     function _sendAck(uint16 _srcChainId, bytes memory, uint64, bytes memory _payload) internal virtual {
@@ -100,6 +100,10 @@ abstract contract OFTCoreV2 is NonblockingLzApp, ERC165, IOFTCore {
         uint8 decimals = _decimals();
         uint amount = decimals > SHARE_DECIMALS ? _amountSD * (10 ** (decimals - SHARE_DECIMALS)) : _amountSD;
         return amount;
+    }
+
+    function _removeDust(uint _amount) internal virtual view returns (uint) {
+        return _SD2LD(_LD2SD(_amount));
     }
 
     function _encodeSendPayload(address _from, bytes memory _toAddress, uint64 _amountSD) internal virtual view returns (bytes memory) {

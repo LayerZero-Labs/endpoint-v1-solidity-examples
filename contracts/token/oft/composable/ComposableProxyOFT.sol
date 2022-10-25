@@ -28,11 +28,14 @@ contract ComposableProxyOFT is ComposableOFTCore {
     // if the _from calling through another wrapper contract,
     // 1/ the _from needs to approve the allowance of the wrapper contract.
     // 2/ and the _from needs to approve this contract to spend his erc20
-    function _debitFrom(address _from, uint16, bytes memory, uint _amount) internal virtual override {
+    function _debitFrom(address _from, uint16, bytes memory, uint _amount) internal virtual override returns(uint) {
         address spender = _msgSender();
         if (_from != spender) _spendAllowance(_from, spender, _amount);
+
+        uint before = token.balanceOf(address(this));
         // transfer token from _from to this contract
         token.safeTransferFrom(_from, address(this), _amount);
+        return token.balanceOf(address(this)) - before;
     }
 
     function _creditTo(uint16, address _toAddress, uint _amount) internal virtual override {

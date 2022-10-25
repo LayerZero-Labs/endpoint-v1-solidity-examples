@@ -49,9 +49,9 @@ abstract contract OFTCoreUpgradeable is Initializable, NonblockingLzAppUpgradeab
     }
 
     function _send(address _from, uint16 _dstChainId, bytes memory _toAddress, uint _amount, address payable _refundAddress, address _zroPaymentAddress, bytes memory _adapterParams) internal virtual {
-        _debitFrom(_from, _dstChainId, _toAddress, _amount);
+        uint amount = _debitFrom(_from, _dstChainId, _toAddress, _amount);
 
-        bytes memory payload = abi.encode(_toAddress, _amount);
+        bytes memory payload = abi.encode(_toAddress, amount);
         if (useCustomAdapterParams) {
             _checkGasLimit(_dstChainId, FUNCTION_TYPE_SEND, _adapterParams, NO_EXTRA_GAS);
         } else {
@@ -60,7 +60,7 @@ abstract contract OFTCoreUpgradeable is Initializable, NonblockingLzAppUpgradeab
         _lzSend(_dstChainId, payload, _refundAddress, _zroPaymentAddress, _adapterParams);
 
         uint64 nonce = lzEndpoint.getOutboundNonce(_dstChainId, address(this));
-        emit SendToChain(_from, _dstChainId, _toAddress, _amount, nonce);
+        emit SendToChain(_from, _dstChainId, _toAddress, amount, nonce);
     }
 
     function setUseCustomAdapterParams(bool _useCustomAdapterParams) external onlyOwner {
@@ -68,7 +68,7 @@ abstract contract OFTCoreUpgradeable is Initializable, NonblockingLzAppUpgradeab
         emit SetUseCustomAdapterParams(_useCustomAdapterParams);
     }
 
-    function _debitFrom(address _from, uint16 _dstChainId, bytes memory _toAddress, uint _amount) internal virtual;
+    function _debitFrom(address _from, uint16 _dstChainId, bytes memory _toAddress, uint _amount) internal virtual returns(uint) ;
 
     function _creditTo(uint16 _srcChainId, address _toAddress, uint _amount) internal virtual;
 

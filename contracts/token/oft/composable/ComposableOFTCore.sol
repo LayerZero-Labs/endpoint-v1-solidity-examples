@@ -62,12 +62,12 @@ abstract contract ComposableOFTCore is OFTCore, IComposableOFTCore {
     function _sendAndCall(address _from, uint16 _dstChainId, bytes memory _toAddress, uint _amount, bytes calldata _payload, uint _dstGasForCall, address payable _refundAddress, address _zroPaymentAddress, bytes memory _adapterParams) internal virtual {
         _checkAdapterParams(_dstChainId, PT_SEND_AND_CALL, _adapterParams, _dstGasForCall);
 
-        _debitFrom(_from, _dstChainId, _toAddress, _amount);
+        uint amount = _debitFrom(_from, _dstChainId, _toAddress, _amount);
 
-        bytes memory lzPayload = abi.encode(PT_SEND_AND_CALL, abi.encodePacked(msg.sender), abi.encodePacked(_from), _toAddress, _amount, _payload, _dstGasForCall);
+        bytes memory lzPayload = abi.encode(PT_SEND_AND_CALL, abi.encodePacked(msg.sender), abi.encodePacked(_from), _toAddress, amount, _payload, _dstGasForCall);
         _lzSend(_dstChainId, lzPayload, _refundAddress, _zroPaymentAddress, _adapterParams, msg.value);
 
-        emit SendToChain(_dstChainId, _from, _toAddress, _amount);
+        emit SendToChain(_dstChainId, _from, _toAddress, amount);
     }
 
     function _sendAndCallAck(uint16 _srcChainId, bytes memory _srcAddress, uint64 _nonce, bytes memory _payload) internal virtual {
