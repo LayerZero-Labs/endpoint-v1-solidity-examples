@@ -17,6 +17,8 @@ abstract contract OFTCoreV2 is NonblockingLzApp, ERC165, IOFTCore {
     uint8 public constant PT_SEND = 0;
 
     bool public useCustomAdapterParams;
+
+    // base oft
     bool public isBaseOFT;
     uint64 public outboundAmountSD; // total outbound amount in share decimals, that is sent to other chains and should not exceed max of uint64
 
@@ -46,7 +48,7 @@ abstract contract OFTCoreV2 is NonblockingLzApp, ERC165, IOFTCore {
 
     function estimateSendFee(uint16 _dstChainId, bytes calldata _toAddress, uint _amount, bool _useZro, bytes calldata _adapterParams) public view virtual override returns (uint nativeFee, uint zroFee) {
         // mock the payload for sendFrom()
-        bytes memory payload = _encodeSendPayload(_toAddress, _LD2SD(_amount));
+        bytes memory payload = _encodeSendPayload(_toAddress, _ld2sd(_amount));
         return lzEndpoint.estimateFees(_dstChainId, address(this), payload, _useZro, _adapterParams);
     }
 
@@ -111,7 +113,7 @@ abstract contract OFTCoreV2 is NonblockingLzApp, ERC165, IOFTCore {
 
         amount = _debitFrom(_from, _dstChainId, _toAddress, amount);
 
-        uint64 amountSD = _LD2SD(amount);
+        uint64 amountSD = _ld2sd(amount);
         if (isBaseOFT) {
             require(type(uint32).max - outboundAmountSD >= amountSD, "OFTCore: outboundAmountSD overflow");
             outboundAmountSD += amountSD;
@@ -129,7 +131,7 @@ abstract contract OFTCoreV2 is NonblockingLzApp, ERC165, IOFTCore {
         if (isBaseOFT) {
             outboundAmountSD -= amountSD;
         }
-        uint amount = _SD2LD(amountSD);
+        uint amount = _sd2ld(amountSD);
 
         _creditTo(_srcChainId, to, amount);
         emit ReceiveFromChain2(_srcChainId, to, amount);
@@ -143,21 +145,34 @@ abstract contract OFTCoreV2 is NonblockingLzApp, ERC165, IOFTCore {
         }
     }
 
-    function _LD2SD(uint _amount) internal virtual view returns (uint64) {
+    function _ld2sd(uint _amount) internal virtual view returns (uint64) {
         uint8 decimals = _decimals();
-        uint amountSD = decimals > SHARE_DECIMALS ? _amount / (10 ** (decimals - SHARE_DECIMALS)) : _amount;
+        uint amountSD;
+        if (isBaseOFT) {
+            require(SHARE_DECIMALS <= decimals, "OFTCore: invalid decimals");
+            amountSD = _amount / (10 ** (decimals - SHARE_DECIMALS));
+        } else {
+            require(SHARE_DECIMALS == decimals, "OFTCore: invalid decimals");
+            amountSD = _amount;
+        }
+
         require(amountSD <= type(uint64).max, "OFTCore: amountSD overflow");
         return uint64(amountSD);
     }
 
-    function _SD2LD(uint64 _amountSD) internal virtual view returns (uint) {
+    function _sd2ld(uint64 _amountSD) internal virtual view returns (uint) {
         uint8 decimals = _decimals();
-        uint amount = decimals > SHARE_DECIMALS ? _amountSD * (10 ** (decimals - SHARE_DECIMALS)) : _amountSD;
-        return amount;
+        if (isBaseOFT) {
+            require(SHARE_DECIMALS <= decimals, "OFTCore: invalid decimals");
+            return _amountSD * (10 ** (decimals - SHARE_DECIMALS));
+        } else {
+            require(SHARE_DECIMALS == decimals, "OFTCore: invalid decimals");
+            return _amountSD;
+        }
     }
 
     function _removeDust(uint _amount) internal virtual view returns (uint) {
-        return _SD2LD(_LD2SD(_amount));
+        return _sd2ld(_ld2sd(_amount));
     }
 
     function _encodeSendPayload(bytes memory _toAddress, uint64 _amountSD) internal virtual view returns (bytes memory) {

@@ -9,9 +9,16 @@ contract ProxyOFTV2 is OFTCoreV2 {
     using SafeERC20 for IERC20;
 
     IERC20 public immutable token;
+    uint8 internal decimals;
 
     constructor(address _lzEndpoint, address _proxyToken) OFTCoreV2(true, _lzEndpoint) {
         token = IERC20(_proxyToken);
+
+        (bool success, bytes memory data) = _proxyToken.staticcall(
+            abi.encodeWithSignature("decimals()")
+        );
+        require(success, "ProxyOFT: failed to get token decimals");
+        decimals = abi.decode(data, (uint8));
     }
 
     function circulatingSupply() public view virtual override returns (uint) {
@@ -31,15 +38,11 @@ contract ProxyOFTV2 is OFTCoreV2 {
     function _transferFrom(address _from, address _to, uint _amount) internal virtual override returns (uint) {
         require(_from == _msgSender(), "ProxyOFT: owner is not send caller");
         uint before = token.balanceOf(address(this));
-        token.safeTransferFrom(_from, address(this), _amount);
+        token.safeTransferFrom(_from, _to, _amount);
         return token.balanceOf(address(this)) - before;
     }
 
     function _decimals() internal virtual override view returns (uint8) {
-        (bool success, bytes memory data) = address(token).staticcall(
-            abi.encodeWithSignature("decimals()")
-        );
-        require(success, "ProxyOFT: failed to get token decimals");
-        return abi.decode(data, (uint8));
+        return decimals;
     }
 }

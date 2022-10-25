@@ -31,7 +31,7 @@ contract BaseOFTV2 is OFTCoreV2, ERC20, IOFT {
     function _transferFrom(address _from, address _to, uint _amount) internal virtual override returns (uint) {
         address spender = _msgSender();
         if (_from != spender) _spendAllowance(_from, spender, _amount);
-        _transfer(_from, address(this), _amount);
+        _transfer(_from, _to, _amount);
         return _amount;
     }
 
