@@ -117,7 +117,8 @@ abstract contract OFTCoreV2 is NonblockingLzApp, ERC165, IOFTCore {
         (amount, dust) = _removeDust(amount);
 
         // todo: or store the dust and withdraw later?
-        // if dust is not 0, treat it as fee and send to feeOwner from the contract
+        // if dust is not 0, that means this is a base token and the dust is locked in the contract
+        // so treat it as fee and send to feeOwner from the contract
         if (dust > 0) _transferFrom(address(this), feeOwner, fee); // payout the owner fee
 
         uint64 amountSD = _ld2sd(amount);
@@ -154,7 +155,7 @@ abstract contract OFTCoreV2 is NonblockingLzApp, ERC165, IOFTCore {
 
     function _ld2sdRate() internal view virtual returns (uint) {
         uint8 decimals = _decimals();
-        bool isValid = isBaseOFT ? decimals >= SHARE_DECIMALS : decimals == SHARE_DECIMALS; // todo: non-base OFT decimals must be 6?
+        bool isValid = isBaseOFT ? decimals >= SHARE_DECIMALS : decimals == SHARE_DECIMALS;
         require(isValid, "OFTCore: invalid decimals");
         return 10 ** (decimals - SHARE_DECIMALS);
     }
