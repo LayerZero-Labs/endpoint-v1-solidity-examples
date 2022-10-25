@@ -145,34 +145,26 @@ abstract contract OFTCoreV2 is NonblockingLzApp, ERC165, IOFTCore {
         }
     }
 
-    function _ld2sd(uint _amount) internal virtual view returns (uint64) {
+    function _ld2sdRate() internal view virtual returns (uint) {
         uint8 decimals = _decimals();
-        uint amountSD;
-        if (isBaseOFT) {
-            require(SHARE_DECIMALS <= decimals, "OFTCore: invalid decimals");
-            amountSD = _amount / (10 ** (decimals - SHARE_DECIMALS));
-        } else {
-            require(SHARE_DECIMALS == decimals, "OFTCore: invalid decimals");
-            amountSD = _amount;
-        }
+        bool isValid = isBaseOFT ? decimals >= SHARE_DECIMALS : decimals == SHARE_DECIMALS;
+        require(isValid, "OFTCore: invalid decimals");
+        return 10 ** (decimals - SHARE_DECIMALS);
+    }
 
+    function _ld2sd(uint _amount) internal virtual view returns (uint64) {
+        uint amountSD = isBaseOFT ? _amount / _ld2sdRate() : _amount;
         require(amountSD <= type(uint64).max, "OFTCore: amountSD overflow");
         return uint64(amountSD);
     }
 
     function _sd2ld(uint64 _amountSD) internal virtual view returns (uint) {
-        uint8 decimals = _decimals();
-        if (isBaseOFT) {
-            require(SHARE_DECIMALS <= decimals, "OFTCore: invalid decimals");
-            return _amountSD * (10 ** (decimals - SHARE_DECIMALS));
-        } else {
-            require(SHARE_DECIMALS == decimals, "OFTCore: invalid decimals");
-            return _amountSD;
-        }
+        return isBaseOFT ? _amountSD * _ld2sdRate() : _amountSD;
     }
 
     function _removeDust(uint _amount) internal virtual view returns (uint) {
-        return _sd2ld(_ld2sd(_amount));
+        uint dust = isBaseOFT ? _amount % _ld2sdRate() : 0;
+        return _amount - dust;
     }
 
     function _encodeSendPayload(bytes memory _toAddress, uint64 _amountSD) internal virtual view returns (bytes memory) {
