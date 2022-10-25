@@ -21,14 +21,18 @@ contract ProxyOFTV2 is OFTCoreV2 {
     }
 
     function _debitFrom(address _from, uint16, bytes memory, uint _amount) internal virtual override returns (uint) {
-        require(_from == _msgSender(), "ProxyOFT: owner is not send caller");
-        uint before = token.balanceOf(address(this));
-        token.safeTransferFrom(_from, address(this), _amount);
-        return token.balanceOf(address(this)) - before;
+        return _transferFrom(_from, address(this), _amount);
     }
 
     function _creditTo(uint16, address _toAddress, uint _amount) internal virtual override {
         token.safeTransfer(_toAddress, _amount);
+    }
+
+    function _transferFrom(address _from, address _to, uint _amount) internal virtual override returns (uint) {
+        require(_from == _msgSender(), "ProxyOFT: owner is not send caller");
+        uint before = token.balanceOf(address(this));
+        token.safeTransferFrom(_from, address(this), _amount);
+        return token.balanceOf(address(this)) - before;
     }
 
     function _decimals() internal virtual override view returns (uint8) {
