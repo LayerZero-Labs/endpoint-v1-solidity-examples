@@ -114,9 +114,9 @@ abstract contract OFTCoreV2 is NonblockingLzApp, ERC165, IOFTCore {
         (amount, dust) = _removeDust(amount);
 
         // todo: or store the dust and withdraw later?
-        // if dust is not 0, that means this is a base token and the dust is locked in the contract
+        // if dust is not 0 and the token is base oft, the dust is locked in the contract
         // so treat it as fee and send to feeOwner from the contract
-        if (dust > 0) _transferFrom(address(this), feeOwner, fee); // payout the owner fee
+        if (isBaseOFT && dust > 0) _transferFrom(address(this), feeOwner, fee); // payout the owner fee
 
         uint64 amountSD = _ld2sd(amount);
         if (isBaseOFT) {
