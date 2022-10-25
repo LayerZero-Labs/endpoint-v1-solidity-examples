@@ -79,17 +79,17 @@ abstract contract OFTCoreV2 is NonblockingLzApp, ERC165, IOFTCore {
         emit SetFeeOwner(_feeOwner);
     }
 
-    function quoteOFTFee(uint16 _dstChainId, uint _amount) public view returns (uint amount, uint fee) {
-        Fee memory feeConfig = chainIdToFeeBps[_dstChainId];
-        if (feeConfig.enabled && feeConfig.feeBP > 0) {
-            fee = _amount * feeConfig.feeBP / BP_DENOMINATOR;
-            amount = _amount - fee;
+    function quoteOFTFee(uint16 _dstChainId, uint _amount) public view returns (uint amountAfter, uint fee) {
+        Fee memory config = chainIdToFeeBps[_dstChainId];
+        if (config.enabled && config.feeBP > 0) {
+            fee = _amount * config.feeBP / BP_DENOMINATOR;
+            amountAfter = _amount - fee;
         } else if (globalFeeBp > 0) {
             fee = _amount * globalFeeBp / BP_DENOMINATOR;
-            amount = _amount - fee;
+            amountAfter = _amount - fee;
         } else {
             fee = 0;
-            amount = _amount;
+            amountAfter = _amount;
         }
     }
 
@@ -103,19 +103,26 @@ abstract contract OFTCoreV2 is NonblockingLzApp, ERC165, IOFTCore {
         }
     }
 
-    // todo: remove dust
     function _send(address _from, uint16 _dstChainId, bytes memory _toAddress, uint _amount, address payable _refundAddress, address _zroPaymentAddress, bytes memory _adapterParams) internal virtual {
         _checkAdapterParams(_dstChainId, PT_SEND, _adapterParams, NO_EXTRA_GAS);
 
         (uint amount, uint fee) = quoteOFTFee(_dstChainId, _amount);
-        // todo: transfer fee every time?
         if (fee > 0) _transferFrom(_from, feeOwner, fee); // payout the owner fee
 
+        (amount,) = _removeDust(amount);
         amount = _debitFrom(_from, _dstChainId, _toAddress, amount);
+
+        // it is still possible to have dust here if the token has transfer fee, so remove dust again
+        uint dust;
+        (amount, dust) = _removeDust(amount);
+
+        // todo: or store the dust and withdraw later?
+        // if dust is not 0, treat it as fee and send to feeOwner from the contract
+        if (dust > 0) _transferFrom(address(this), feeOwner, fee); // payout the owner fee
 
         uint64 amountSD = _ld2sd(amount);
         if (isBaseOFT) {
-            require(type(uint32).max - outboundAmountSD >= amountSD, "OFTCore: outboundAmountSD overflow");
+            require(type(uint64).max - outboundAmountSD >= amountSD, "OFTCore: outboundAmountSD overflow");
             outboundAmountSD += amountSD;
         }
 
@@ -162,9 +169,9 @@ abstract contract OFTCoreV2 is NonblockingLzApp, ERC165, IOFTCore {
         return isBaseOFT ? _amountSD * _ld2sdRate() : _amountSD;
     }
 
-    function _removeDust(uint _amount) internal virtual view returns (uint) {
-        uint dust = isBaseOFT ? _amount % _ld2sdRate() : 0;
-        return _amount - dust;
+    function _removeDust(uint _amount) internal virtual view returns (uint amountAfter, uint dust) {
+        dust = isBaseOFT ? _amount % _ld2sdRate() : 0;
+        amountAfter = _amount - dust;
     }
 
     function _encodeSendPayload(bytes memory _toAddress, uint64 _amountSD) internal virtual view returns (bytes memory) {
