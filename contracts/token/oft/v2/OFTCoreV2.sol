@@ -79,17 +79,14 @@ abstract contract OFTCoreV2 is NonblockingLzApp, ERC165, IOFTCore {
         emit SetFeeOwner(_feeOwner);
     }
 
-    function quoteOFTFee(uint16 _dstChainId, uint _amount) public view returns (uint amountAfter, uint fee) {
+    function quoteOFTFee(uint16 _dstChainId, uint _amount) public view returns (uint fee) {
         Fee memory config = chainIdToFeeBps[_dstChainId];
         if (config.enabled && config.feeBP > 0) {
             fee = _amount * config.feeBP / BP_DENOMINATOR;
-            amountAfter = _amount - fee;
         } else if (globalFeeBp > 0) {
             fee = _amount * globalFeeBp / BP_DENOMINATOR;
-            amountAfter = _amount - fee;
         } else {
             fee = 0;
-            amountAfter = _amount;
         }
     }
 
@@ -106,10 +103,10 @@ abstract contract OFTCoreV2 is NonblockingLzApp, ERC165, IOFTCore {
     function _send(address _from, uint16 _dstChainId, bytes memory _toAddress, uint _amount, address payable _refundAddress, address _zroPaymentAddress, bytes memory _adapterParams) internal virtual {
         _checkAdapterParams(_dstChainId, PT_SEND, _adapterParams, NO_EXTRA_GAS);
 
-        (uint amount, uint fee) = quoteOFTFee(_dstChainId, _amount);
+        uint fee = quoteOFTFee(_dstChainId, _amount);
         if (fee > 0) _transferFrom(_from, feeOwner, fee); // payout the owner fee
 
-        (amount,) = _removeDust(amount);
+        (uint amount,) = _removeDust(_amount - fee);
         amount = _debitFrom(_from, _dstChainId, _toAddress, amount);
 
         // it is still possible to have dust here if the token has transfer fee, so remove dust again
