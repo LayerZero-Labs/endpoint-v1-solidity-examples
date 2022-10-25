@@ -152,7 +152,7 @@ abstract contract OFTCoreV2 is NonblockingLzApp, ERC165, IOFTCore {
 
     function _ld2sdRate() internal view virtual returns (uint) {
         uint8 decimals = _decimals();
-        bool isValid = isBaseOFT ? decimals >= SHARE_DECIMALS : decimals == SHARE_DECIMALS;
+        bool isValid = isBaseOFT ? decimals >= SHARE_DECIMALS : decimals == SHARE_DECIMALS; // todo: if one base token has decimals < SHARE_DECIMALS?
         require(isValid, "OFTCore: invalid decimals");
         return 10 ** (decimals - SHARE_DECIMALS);
     }
