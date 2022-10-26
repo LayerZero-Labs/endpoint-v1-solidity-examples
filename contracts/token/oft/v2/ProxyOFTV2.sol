@@ -11,7 +11,7 @@ contract ProxyOFTV2 is OFTCoreV2 {
     IERC20 public immutable token;
     uint8 internal immutable decimals;
 
-    constructor(address _lzEndpoint, address _proxyToken) OFTCoreV2(true, _lzEndpoint) {
+    constructor(address _lzEndpoint, address _proxyToken, uint8 _sharedDecimals) OFTCoreV2(true, _sharedDecimals, _lzEndpoint) {
         token = IERC20(_proxyToken);
 
         (bool success, bytes memory data) = _proxyToken.staticcall(

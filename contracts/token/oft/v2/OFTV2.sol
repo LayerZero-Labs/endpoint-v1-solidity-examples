@@ -9,7 +9,7 @@ import "./OFTCoreV2.sol";
 
 // override decimal() function is needed
 contract OFTV2 is OFTCoreV2, ERC20, IOFT {
-    constructor(string memory _name, string memory _symbol, address _lzEndpoint) ERC20(_name, _symbol) OFTCoreV2(false, _lzEndpoint) {}
+    constructor(string memory _name, string memory _symbol, uint8 _sharedDecimals, address _lzEndpoint) ERC20(_name, _symbol) OFTCoreV2(false, _sharedDecimals, _lzEndpoint) {}
 
     function supportsInterface(bytes4 interfaceId) public view virtual override(OFTCoreV2, IERC165) returns (bool) {
         return interfaceId == type(IOFT).interfaceId || interfaceId == type(IERC20).interfaceId || super.supportsInterface(interfaceId);
@@ -37,10 +37,6 @@ contract OFTV2 is OFTCoreV2, ERC20, IOFT {
     }
 
     function _decimals() internal view virtual override returns (uint8) {
-        return SHARE_DECIMALS;
-    }
-
-    function decimals() public view virtual override returns (uint8) {
-        return _decimals();
+        return decimals();
     }
 }

@@ -10,13 +10,14 @@ import "@openzeppelin/contracts/utils/introspection/ERC165.sol";
 abstract contract OFTCoreV2 is NonblockingLzApp, OFTFee, ERC165, IOFTCore {
     using BytesLib for bytes;
 
-    uint8 public constant SHARE_DECIMALS = 6;
     uint public constant NO_EXTRA_GAS = 0;
 
     // packet type
     uint8 public constant PT_SEND = 0;
 
     bool public useCustomAdapterParams;
+
+    uint8 public immutable sharedDecimals;
 
     // base oft
     bool public isBaseOFT;
@@ -25,8 +26,10 @@ abstract contract OFTCoreV2 is NonblockingLzApp, OFTFee, ERC165, IOFTCore {
     // todo: move into IOFTCore
     event ReceiveFromChain2(uint16 indexed _srcChainId, address indexed _to, uint _amount);
 
-    constructor(bool _base, address _lzEndpoint) NonblockingLzApp(_lzEndpoint) {
+    // _sharedDecimals should be the minimum decimals on all chains
+    constructor(bool _base, uint8 _sharedDecimals, address _lzEndpoint) NonblockingLzApp(_lzEndpoint) {
         isBaseOFT = _base;
+        sharedDecimals = _sharedDecimals;
     }
 
     function supportsInterface(bytes4 interfaceId) public view virtual override(ERC165, IERC165) returns (bool) {
@@ -99,24 +102,21 @@ abstract contract OFTCoreV2 is NonblockingLzApp, OFTFee, ERC165, IOFTCore {
     }
 
     function _ld2sdRate() internal view virtual returns (uint) {
-        uint8 decimals = _decimals();
-        bool isValid = isBaseOFT ? decimals >= SHARE_DECIMALS : decimals == SHARE_DECIMALS; // todo: if one base token has decimals < SHARE_DECIMALS?
-        require(isValid, "OFTCore: invalid decimals");
-        return 10 ** (decimals - SHARE_DECIMALS);
+        return 10 ** (_decimals() - sharedDecimals);
     }
 
     function _ld2sd(uint _amount) internal virtual view returns (uint64) {
-        uint amountSD = isBaseOFT ? _amount / _ld2sdRate() : _amount;
+        uint amountSD = _amount / _ld2sdRate();
         require(amountSD <= type(uint64).max, "OFTCore: amountSD overflow");
         return uint64(amountSD);
     }
 
     function _sd2ld(uint64 _amountSD) internal virtual view returns (uint) {
-        return isBaseOFT ? _amountSD * _ld2sdRate() : _amountSD;
+        return _amountSD * _ld2sdRate();
     }
 
     function _removeDust(uint _amount) internal virtual view returns (uint amountAfter, uint dust) {
-        dust = isBaseOFT ? _amount % _ld2sdRate() : 0;
+        dust = _amount % _ld2sdRate();
         amountAfter = _amount - dust;
     }
 
