@@ -30,11 +30,10 @@ contract OFTV2 is OFTCoreV2, ERC20, IOFT {
         _mint(_toAddress, _amount);
     }
 
-    function _transferFrom(address _from, address _to, uint _amount) internal virtual override returns (uint) {
+    function _transferFrom(address _from, address _to, uint _amount) internal virtual override {
         address spender = _msgSender();
         if (_from != spender) _spendAllowance(_from, spender, _amount);
         _transfer(_from, _to, _amount);
-        return _amount;
     }
 
     function _decimals() internal view virtual override returns (uint8) {
