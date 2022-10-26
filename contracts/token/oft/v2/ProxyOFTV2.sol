@@ -10,6 +10,10 @@ contract ProxyOFTV2 is OFTCoreV2 {
 
     IERC20 public immutable token;
     uint internal immutable ld2sdRate;
+    // user -> wrapper -> amount
+    mapping(address => mapping(address => uint256)) public allowances;
+
+    event Approval(address indexed owner, address indexed spender, uint256 value);
 
     constructor(address _lzEndpoint, address _proxyToken, uint8 _sharedDecimals) OFTCoreV2(true, _sharedDecimals, _lzEndpoint) {
         token = IERC20(_proxyToken);
@@ -47,11 +51,62 @@ contract ProxyOFTV2 is OFTCoreV2 {
     }
 
     function _transferFrom(address _from, address _to, uint _amount) internal virtual override {
-        require(_from == _msgSender(), "ProxyOFT: owner is not send caller");
+        address spender = _msgSender();
+        if (_from != spender) _spendAllowance(_from, spender, _amount);
+        // transfer token from _from to this contract
         token.safeTransferFrom(_from, _to, _amount);
     }
 
     function _ld2sdRate() internal view virtual override returns (uint) {
         return ld2sdRate;
+    }
+
+    function increaseAllowance(address spender, uint256 addedValue) public virtual returns (bool) {
+        address owner = _msgSender();
+        _approve(owner, spender, allowances[owner][spender] + addedValue);
+        return true;
+    }
+
+    function decreaseAllowance(address spender, uint256 subtractedValue) public virtual returns (bool) {
+        address owner = _msgSender();
+        uint256 currentAllowance = allowances[owner][spender];
+        require(currentAllowance >= subtractedValue, "ProxyOFT: decreased allowance below zero");
+        unchecked {
+            _approve(owner, spender, currentAllowance - subtractedValue);
+        }
+        return true;
+    }
+
+    // approve allowance - user approves the wrapper contract to spend on his behalf
+    function approve(address spender, uint256 amount) public returns (bool) {
+        address owner = _msgSender();
+        _approve(owner, spender, amount);
+        return true;
+    }
+
+    function _approve(
+        address owner,
+        address spender,
+        uint256 amount
+    ) internal virtual {
+        require(owner != address(0), "ProxyOFT: approve from the zero address");
+        require(spender != address(0), "ProxyOFT: approve to the zero address");
+
+        allowances[owner][spender] = amount;
+        emit Approval(owner, spender, amount);
+    }
+
+    function _spendAllowance(
+        address owner,
+        address spender,
+        uint256 amount
+    ) internal virtual {
+        uint256 currentAllowance = allowances[owner][spender];
+        if (currentAllowance != type(uint256).max) {
+            require(currentAllowance >= amount, "ProxyOFT: insufficient allowance");
+            unchecked {
+                _approve(owner, spender, currentAllowance - amount);
+            }
+        }
     }
 }
