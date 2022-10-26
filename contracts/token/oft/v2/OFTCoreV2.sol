@@ -20,7 +20,7 @@ abstract contract OFTCoreV2 is NonblockingLzApp, OFTFee, ERC165, IOFTCore {
     uint8 public immutable sharedDecimals;
 
     // base oft
-    bool public isBaseOFT;
+    bool public immutable isBaseOFT;
     uint64 public outboundAmountSD; // total outbound amount in share decimals, that is sent to other chains and should not exceed max of uint64
 
     // todo: move into IOFTCore
@@ -64,7 +64,7 @@ abstract contract OFTCoreV2 is NonblockingLzApp, OFTFee, ERC165, IOFTCore {
     function _send(address _from, uint16 _dstChainId, bytes memory _toAddress, uint _amount, address payable _refundAddress, address _zroPaymentAddress, bytes memory _adapterParams) internal virtual {
         _checkAdapterParams(_dstChainId, PT_SEND, _adapterParams, NO_EXTRA_GAS);
 
-        (uint amount, ) = _payOFTFee(_from, _dstChainId, _amount);
+        (uint amount,) = _payOFTFee(_from, _dstChainId, _amount);
 
         (amount,) = _removeDust(amount);
         amount = _debitFrom(_from, _dstChainId, _toAddress, amount);
@@ -101,10 +101,6 @@ abstract contract OFTCoreV2 is NonblockingLzApp, OFTFee, ERC165, IOFTCore {
         }
     }
 
-    function _ld2sdRate() internal view virtual returns (uint) {
-        return 10 ** (_decimals() - sharedDecimals);
-    }
-
     function _ld2sd(uint _amount) internal virtual view returns (uint64) {
         uint amountSD = _amount / _ld2sdRate();
         require(amountSD <= type(uint64).max, "OFTCore: amountSD overflow");
@@ -134,5 +130,5 @@ abstract contract OFTCoreV2 is NonblockingLzApp, OFTFee, ERC165, IOFTCore {
 
     function _creditTo(uint16 _srcChainId, address _toAddress, uint _amount) internal virtual;
 
-    function _decimals() internal virtual view returns (uint8);
+    function _ld2sdRate() internal view virtual returns (uint);
 }
