@@ -10,12 +10,16 @@ contract ProxyOFTV2 is OFTCoreV2 {
 
     IERC20 public immutable token;
     uint internal immutable ld2sdRate;
+
+    // total amount in sd to other chains, ensuring the total is less than max of uint64
+    uint64 public outboundAmountSD;
+
     // user -> wrapper -> amount
     mapping(address => mapping(address => uint256)) public allowances;
 
     event Approval(address indexed owner, address indexed spender, uint256 value);
 
-    constructor(address _lzEndpoint, address _proxyToken, uint8 _sharedDecimals) OFTCoreV2(true, _sharedDecimals, _lzEndpoint) {
+    constructor(address _proxyToken, uint8 _sharedDecimals, address _lzEndpoint) OFTCoreV2(_sharedDecimals, _lzEndpoint) {
         token = IERC20(_proxyToken);
 
         (bool success, bytes memory data) = _proxyToken.staticcall(
@@ -43,11 +47,17 @@ contract ProxyOFTV2 is OFTCoreV2 {
         (uint amount, uint dust) = _removeDust(_amount);
         if (dust > 0) token.safeTransfer(_from, dust);
 
+        // check total outbound amount
+        uint64 amountSD = _ld2sd(amount);
+        require(type(uint64).max - outboundAmountSD >= amountSD, "ProxyOFT: outboundAmountSD overflow");
+        outboundAmountSD += amountSD;
+
         return amount;
     }
 
     function _creditTo(uint16, address _toAddress, uint _amount) internal virtual override {
         token.safeTransfer(_toAddress, _amount);
+        outboundAmountSD -= _ld2sd(_amount);
     }
 
     function _transferFrom(address _from, address _to, uint _amount) internal virtual override {

@@ -19,16 +19,11 @@ abstract contract OFTCoreV2 is NonblockingLzApp, OFTFee, ERC165, IOFTCore {
 
     uint8 public immutable sharedDecimals;
 
-    // base oft
-    bool public immutable isBaseOFT;
-    uint64 public outboundAmountSD; // total outbound amount in share decimals, that is sent to other chains and should not exceed max of uint64
-
     // todo: move into IOFTCore
     event ReceiveFromChain2(uint16 indexed _srcChainId, address indexed _to, uint _amount);
 
     // _sharedDecimals should be the minimum decimals on all chains
-    constructor(bool _base, uint8 _sharedDecimals, address _lzEndpoint) NonblockingLzApp(_lzEndpoint) {
-        isBaseOFT = _base;
+    constructor(uint8 _sharedDecimals, address _lzEndpoint) NonblockingLzApp(_lzEndpoint) {
         sharedDecimals = _sharedDecimals;
     }
 
@@ -69,13 +64,7 @@ abstract contract OFTCoreV2 is NonblockingLzApp, OFTFee, ERC165, IOFTCore {
         (amount,) = _removeDust(amount);
         amount = _debitFrom(_from, _dstChainId, _toAddress, amount);
 
-        uint64 amountSD = _ld2sd(amount);
-        if (isBaseOFT) {
-            require(type(uint64).max - outboundAmountSD >= amountSD, "OFTCore: outboundAmountSD overflow");
-            outboundAmountSD += amountSD;
-        }
-
-        bytes memory lzPayload = _encodeSendPayload(_toAddress, amountSD);
+        bytes memory lzPayload = _encodeSendPayload(_toAddress, _ld2sd(amount));
         _lzSend(_dstChainId, lzPayload, _refundAddress, _zroPaymentAddress, _adapterParams, msg.value);
 
         emit SendToChain(_dstChainId, _from, _toAddress, amount);
@@ -83,12 +72,7 @@ abstract contract OFTCoreV2 is NonblockingLzApp, OFTFee, ERC165, IOFTCore {
 
     function _sendAck(uint16 _srcChainId, bytes memory, uint64, bytes memory _payload) internal virtual {
         (address to, uint64 amountSD) = _decodeSendPayload(_payload);
-
-        if (isBaseOFT) {
-            outboundAmountSD -= amountSD;
-        }
         uint amount = _sd2ld(amountSD);
-
         _creditTo(_srcChainId, to, amount);
         emit ReceiveFromChain2(_srcChainId, to, amount);
     }

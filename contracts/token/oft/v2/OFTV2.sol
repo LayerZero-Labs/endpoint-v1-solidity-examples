@@ -12,7 +12,7 @@ contract OFTV2 is OFTCoreV2, ERC20, IOFT {
 
     uint internal immutable ld2sdRate;
 
-    constructor(string memory _name, string memory _symbol, uint8 _sharedDecimals, address _lzEndpoint) ERC20(_name, _symbol) OFTCoreV2(false, _sharedDecimals, _lzEndpoint) {
+    constructor(string memory _name, string memory _symbol, uint8 _sharedDecimals, address _lzEndpoint) ERC20(_name, _symbol) OFTCoreV2(_sharedDecimals, _lzEndpoint) {
         uint8 decimals = decimals();
         require(_sharedDecimals <= decimals, "OFTV2: sharedDecimals must be <= decimals");
         ld2sdRate = 10 ** (decimals - _sharedDecimals);
