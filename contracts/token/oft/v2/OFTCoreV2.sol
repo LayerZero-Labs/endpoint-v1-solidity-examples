@@ -19,8 +19,7 @@ abstract contract OFTCoreV2 is NonblockingLzApp, OFTFee, ERC165, IOFTCore {
 
     uint8 public immutable sharedDecimals;
 
-    // todo: move into IOFTCore
-    event ReceiveFromChain2(uint16 indexed _srcChainId, address indexed _to, uint _amount);
+    event ReceiveFromChain(uint16 indexed _srcChainId, address indexed _to, uint _amount);
 
     // _sharedDecimals should be the minimum decimals on all chains
     constructor(uint8 _sharedDecimals, address _lzEndpoint) NonblockingLzApp(_lzEndpoint) {
@@ -74,7 +73,7 @@ abstract contract OFTCoreV2 is NonblockingLzApp, OFTFee, ERC165, IOFTCore {
         (address to, uint64 amountSD) = _decodeSendPayload(_payload);
         uint amount = _sd2ld(amountSD);
         _creditTo(_srcChainId, to, amount);
-        emit ReceiveFromChain2(_srcChainId, to, amount);
+        emit ReceiveFromChain(_srcChainId, to, amount);
     }
 
     function _checkAdapterParams(uint16 _dstChainId, uint16 _pkType, bytes memory _adapterParams, uint _extraGas) internal virtual {
