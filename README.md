@@ -34,7 +34,7 @@ The `OmnichainFungibleToken` has two varieties of deployments:
  For the `BasedOFT`, the initial supply will be minted entirely on the `Base Chain` on deployment. All tokens transferred out of the `base` chain will be locked in the contract (and minted on destination), and tokens transferred out of `other` chains will be burned on that chain. Tokens returning to the `base` chain will be `unlocked` and transferred to the destination address. This results in the `Base chain` being like the home base, hence the name.
 
 In the example deployment below we use `BasedOFT` and the `base` chain is ```goerli```.
-This setting is configured in ```constants/oftBaseChain.json```.
+This setting is configured in ```constants/oftConfig.json```.
 The `OmnichainFungibleToken` deployed on other chains will use this configuration to set their `base` chain.
 Using the Ethereum network ```(testnet: goerli)``` as a `base` (really its like the source of truth) is a security decision.
 In the event a chain goes rogue, Ethereum will be the final source of truth for OFT tokens.
