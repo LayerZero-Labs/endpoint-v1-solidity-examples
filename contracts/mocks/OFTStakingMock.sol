@@ -5,7 +5,7 @@ pragma solidity ^0.8.0;
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import "../token/oft/composable/IOFTReceiver.sol";
-import "../token/oft/composable/IComposableOFT.sol";
+import "../token/oft/composable/IComposableOFTCore.sol";
 import "../util/BytesLib.sol";
 
 import "hardhat/console.sol";
@@ -23,7 +23,7 @@ contract OFTStakingMock is IOFTReceiver {
     // ... other types
 
     // variables
-    address public oft;
+    IComposableOFTCore public oft;
     mapping(uint16 => bytes) public remoteStakingContracts;
     mapping(address => uint) public balances;
     bool public paused; // for testing try/catch
@@ -32,8 +32,10 @@ contract OFTStakingMock is IOFTReceiver {
     event Withdrawal(address to, uint amount);
     event DepositToDstChain(address from, uint16 dstChainId, bytes to, uint amountOut);
 
+    // _oft can be any composable OFT contract, e.g. ComposableOFT, ComposableBasedOFT and ComposableProxyOFT.
     constructor(address _oft) {
-        oft = _oft;
+        oft = IComposableOFTCore(_oft);
+        IERC20(oft.token()).safeApprove(_oft, type(uint).max);
     }
 
     function setRemoteStakingContract(uint16 _chainId, bytes calldata _stakingContract) external {
@@ -41,7 +43,7 @@ contract OFTStakingMock is IOFTReceiver {
     }
 
     function deposit(uint _amount) external payable {
-        IERC20(oft).safeTransferFrom(msg.sender, address(this), _amount);
+        IERC20(oft.token()).safeTransferFrom(msg.sender, address(this), _amount);
         balances[msg.sender] += _amount;
         emit Deposit(msg.sender, _amount);
     }
@@ -53,7 +55,7 @@ contract OFTStakingMock is IOFTReceiver {
     function withdrawTo(uint _amount, address _to) public {
         require(balances[msg.sender] >= _amount);
         balances[msg.sender] -= _amount;
-        IERC20(oft).safeTransfer(_to, _amount);
+        IERC20(oft.token()).safeTransfer(_to, _amount);
         emit Withdrawal(msg.sender, _amount);
     }
 
@@ -66,8 +68,14 @@ contract OFTStakingMock is IOFTReceiver {
         bytes memory dstStakingContract = remoteStakingContracts[_dstChainId];
         require(keccak256(dstStakingContract) != keccak256(""), "invalid _dstChainId");
 
+        // transfer token from sender to this contract
+        // if the oft is not the proxy oft, dont need to transfer token to this contract
+        // and call sendAndCall() with the msg.sender (_from) instead of address(this)
+        // here we use a common pattern to be compatible with all kinds of composable OFT
+        IERC20(oft.token()).safeTransferFrom(msg.sender, address(this), _amount);
+
         bytes memory payload = abi.encode(PT_DEPOSIT_TO_REMOTE_CHAIN, _to);
-        IComposableOFT(oft).sendAndCall{value: msg.value}(msg.sender, _dstChainId, dstStakingContract, _amount, payload, DST_GAS_FOR_CALL, payable(msg.sender), address(0), _adapterParams);
+        oft.sendAndCall{value: msg.value}(address(this), _dstChainId, dstStakingContract, _amount, payload, DST_GAS_FOR_CALL, payable(msg.sender), address(0), _adapterParams);
 
         emit DepositToDstChain(msg.sender, _dstChainId, _to, _amount);
     }
@@ -82,13 +90,13 @@ contract OFTStakingMock is IOFTReceiver {
         require(keccak256(dstStakingContract) != keccak256(""), "invalid _dstChainId");
 
         bytes memory payload = abi.encode(PT_DEPOSIT_TO_REMOTE_CHAIN, _to);
-        return IComposableOFT(oft).estimateSendAndCallFee(msg.sender, _dstChainId, dstStakingContract, _amount, payload, DST_GAS_FOR_CALL, false, _adapterParams);
+        return oft.estimateSendAndCallFee(msg.sender, _dstChainId, dstStakingContract, _amount, payload, DST_GAS_FOR_CALL, false, _adapterParams);
     }
 
     //-----------------------------------------------------------------------------------------------------------------------
     function onOFTReceived(uint16 _srcChainId, bytes calldata, uint64, bytes calldata _srcCaller, bytes calldata, uint _amount, bytes memory _payload) external override {
         require(!paused, "paused"); // for testing safe call
-        require(msg.sender == oft, "only oft can call onOFTReceived()");
+        require(msg.sender == address(oft), "only oft can call onOFTReceived()");
         require(keccak256(_srcCaller) == keccak256(remoteStakingContracts[_srcChainId]), "invalid _srcCaller");
 
         uint8 pkType;

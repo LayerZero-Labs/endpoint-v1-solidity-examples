@@ -2,7 +2,6 @@
 
 pragma solidity >=0.5.0;
 
-import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "@openzeppelin/contracts/utils/introspection/IERC165.sol";
 
 /**
@@ -35,6 +34,11 @@ interface IOFTCore is IERC165 {
      * @dev returns the circulating amount of tokens on current chain
      */
     function circulatingSupply() external view returns (uint);
+
+    /**
+     * @dev returns the address of the ERC20 token
+     */
+    function token() external view returns (address);
 
     /**
      * @dev Emitted when `_amount` tokens are moved from the `_sender` to (`_dstChainId`, `_toAddress`)

@@ -15,6 +15,10 @@ contract OFT is OFTCore, ERC20, IOFT {
         return interfaceId == type(IOFT).interfaceId || interfaceId == type(IERC20).interfaceId || super.supportsInterface(interfaceId);
     }
 
+    function token() public view virtual override returns (address) {
+        return address(this);
+    }
+
     function circulatingSupply() public view virtual override returns (uint) {
         return totalSupply();
     }

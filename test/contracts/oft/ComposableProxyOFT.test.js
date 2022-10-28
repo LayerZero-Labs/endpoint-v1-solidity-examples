@@ -56,8 +56,7 @@ describe("ComposableProxyOFT: ", function () {
         expect(await token.balanceOf(alice.address)).to.equal(amount)
 
         // alice deposit 100 ether token to dst chain and transfer to bob
-        await token.connect(alice).approve(proxyOFT.address, amount)
-        await proxyOFT.connect(alice).approve(srcStaking.address, amount)
+        await token.connect(alice).approve(srcStaking.address, amount)
 
         const adapterParam = ethers.utils.solidityPack(["uint16", "uint256"], [1, 225000 + 300000]) // min gas of OFT + gas for call
         // deposit on dst chain
@@ -83,9 +82,7 @@ describe("ComposableProxyOFT: ", function () {
         expect(await token.balanceOf(alice.address)).to.equal(amount)
 
         // carol 100 ether token to dst chain and transfer to bob
-        await token.connect(alice).approve(proxyOFT.address, amount)
-        await proxyOFT.connect(alice).approve(srcStaking.address, amount)
-        expect(await proxyOFT.allowances(alice.address, srcStaking.address)).to.equal(amount)
+        await token.connect(alice).approve(srcStaking.address, amount)
 
         await dstStaking.setPaused(true) // paused on dst chain
 
@@ -99,7 +96,6 @@ describe("ComposableProxyOFT: ", function () {
         expect(await token.balanceOf(alice.address)).to.equal(0)
         expect(await dstOFT.balanceOf(dstStaking.address)).to.equal(amount)
         expect(await dstStaking.balances(carol.address)).to.equal(0) // failed to call onOFTReceived() for paused
-        expect(await proxyOFT.allowances(alice.address, srcStaking.address)).to.equal(0)
     })
 
     it("retry to call on oft received", async function () {
@@ -113,7 +109,7 @@ describe("ComposableProxyOFT: ", function () {
         // console.log("_amount", amount)
         // console.log("payload", payload)
         let dstPath = ethers.utils.solidityPack(["address", "address"], [proxyOFT.address, dstOFT.address]);
-        await dstOFT.retryOFTReceived(srcChainId, dstPath, 2, srcStaking.address, alice.address, dstStaking.address, amount, payload)
+        await dstOFT.retryOFTReceived(srcChainId, dstPath, 2, srcStaking.address, srcStaking.address, dstStaking.address, amount, payload)
         expect(await dstStaking.balances(carol.address)).to.equal(amount)
     })
 })

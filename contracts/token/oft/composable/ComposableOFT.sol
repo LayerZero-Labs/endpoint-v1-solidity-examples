@@ -17,6 +17,10 @@ contract ComposableOFT is ComposableOFTCore, ERC20, IComposableOFT {
         return totalSupply();
     }
 
+    function token() public view virtual override returns (address) {
+        return address(this);
+    }
+
     function _debitFrom(address _from, uint16, bytes memory, uint _amount) internal virtual override returns(uint) {
         address spender = _msgSender();
         if (_from != spender) _spendAllowance(_from, spender, _amount);
