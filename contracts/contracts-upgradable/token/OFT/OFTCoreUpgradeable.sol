@@ -68,7 +68,7 @@ abstract contract OFTCoreUpgradeable is Initializable, NonblockingLzAppUpgradeab
         emit SetUseCustomAdapterParams(_useCustomAdapterParams);
     }
 
-    function _debitFrom(address _from, uint16 _dstChainId, bytes memory _toAddress, uint _amount) internal virtual returns(uint) ;
+    function _debitFrom(address _from, uint16 _dstChainId, bytes memory _toAddress, uint _amount) internal virtual returns(uint);
 
     function _creditTo(uint16 _srcChainId, address _toAddress, uint _amount) internal virtual;
 

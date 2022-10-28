@@ -76,7 +76,7 @@ abstract contract ComposableOFTCore is OFTCore, IComposableOFTCore {
         address to = toAddressBytes.toAddress(0);
 
         _creditTo(_srcChainId, to, amount);
-        emit ReceiveFromChain(_srcChainId, from, to, amount);
+        emit ReceiveFromChain(_srcChainId, to, amount);
 
         if (!_isContract(to)) {
             emit NonContractAddress(to);

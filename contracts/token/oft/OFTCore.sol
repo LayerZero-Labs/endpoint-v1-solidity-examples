@@ -16,8 +16,6 @@ abstract contract OFTCore is NonblockingLzApp, ERC165, IOFTCore {
 
     bool public useCustomAdapterParams;
 
-    event ReceiveFromChain(uint16 indexed _srcChainId, bytes _fromAddress, address indexed _to, uint _amount);
-
     constructor(address _lzEndpoint) NonblockingLzApp(_lzEndpoint) {}
 
     function supportsInterface(bytes4 interfaceId) public view virtual override(ERC165, IERC165) returns (bool) {
@@ -64,12 +62,12 @@ abstract contract OFTCore is NonblockingLzApp, ERC165, IOFTCore {
     }
 
     function _sendAck(uint16 _srcChainId, bytes memory, uint64, bytes memory _payload) internal virtual {
-        (, bytes memory from, bytes memory toAddressBytes, uint amount) = abi.decode(_payload, (uint16, bytes, bytes, uint));
+        (, , bytes memory toAddressBytes, uint amount) = abi.decode(_payload, (uint16, bytes, bytes, uint));
 
         address to = toAddressBytes.toAddress(0);
 
         _creditTo(_srcChainId, to, amount);
-        emit ReceiveFromChain(_srcChainId, from, to, amount);
+        emit ReceiveFromChain(_srcChainId, to, amount);
     }
 
     function _checkAdapterParams(uint16 _dstChainId, uint16 _pkType, bytes memory _adapterParams, uint _extraGas) internal virtual {

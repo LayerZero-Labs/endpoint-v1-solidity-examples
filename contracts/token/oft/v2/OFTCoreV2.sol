@@ -19,8 +19,6 @@ abstract contract OFTCoreV2 is NonblockingLzApp, OFTFee, ERC165, IOFTCore {
 
     uint8 public immutable sharedDecimals;
 
-    event ReceiveFromChain(uint16 indexed _srcChainId, address indexed _to, uint _amount);
-
     // _sharedDecimals should be the minimum decimals on all chains
     constructor(uint8 _sharedDecimals, address _lzEndpoint) NonblockingLzApp(_lzEndpoint) {
         sharedDecimals = _sharedDecimals;
