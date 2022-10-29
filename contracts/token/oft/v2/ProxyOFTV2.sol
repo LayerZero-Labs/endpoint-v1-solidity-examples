@@ -42,7 +42,7 @@ contract ProxyOFTV2 is OFTCoreV2 {
         _transferFrom(_from, address(this), _amount);
         _amount = innerToken.balanceOf(address(this)) - before;
 
-        // it is still possible to have dust here if the token has transfer fee, then give the dust back to the sender
+        // _amount is still possible to have dust if the token has transfer fee, then give the dust back to the sender
         (uint amount, uint dust) = _removeDust(_amount);
         if (dust > 0) innerToken.safeTransfer(_from, dust);
 
