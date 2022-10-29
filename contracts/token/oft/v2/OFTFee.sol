@@ -44,7 +44,7 @@ abstract contract OFTFee is Ownable {
 
     function quoteOFTFee(uint16 _dstChainId, uint _amount) public virtual view returns (uint fee) {
         Fee memory config = chainIdToFeeBps[_dstChainId];
-        if (config.enabled && config.feeBP > 0) {
+        if (config.enabled) {
             fee = _amount * config.feeBP / BP_DENOMINATOR;
         } else if (defaultFeeBp > 0) {
             fee = _amount * defaultFeeBp / BP_DENOMINATOR;

@@ -156,6 +156,11 @@ describe("OFT v2: ", function () {
         expect(await localOFT.quoteOFTFee(1, 10000)).to.be.equal(1000)
         expect(await localOFT.quoteOFTFee(2, 10000)).to.be.equal(2000)
 
+        // change fee to 0% for chain 2
+        await localOFT.setFeeBp(2, true, 0)
+        expect(await localOFT.quoteOFTFee(1, 10000)).to.be.equal(1000)
+        expect(await localOFT.quoteOFTFee(2, 10000)).to.be.equal(0)
+
         // disable fee for chain 2
         await localOFT.setFeeBp(2, false, 0)
         expect(await localOFT.quoteOFTFee(1, 10000)).to.be.equal(1000)
