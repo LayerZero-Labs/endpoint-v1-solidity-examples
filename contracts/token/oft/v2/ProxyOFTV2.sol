@@ -11,7 +11,7 @@ contract ProxyOFTV2 is OFTCoreV2 {
     IERC20 internal immutable innerToken;
     uint internal immutable ld2sdRate;
 
-    // total amount in sd to other chains, ensuring the total is less than max of uint64
+    // total amount in sd is transferred from this chain to other chains, ensuring the total is less than max of uint64
     uint64 public outboundAmountSD;
 
     constructor(address _token, uint8 _sharedDecimals, address _lzEndpoint) OFTCoreV2(_sharedDecimals, _lzEndpoint) {
@@ -42,7 +42,7 @@ contract ProxyOFTV2 is OFTCoreV2 {
         _transferFrom(_from, address(this), _amount);
         _amount = innerToken.balanceOf(address(this)) - before;
 
-        // _amount is still possible to have dust if the token has transfer fee, then give the dust back to the sender
+        // _amount still may have dust if the token has transfer fee, then give the dust back to the sender
         (uint amount, uint dust) = _removeDust(_amount);
         if (dust > 0) innerToken.safeTransfer(_from, dust);
 
