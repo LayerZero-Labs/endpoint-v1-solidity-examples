@@ -11,8 +11,10 @@ contract ExampleONFT721Upgradeable is Initializable, ONFT721Upgradeable, Proxied
     }
 
     function __ONFT721UpgradeableMock_init(string memory _name, string memory _symbol, address _lzEndpoint) internal onlyInitializing {
-        __Ownable_init();
-        __ONFT721Upgradeable_init(_name, _symbol, _lzEndpoint);
+        __Context_init_unchained();
+        __Ownable_init_unchained();
+        __ERC721_init_unchained(_name, _symbol);
+        __LzAppUpgradeable_init_unchained(_lzEndpoint);
     }
 
     function __ONFT721UpgradeableMock_init_unchained(string memory _name, string memory _symbol, address _lzEndpoint) internal onlyInitializing {}

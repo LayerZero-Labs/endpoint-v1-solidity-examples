@@ -12,8 +12,10 @@ import "./IONFT721Upgradeable.sol";
 // must implement your own minting logic in child classes
 contract ONFT721Upgradeable is Initializable, ONFT721CoreUpgradeable, ERC721Upgradeable, IONFT721Upgradeable {
     function __ONFT721Upgradeable_init(string memory _name, string memory _symbol, address _lzEndpoint) internal onlyInitializing {
+        __Context_init_unchained();
+        __Ownable_init_unchained();
         __ERC721_init_unchained(_name, _symbol);
-        __ONFT721CoreUpgradeable_init_unchained(_lzEndpoint);
+        __LzAppUpgradeable_init_unchained(_lzEndpoint);
     }
 
     function __ONFT721Upgradeable_init_unchained(string memory _name, string memory _symbol, address _lzEndpoint) internal onlyInitializing {}

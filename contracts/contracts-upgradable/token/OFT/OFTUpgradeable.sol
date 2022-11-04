@@ -9,10 +9,12 @@ import "./OFTCoreUpgradeable.sol";
 import "./IOFTUpgradeable.sol";
 
 // override decimal() function is needed
-contract OFTUpgradeable is Initializable, OFTCoreUpgradeable, ERC20Upgradeable, IOFTUpgradeable {
+contract OFTUpgradeable is OFTCoreUpgradeable, ERC20Upgradeable, IOFTUpgradeable {
     function __OFTUpgradeable_init(string memory _name, string memory _symbol, address _lzEndpoint) internal onlyInitializing {
+        __Context_init_unchained();
+        __Ownable_init_unchained();
         __ERC20_init_unchained(_name, _symbol);
-        __OFTCoreUpgradeable_init_unchained(_lzEndpoint);
+        __LzAppUpgradeable_init_unchained(_lzEndpoint);
     }
 
     function __OFTUpgradeable_init_unchained(string memory _name, string memory _symbol, address _lzEndpoint) internal onlyInitializing {}

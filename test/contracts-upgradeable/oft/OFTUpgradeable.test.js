@@ -31,7 +31,7 @@ describe("OFTUpgradeable: ", function () {
         lzEndpointDstMock.setDestLzEndpoint(OFTSrc.address, lzEndpointSrcMock.address)
 
         //set destination min gas
-        await OFTSrc.setMinDstGasLookup(chainIdDst, parseInt(await OFTSrc.FUNCTION_TYPE_SEND()), 220000)
+        await OFTSrc.setMinDstGas(chainIdDst, parseInt(await OFTSrc.PT_SEND()), 220000)
         await OFTSrc.setUseCustomAdapterParams(true)
 
         // set each contracts source address so it can send to each other
@@ -129,7 +129,7 @@ describe("OFTUpgradeable: ", function () {
             // balance before transfer is 0
             expect(await OFTDst.balanceOf(deployer.address)).to.be.equal(0)
 
-            const payload = ethers.utils.defaultAbiCoder.encode(["bytes", "uint256"], [deployer.address, sendQty])
+            const payload = ethers.utils.defaultAbiCoder.encode(["uint16", "bytes", "bytes", "uint256"], [parseInt(await OFTSrc.PT_SEND()), deployer.address, deployer.address, sendQty])
             await expect(lzEndpointDstMock.retryPayload(chainIdSrc, srcPath, payload)).to.emit(lzEndpointDstMock, "PayloadCleared")
 
             // balance after transfer is sendQty

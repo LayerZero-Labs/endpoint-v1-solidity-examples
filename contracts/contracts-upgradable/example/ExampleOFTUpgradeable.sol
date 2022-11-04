@@ -11,8 +11,10 @@ contract ExampleOFTUpgradeable is Initializable, OFTUpgradeable, Proxied {
     }
 
     function __ExampleOFTUpgradeable_init(string memory _name, string memory _symbol, uint _initialSupply, address _lzEndpoint) internal onlyInitializing {
-        __Ownable_init();
-        __OFTUpgradeable_init(_name, _symbol, _lzEndpoint);
+        __Context_init_unchained();
+        __Ownable_init_unchained();
+        __ERC20_init_unchained(_name, _symbol);
+        __LzAppUpgradeable_init_unchained(_lzEndpoint);
         __ExampleOFTUpgradeable_init_unchained(_name, _symbol, _initialSupply, _lzEndpoint);
     }
 

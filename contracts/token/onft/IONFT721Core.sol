@@ -28,12 +28,11 @@ interface IONFT721Core is IERC165 {
 
     /**
      * @dev Emitted when `_tokenId` are moved from the `_sender` to (`_dstChainId`, `_toAddress`)
-     * `_nonce` is the outbound nonce from
      */
     event SendToChain(uint16 indexed _dstChainId, address indexed _from, bytes indexed _toAddress, uint _tokenId);
 
     /**
-     * @dev Emitted when `_tokenId` are sent from `_srcChainId` to the `_toAddress` at this chain. `_nonce` is the inbound nonce.
+     * @dev Emitted when `_tokenId` are sent from `_srcChainId` to the `_toAddress` at this chain.
      */
     event ReceiveFromChain(uint16 indexed _srcChainId, bytes indexed _srcAddress, address indexed _toAddress, uint _tokenId);
 }

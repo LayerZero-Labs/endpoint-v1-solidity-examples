@@ -7,19 +7,20 @@ import "@openzeppelin/contracts-upgradeable/utils/introspection/IERC165Upgradeab
 import "../../lzApp/NonblockingLzAppUpgradeable.sol";
 import "./IONFT721CoreUpgradeable.sol";
 
-abstract contract ONFT721CoreUpgradeable is Initializable, NonblockingLzAppUpgradeable, ERC165Upgradeable, IONFT721CoreUpgradeable {
+abstract contract ONFT721CoreUpgradeable is NonblockingLzAppUpgradeable, ERC165Upgradeable, IONFT721CoreUpgradeable {
     uint public constant NO_EXTRA_GAS = 0;
-    uint public constant FUNCTION_TYPE_SEND = 1;
+    uint16 public constant FUNCTION_TYPE_SEND = 1;
     bool public useCustomAdapterParams;
 
     event SetUseCustomAdapterParams(bool _useCustomAdapterParams);
 
     function __ONFT721CoreUpgradeable_init(address _lzEndpoint) internal onlyInitializing {
-        __ONFT721CoreUpgradeable_init_unchained(_lzEndpoint);
+        __Context_init_unchained();
+        __Ownable_init_unchained();
+        __LzAppUpgradeable_init_unchained(_lzEndpoint);
     }
 
     function __ONFT721CoreUpgradeable_init_unchained(address _lzEndpoint) internal onlyInitializing {
-        __NonblockingLzAppUpgradeable_init_unchained(_lzEndpoint);
     }
 
     function supportsInterface(bytes4 interfaceId) public view virtual override(ERC165Upgradeable, IERC165Upgradeable) returns (bool) {
@@ -45,14 +46,12 @@ abstract contract ONFT721CoreUpgradeable is Initializable, NonblockingLzAppUpgra
         } else {
             require(_adapterParams.length == 0, "LzApp: _adapterParams must be empty.");
         }
-        _lzSend(_dstChainId, payload, _refundAddress, _zroPaymentAddress, _adapterParams);
+        _lzSend(_dstChainId, payload, _refundAddress, _zroPaymentAddress, _adapterParams, msg.value);
 
-        uint64 nonce = lzEndpoint.getOutboundNonce(_dstChainId, address(this));
-        emit SendToChain(_from, _dstChainId, _toAddress, _tokenId, nonce);
+        emit SendToChain(_dstChainId, _from, _toAddress, _tokenId);
     }
 
-    function _nonblockingLzReceive(uint16 _srcChainId, bytes memory _srcAddress, uint64 _nonce, bytes memory _payload) internal virtual override {
-        // decode and load the toAddress
+    function _nonblockingLzReceive(uint16 _srcChainId, bytes memory _srcAddress, uint64, /*_nonce*/ bytes memory _payload) internal virtual override {
         (bytes memory toAddressBytes, uint tokenId) = abi.decode(_payload, (bytes, uint));
         address toAddress;
         assembly {
@@ -61,7 +60,7 @@ abstract contract ONFT721CoreUpgradeable is Initializable, NonblockingLzAppUpgra
 
         _creditTo(_srcChainId, toAddress, tokenId);
 
-        emit ReceiveFromChain(_srcChainId, _srcAddress, toAddress, tokenId, _nonce);
+        emit ReceiveFromChain(_srcChainId, _srcAddress, toAddress, tokenId);
     }
 
     function setUseCustomAdapterParams(bool _useCustomAdapterParams) external onlyOwner {

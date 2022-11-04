@@ -9,5 +9,4 @@ import "./IONFT721CoreUpgradeable.sol";
  * @dev Interface of the ONFT standard
  */
 interface IONFT721Upgradeable is IONFT721CoreUpgradeable, IERC721Upgradeable {
-
 }

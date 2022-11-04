@@ -37,16 +37,14 @@ interface IOFTCore is IERC165 {
     function circulatingSupply() external view returns (uint);
 
     /**
-     * @dev Emitted when `_amount` tokens are moved from the `_sender` to (`_dstChainId`, `_toAddress`)
-     * `_nonce` is the outbound nonce
+     * @dev Emitted when `_amount` tokens are moved from the `_from` to (`_dstChainId`, `_toAddress`)
      */
     event SendToChain(uint16 indexed _dstChainId, address indexed _from, bytes indexed _toAddress, uint _amount);
 
     /**
      * @dev Emitted when `_amount` tokens are received from `_srcChainId` into the `_toAddress` on the local chain.
-     * `_nonce` is the inbound nonce.
      */
-    event ReceiveFromChain(uint16 indexed _srcChainId, bytes _fromAddress, address indexed _to, uint _amount);
+    event ReceiveFromChain(uint16 indexed _srcChainId, bytes _fromAddress, address indexed _toAddress, uint _amount);
 
     event SetUseCustomAdapterParams(bool _useCustomAdapterParams);
 }
