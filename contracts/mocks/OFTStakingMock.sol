@@ -16,7 +16,7 @@ contract OFTStakingMock is IOFTReceiver {
     using SafeERC20 for IERC20;
     using BytesLib for bytes;
 
-    uint public constant DST_GAS_FOR_CALL = 300000; // estimate gas usage of onOFTReceived()
+    uint64 public constant DST_GAS_FOR_CALL = 300000; // estimate gas usage of onOFTReceived()
 
     // packet type
     uint8 public constant PT_DEPOSIT_TO_REMOTE_CHAIN = 1;
