@@ -1,0 +1,52 @@
+// SPDX-License-Identifier: MIT
+
+pragma solidity ^0.8.0;
+
+import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
+import "../../composable/IComposableOFT.sol";
+import "./ComposableOFTCoreV2.sol";
+
+contract ComposableOFTV2 is ComposableOFTCoreV2, ERC20, IComposableOFT {
+
+    uint internal immutable ld2sdRate;
+
+    constructor(string memory _name, string memory _symbol, uint8 _sharedDecimals, address _lzEndpoint) ERC20(_name, _symbol) ComposableOFTCoreV2(_sharedDecimals, _lzEndpoint) {
+        uint8 decimals = decimals();
+        require(_sharedDecimals <= decimals, "ComposableOFTV2: sharedDecimals must be <= decimals");
+        ld2sdRate = 10 ** (decimals - _sharedDecimals);
+    }
+
+    function supportsInterface(bytes4 interfaceId) public view virtual override(ComposableOFTCoreV2, IERC165) returns (bool) {
+        return interfaceId == type(IComposableOFT).interfaceId || interfaceId == type(IOFT).interfaceId || interfaceId == type(IERC20).interfaceId || super.supportsInterface(interfaceId);
+    }
+
+    function circulatingSupply() public view virtual override returns (uint) {
+        return totalSupply();
+    }
+
+    function token() public view virtual override returns (address) {
+        return address(this);
+    }
+
+    function _debitFrom(address _from, uint16, bytes memory, uint _amount) internal virtual override returns(uint) {
+        address spender = _msgSender();
+        if (_from != spender) _spendAllowance(_from, spender, _amount);
+        _burn(_from, _amount);
+        return _amount;
+    }
+
+    function _creditTo(uint16, address _toAddress, uint _amount) internal virtual override returns(uint) {
+        _mint(_toAddress, _amount);
+        return _amount;
+    }
+
+    function _transferFrom(address _from, address _to, uint _amount) internal virtual override {
+        address spender = _msgSender();
+        if (_from != spender) _spendAllowance(_from, spender, _amount);
+        _transfer(_from, _to, _amount);
+    }
+
+    function _ld2sdRate() internal view virtual override returns (uint) {
+        return ld2sdRate;
+    }
+}
