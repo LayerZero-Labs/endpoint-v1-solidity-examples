@@ -24,7 +24,7 @@ abstract contract OFTCore is NonblockingLzApp, ERC165, IOFTCore {
 
     function estimateSendFee(uint16 _dstChainId, bytes calldata _toAddress, uint _amount, bool _useZro, bytes calldata _adapterParams) public view virtual override returns (uint nativeFee, uint zroFee) {
         // mock the payload for sendFrom()
-        bytes memory payload = abi.encode(PT_SEND, abi.encodePacked(msg.sender), _toAddress, _amount);
+        bytes memory payload = abi.encode(PT_SEND, _toAddress, _amount);
         return lzEndpoint.estimateFees(_dstChainId, address(this), payload, _useZro, _adapterParams);
     }
 
@@ -55,14 +55,14 @@ abstract contract OFTCore is NonblockingLzApp, ERC165, IOFTCore {
 
         uint amount = _debitFrom(_from, _dstChainId, _toAddress, _amount);
 
-        bytes memory lzPayload = abi.encode(PT_SEND, abi.encodePacked(_from), _toAddress, amount);
+        bytes memory lzPayload = abi.encode(PT_SEND, _toAddress, amount);
         _lzSend(_dstChainId, lzPayload, _refundAddress, _zroPaymentAddress, _adapterParams, msg.value);
 
         emit SendToChain(_dstChainId, _from, _toAddress, amount);
     }
 
     function _sendAck(uint16 _srcChainId, bytes memory, uint64, bytes memory _payload) internal virtual {
-        (, , bytes memory toAddressBytes, uint amount) = abi.decode(_payload, (uint16, bytes, bytes, uint));
+        (, bytes memory toAddressBytes, uint amount) = abi.decode(_payload, (uint16, bytes, uint));
 
         address to = toAddressBytes.toAddress(0);
 
