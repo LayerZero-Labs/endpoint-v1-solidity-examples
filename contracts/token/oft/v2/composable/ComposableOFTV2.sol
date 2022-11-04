@@ -3,10 +3,10 @@
 pragma solidity ^0.8.0;
 
 import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
-import "../../composable/IComposableOFT.sol";
+import "./IComposableOFTV2.sol";
 import "./ComposableOFTCoreV2.sol";
 
-contract ComposableOFTV2 is ComposableOFTCoreV2, ERC20, IComposableOFT {
+contract ComposableOFTV2 is ComposableOFTCoreV2, ERC20, IComposableOFTV2 {
 
     uint internal immutable ld2sdRate;
 
@@ -17,7 +17,7 @@ contract ComposableOFTV2 is ComposableOFTCoreV2, ERC20, IComposableOFT {
     }
 
     function supportsInterface(bytes4 interfaceId) public view virtual override(ComposableOFTCoreV2, IERC165) returns (bool) {
-        return interfaceId == type(IComposableOFT).interfaceId || interfaceId == type(IOFT).interfaceId || interfaceId == type(IERC20).interfaceId || super.supportsInterface(interfaceId);
+        return interfaceId == type(IComposableOFTV2).interfaceId || interfaceId == type(IOFTV2).interfaceId || interfaceId == type(IERC20).interfaceId || super.supportsInterface(interfaceId);
     }
 
     function circulatingSupply() public view virtual override returns (uint) {

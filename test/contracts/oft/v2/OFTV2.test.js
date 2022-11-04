@@ -63,8 +63,8 @@ describe("OFT v2: ", function () {
             remoteChainId,
             bob.address,
             amount,
-            alice.address,
-            ethers.constants.AddressZero,
+            amount,
+            ethers.utils.AbiCoder.prototype.encode(['address', 'address'], [alice.address, ethers.constants.AddressZero]),
             "0x",
             { value: nativeFee }
         )
@@ -85,8 +85,8 @@ describe("OFT v2: ", function () {
             localChainId,
             alice.address,
             halfAmount,
-            bob.address,
-            ethers.constants.AddressZero,
+            halfAmount,
+            ethers.utils.AbiCoder.prototype.encode(['address', 'address'], [bob.address, ethers.constants.AddressZero]),
             "0x",
             { value: nativeFee }
         )
@@ -115,8 +115,8 @@ describe("OFT v2: ", function () {
             remoteChainId,
             bob.address,
             amount,
-            alice.address,
-            ethers.constants.AddressZero,
+            amount,
+            ethers.utils.AbiCoder.prototype.encode(['address', 'address'], [alice.address, ethers.constants.AddressZero]),
             "0x",
             { value: nativeFee }
         )
@@ -132,8 +132,7 @@ describe("OFT v2: ", function () {
                 remoteChainId,
                 bob.address,
                 amount,
-                alice.address,
-                ethers.constants.AddressZero,
+                ethers.utils.AbiCoder.prototype.encode(['address', 'address'], [alice.address, ethers.constants.AddressZero]),
                 "0x",
                 {value: nativeFee}
             )
@@ -169,6 +168,8 @@ describe("OFT v2: ", function () {
 
     it("charge oft fee for sending", async function () {
         const amount = ethers.utils.parseEther("1") // 1 ether
+        const halfAmount = amount.div(2)
+
         await erc20.mint(alice.address, amount)
 
         // set default fee to 50%
@@ -182,13 +183,12 @@ describe("OFT v2: ", function () {
             remoteChainId,
             bob.address,
             amount,
-            alice.address,
-            ethers.constants.AddressZero,
+            halfAmount,
+            ethers.utils.AbiCoder.prototype.encode(['address', 'address'], [alice.address, ethers.constants.AddressZero]),
             "0x",
             { value: nativeFee }
         )
 
-        const halfAmount = amount.div(2)
         expect(await remoteOFT.balanceOf(bob.address)).to.be.equal(halfAmount)
         expect(await erc20.balanceOf(owner.address)).to.be.equal(halfAmount) // half tokens are fee
         expect(await erc20.balanceOf(alice.address)).to.be.equal(0)

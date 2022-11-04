@@ -4,10 +4,10 @@ pragma solidity ^0.8.0;
 
 import "../OFTCoreV2.sol";
 import "../../composable/IOFTReceiver.sol";
-import "../../composable/IComposableOFTCore.sol";
+import "../composable/IComposableOFTCoreV2.sol";
 import "../../../../util/ExcessivelySafeCall.sol";
 
-abstract contract ComposableOFTCoreV2 is OFTCoreV2, IComposableOFTCore {
+abstract contract ComposableOFTCoreV2 is OFTCoreV2, IComposableOFTCoreV2 {
     using ExcessivelySafeCall for address;
     using BytesLib for bytes;
 
@@ -19,7 +19,7 @@ abstract contract ComposableOFTCoreV2 is OFTCoreV2, IComposableOFTCore {
     constructor(uint8 _sharedDecimals, address _lzEndpoint) OFTCoreV2(_sharedDecimals, _lzEndpoint) {}
 
     function supportsInterface(bytes4 interfaceId) public view virtual override(OFTCoreV2, IERC165) returns (bool) {
-        return interfaceId == type(IComposableOFTCore).interfaceId || super.supportsInterface(interfaceId);
+        return interfaceId == type(IComposableOFTCoreV2).interfaceId || super.supportsInterface(interfaceId);
     }
 
     function estimateSendAndCallFee(uint16 _dstChainId, bytes calldata _toAddress, uint _amount, bytes calldata _payload, uint64 _dstGasForCall, bool _useZro, bytes calldata _adapterParams) public view virtual override returns (uint nativeFee, uint zroFee) {
@@ -28,8 +28,8 @@ abstract contract ComposableOFTCoreV2 is OFTCoreV2, IComposableOFTCore {
         return lzEndpoint.estimateFees(_dstChainId, address(this), payload, _useZro, _adapterParams);
     }
 
-    function sendAndCall(address _from, uint16 _dstChainId, bytes calldata _toAddress, uint _amount, bytes calldata _payload, uint64 _dstGasForCall, address payable _refundAddress, address _zroPaymentAddress, bytes calldata _adapterParams) public payable virtual override {
-        _sendAndCall(_from, _dstChainId, _toAddress, _amount, _payload, _dstGasForCall, _refundAddress, _zroPaymentAddress, _adapterParams);
+    function sendAndCall(address _from, uint16 _dstChainId, bytes calldata _toAddress, uint _amount, uint _minAmount, bytes calldata _payload, uint64 _dstGasForCall, LzCallParams calldata _callParams, bytes calldata _adapterParams) public payable virtual override {
+        _sendAndCall(_from, _dstChainId, _toAddress, _amount, _minAmount, _payload, _dstGasForCall, _callParams, _adapterParams);
     }
 
     function retryOFTReceived(uint16 _srcChainId, bytes calldata _srcAddress, uint64 _nonce, bytes calldata _from, address _to, uint _amount, bytes calldata _payload) public virtual override {
@@ -56,17 +56,18 @@ abstract contract ComposableOFTCoreV2 is OFTCoreV2, IComposableOFTCore {
         }
     }
 
-    function _sendAndCall(address _from, uint16 _dstChainId, bytes memory _toAddress, uint _amount, bytes calldata _payload, uint64 _dstGasForCall, address payable _refundAddress, address _zroPaymentAddress, bytes memory _adapterParams) internal virtual {
+    function _sendAndCall(address _from, uint16 _dstChainId, bytes memory _toAddress, uint _amount, uint _minAmount, bytes calldata _payload, uint64 _dstGasForCall, LzCallParams calldata _callParams, bytes memory _adapterParams) internal virtual {
         _checkAdapterParams(_dstChainId, PT_SEND_AND_CALL, _adapterParams, _dstGasForCall);
 
         (uint amount,) = _payOFTFee(_from, _dstChainId, _amount);
 
         (amount,) = _removeDust(amount);
         amount = _debitFrom(_from, _dstChainId, _toAddress, amount);
+        require(amount >= _minAmount, "OFTCore: amount < minAmount");
 
         // encode the msg.sender into the payload instead of _from
         bytes memory lzPayload = _encodeSendAndCallPayload(msg.sender, _toAddress, _ld2sd(amount), _payload, _dstGasForCall);
-        _lzSend(_dstChainId, lzPayload, _refundAddress, _zroPaymentAddress, _adapterParams, msg.value);
+        _lzSend(_dstChainId, lzPayload, _callParams.refundAddress, _callParams.zroPaymentAddress, _adapterParams, msg.value);
 
         emit SendToChain(_dstChainId, _from, _toAddress, amount);
     }

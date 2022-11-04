@@ -4,11 +4,11 @@ pragma solidity ^0.8.0;
 
 import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 import "@openzeppelin/contracts/utils/introspection/IERC165.sol";
-import "../IOFT.sol";
+import "./IOFTV2.sol";
 import "./OFTCoreV2.sol";
 
 // override decimal() function is needed
-contract OFTV2 is OFTCoreV2, ERC20, IOFT {
+contract OFTV2 is OFTCoreV2, ERC20, IOFTV2 {
 
     uint internal immutable ld2sdRate;
 
@@ -19,7 +19,7 @@ contract OFTV2 is OFTCoreV2, ERC20, IOFT {
     }
 
     function supportsInterface(bytes4 interfaceId) public view virtual override(OFTCoreV2, IERC165) returns (bool) {
-        return interfaceId == type(IOFT).interfaceId || interfaceId == type(IERC20).interfaceId || super.supportsInterface(interfaceId);
+        return interfaceId == type(IOFTV2).interfaceId || interfaceId == type(IERC20).interfaceId || super.supportsInterface(interfaceId);
     }
 
     function circulatingSupply() public view virtual override returns (uint) {
