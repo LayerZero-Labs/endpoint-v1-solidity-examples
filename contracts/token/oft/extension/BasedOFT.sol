@@ -20,7 +20,8 @@ contract BasedOFT is OFT {
         return _amount;
     }
 
-    function _creditTo(uint16, address _toAddress, uint _amount) internal virtual override {
+    function _creditTo(uint16, address _toAddress, uint _amount) internal virtual override returns(uint) {
         _transfer(address(this), _toAddress, _amount);
+        return _amount;
     }
 }

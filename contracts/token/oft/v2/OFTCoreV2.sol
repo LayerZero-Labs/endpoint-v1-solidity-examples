@@ -70,7 +70,7 @@ abstract contract OFTCoreV2 is NonblockingLzApp, OFTFee, ERC165, IOFTCore {
     function _sendAck(uint16 _srcChainId, bytes memory, uint64, bytes memory _payload) internal virtual {
         (address to, uint64 amountSD) = _decodeSendPayload(_payload);
         uint amount = _sd2ld(amountSD);
-        _creditTo(_srcChainId, to, amount);
+        amount = _creditTo(_srcChainId, to, amount);
         emit ReceiveFromChain(_srcChainId, to, amount);
     }
 
@@ -109,7 +109,7 @@ abstract contract OFTCoreV2 is NonblockingLzApp, OFTFee, ERC165, IOFTCore {
 
     function _debitFrom(address _from, uint16 _dstChainId, bytes memory _toAddress, uint _amount) internal virtual returns (uint);
 
-    function _creditTo(uint16 _srcChainId, address _toAddress, uint _amount) internal virtual;
+    function _creditTo(uint16 _srcChainId, address _toAddress, uint _amount) internal virtual returns (uint);
 
     function _ld2sdRate() internal view virtual returns (uint);
 }

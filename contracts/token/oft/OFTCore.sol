@@ -66,7 +66,7 @@ abstract contract OFTCore is NonblockingLzApp, ERC165, IOFTCore {
 
         address to = toAddressBytes.toAddress(0);
 
-        _creditTo(_srcChainId, to, amount);
+        amount = _creditTo(_srcChainId, to, amount);
         emit ReceiveFromChain(_srcChainId, to, amount);
     }
 
@@ -80,5 +80,5 @@ abstract contract OFTCore is NonblockingLzApp, ERC165, IOFTCore {
 
     function _debitFrom(address _from, uint16 _dstChainId, bytes memory _toAddress, uint _amount) internal virtual returns(uint);
 
-    function _creditTo(uint16 _srcChainId, address _toAddress, uint _amount) internal virtual;
+    function _creditTo(uint16 _srcChainId, address _toAddress, uint _amount) internal virtual returns(uint);
 }

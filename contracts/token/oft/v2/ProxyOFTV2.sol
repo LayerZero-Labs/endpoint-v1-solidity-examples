@@ -54,9 +54,11 @@ contract ProxyOFTV2 is OFTCoreV2 {
         return amount;
     }
 
-    function _creditTo(uint16, address _toAddress, uint _amount) internal virtual override {
-        innerToken.safeTransfer(_toAddress, _amount);
+    function _creditTo(uint16, address _toAddress, uint _amount) internal virtual override returns (uint) {
         outboundAmountSD -= _ld2sd(_amount);
+        uint before = innerToken.balanceOf(_toAddress);
+        innerToken.safeTransfer(_toAddress, _amount);
+        return innerToken.balanceOf(_toAddress) - before;
     }
 
     function _transferFrom(address _from, address _to, uint _amount) internal virtual override {

@@ -93,10 +93,11 @@ contract NativeOFT is OFT, ReentrancyGuard {
         return messageFee;
     }
 
-    function _creditTo(uint16, address _toAddress, uint _amount) internal override(OFT) {
+    function _creditTo(uint16, address _toAddress, uint _amount) internal override(OFT) returns(uint) {
         _burn(address(this), _amount);
         (bool success, ) = _toAddress.call{value: _amount}("");
         require(success, "NativeOFT: failed to _creditTo");
+        return _amount;
     }
 
     receive() external payable {

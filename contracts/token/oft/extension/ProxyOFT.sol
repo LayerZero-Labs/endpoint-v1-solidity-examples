@@ -31,7 +31,9 @@ contract ProxyOFT is OFTCore {
         return innerToken.balanceOf(address(this)) - before;
     }
 
-    function _creditTo(uint16, address _toAddress, uint _amount) internal virtual override {
+    function _creditTo(uint16, address _toAddress, uint _amount) internal virtual override returns(uint) {
+        uint before = innerToken.balanceOf(_toAddress);
         innerToken.safeTransfer(_toAddress, _amount);
+        return innerToken.balanceOf(_toAddress) - before;
     }
 }
