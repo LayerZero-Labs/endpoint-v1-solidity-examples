@@ -109,7 +109,7 @@ describe("ComposableProxyOFT: ", function () {
         // console.log("_amount", amount)
         // console.log("payload", payload)
         let dstPath = ethers.utils.solidityPack(["address", "address"], [proxyOFT.address, dstOFT.address]);
-        await dstOFT.retryOFTReceived(srcChainId, dstPath, 2, srcStaking.address, srcStaking.address, dstStaking.address, amount, payload)
+        await dstOFT.retryOFTReceived(srcChainId, dstPath, 2, srcStaking.address, dstStaking.address, amount, payload)
         expect(await dstStaking.balances(carol.address)).to.equal(amount)
     })
 })

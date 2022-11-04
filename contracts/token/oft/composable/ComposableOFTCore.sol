@@ -22,9 +22,9 @@ abstract contract ComposableOFTCore is OFTCore, IComposableOFTCore {
         return interfaceId == type(IComposableOFTCore).interfaceId || super.supportsInterface(interfaceId);
     }
 
-    function estimateSendAndCallFee(address _from, uint16 _dstChainId, bytes calldata _toAddress, uint _amount, bytes calldata _payload, uint _dstGasForCall, bool _useZro, bytes calldata _adapterParams) public view virtual override returns (uint nativeFee, uint zroFee) {
+    function estimateSendAndCallFee(uint16 _dstChainId, bytes calldata _toAddress, uint _amount, bytes calldata _payload, uint _dstGasForCall, bool _useZro, bytes calldata _adapterParams) public view virtual override returns (uint nativeFee, uint zroFee) {
         // mock the payload for sendAndCall()
-        bytes memory payload = abi.encode(PT_SEND_AND_CALL, abi.encodePacked(msg.sender), abi.encodePacked(_from), _toAddress, _amount, _payload, _dstGasForCall);
+        bytes memory payload = abi.encode(PT_SEND_AND_CALL, abi.encodePacked(msg.sender), _toAddress, _amount, _payload, _dstGasForCall);
         return lzEndpoint.estimateFees(_dstChainId, address(this), payload, _useZro, _adapterParams);
     }
 
@@ -32,15 +32,15 @@ abstract contract ComposableOFTCore is OFTCore, IComposableOFTCore {
         _sendAndCall(_from, _dstChainId, _toAddress, _amount, _payload, _dstGasForCall, _refundAddress, _zroPaymentAddress, _adapterParams);
     }
 
-    function retryOFTReceived(uint16 _srcChainId, bytes calldata _srcAddress, uint64 _nonce, bytes calldata _srcCaller, bytes calldata _from, address _to, uint _amount, bytes calldata _payload) public virtual override {
+    function retryOFTReceived(uint16 _srcChainId, bytes calldata _srcAddress, uint64 _nonce, bytes calldata _from, address _to, uint _amount, bytes calldata _payload) public virtual override {
         bytes32 msgHash = failedOFTReceivedMessages[_srcChainId][_srcAddress][_nonce];
         require(msgHash != bytes32(0), "ComposableOFTCore: no failed message to retry");
 
-        bytes32 hash = keccak256(abi.encode(_srcCaller, _from, _to, _amount, _payload));
+        bytes32 hash = keccak256(abi.encode(_from, _to, _amount, _payload));
         require(hash == msgHash, "ComposableOFTCore: failed message hash mismatch");
 
         delete failedOFTReceivedMessages[_srcChainId][_srcAddress][_nonce];
-        IOFTReceiver(_to).onOFTReceived(_srcChainId, _srcAddress, _nonce, _srcCaller, _from, _amount, _payload);
+        IOFTReceiver(_to).onOFTReceived(_srcChainId, _srcAddress, _nonce, _from, _amount, _payload);
         emit RetryOFTReceivedSuccess(hash);
     }
 
@@ -64,16 +64,16 @@ abstract contract ComposableOFTCore is OFTCore, IComposableOFTCore {
 
         uint amount = _debitFrom(_from, _dstChainId, _toAddress, _amount);
 
-        bytes memory lzPayload = abi.encode(PT_SEND_AND_CALL, abi.encodePacked(msg.sender), abi.encodePacked(_from), _toAddress, amount, _payload, _dstGasForCall);
+        bytes memory lzPayload = abi.encode(PT_SEND_AND_CALL, abi.encodePacked(msg.sender), _toAddress, amount, _payload, _dstGasForCall);
         _lzSend(_dstChainId, lzPayload, _refundAddress, _zroPaymentAddress, _adapterParams, msg.value);
 
         emit SendToChain(_dstChainId, _from, _toAddress, amount);
     }
 
     function _sendAndCallAck(uint16 _srcChainId, bytes memory _srcAddress, uint64 _nonce, bytes memory _payload) internal virtual {
-        (, bytes memory caller, bytes memory from, bytes memory toAddressBytes, uint amount, bytes memory payload, uint gasForCall) = abi.decode(_payload, (uint16, bytes, bytes, bytes, uint, bytes, uint));
+        (, bytes memory from, bytes memory toAddress, uint amount, bytes memory payload, uint gasForCall) = abi.decode(_payload, (uint16, bytes, bytes, uint, bytes, uint));
 
-        address to = toAddressBytes.toAddress(0);
+        address to = toAddress.toAddress(0);
 
         amount = _creditTo(_srcChainId, to, amount);
         emit ReceiveFromChain(_srcChainId, to, amount);
@@ -83,16 +83,16 @@ abstract contract ComposableOFTCore is OFTCore, IComposableOFTCore {
             return;
         }
 
-        _safeCallOnOFTReceived(_srcChainId, _srcAddress, _nonce, caller, from, to, amount, payload, gasForCall);
+        _safeCallOnOFTReceived(_srcChainId, _srcAddress, _nonce, from, to, amount, payload, gasForCall);
     }
 
-    function _safeCallOnOFTReceived(uint16 _srcChainId, bytes memory _srcAddress, uint64 _nonce, bytes memory _caller, bytes memory _from, address _to, uint _amount, bytes memory _payload, uint _gasForCall) internal virtual {
-        (bool success, bytes memory reason) = _to.excessivelySafeCall(_gasForCall, 150, abi.encodeWithSelector(IOFTReceiver.onOFTReceived.selector, _srcChainId, _srcAddress, _nonce, _caller, _from, _amount, _payload));
+    function _safeCallOnOFTReceived(uint16 _srcChainId, bytes memory _srcAddress, uint64 _nonce, bytes memory _from, address _to, uint _amount, bytes memory _payload, uint _gasForCall) internal virtual {
+        (bool success, bytes memory reason) = _to.excessivelySafeCall(_gasForCall, 150, abi.encodeWithSelector(IOFTReceiver.onOFTReceived.selector, _srcChainId, _srcAddress, _nonce, _from, _amount, _payload));
         if (!success) {
-            failedOFTReceivedMessages[_srcChainId][_srcAddress][_nonce] = keccak256(abi.encode(_caller, _from, _to, _amount, _payload));
-            emit CallOFTReceivedFailure(_srcChainId, _srcAddress, _nonce, _caller, _from, _to, _amount, _payload, reason);
+            failedOFTReceivedMessages[_srcChainId][_srcAddress][_nonce] = keccak256(abi.encode(_from, _to, _amount, _payload));
+            emit CallOFTReceivedFailure(_srcChainId, _srcAddress, _nonce, _from, _to, _amount, _payload, reason);
         } else {
-            bytes32 hash = keccak256(abi.encode(_caller, _from, _to, _amount, _payload));
+            bytes32 hash = keccak256(abi.encode(_from, _to, _amount, _payload));
             emit CallOFTReceivedSuccess(_srcChainId, _srcAddress, _nonce, hash);
         }
     }

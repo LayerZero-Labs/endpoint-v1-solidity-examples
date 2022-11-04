@@ -90,14 +90,14 @@ contract OFTStakingMock is IOFTReceiver {
         require(keccak256(dstStakingContract) != keccak256(""), "invalid _dstChainId");
 
         bytes memory payload = abi.encode(PT_DEPOSIT_TO_REMOTE_CHAIN, _to);
-        return oft.estimateSendAndCallFee(msg.sender, _dstChainId, dstStakingContract, _amount, payload, DST_GAS_FOR_CALL, false, _adapterParams);
+        return oft.estimateSendAndCallFee(_dstChainId, dstStakingContract, _amount, payload, DST_GAS_FOR_CALL, false, _adapterParams);
     }
 
     //-----------------------------------------------------------------------------------------------------------------------
-    function onOFTReceived(uint16 _srcChainId, bytes calldata, uint64, bytes calldata _srcCaller, bytes calldata, uint _amount, bytes memory _payload) external override {
+    function onOFTReceived(uint16 _srcChainId, bytes calldata, uint64, bytes calldata _from, uint _amount, bytes memory _payload) external override {
         require(!paused, "paused"); // for testing safe call
         require(msg.sender == address(oft), "only oft can call onOFTReceived()");
-        require(keccak256(_srcCaller) == keccak256(remoteStakingContracts[_srcChainId]), "invalid _srcCaller");
+        require(keccak256(_from) == keccak256(remoteStakingContracts[_srcChainId]), "invalid from");
 
         uint8 pkType;
         assembly {
