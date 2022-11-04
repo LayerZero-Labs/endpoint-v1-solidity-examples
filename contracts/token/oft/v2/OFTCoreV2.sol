@@ -98,13 +98,17 @@ abstract contract OFTCoreV2 is NonblockingLzApp, OFTFee, ERC165, IOFTCore {
     }
 
     function _encodeSendPayload(bytes memory _toAddress, uint64 _amountSD) internal virtual view returns (bytes memory) {
-        return abi.encodePacked(PT_SEND, _toAddress, _amountSD);
+        return abi.encodePacked(PT_SEND, uint8(_toAddress.length), _toAddress, _amountSD);
     }
 
     function _decodeSendPayload(bytes memory _payload) internal virtual view returns (address to, uint64 amountSD) {
-        require(_payload.toUint8(0) == PT_SEND && _payload.length == 29, "OFTCore: invalid send payload");
-        to = _payload.toAddress(1);
-        amountSD = _payload.toUint64(21);
+        require(_payload.toUint8(0) == PT_SEND && _payload.length == 30, "OFTCore: invalid send payload");
+
+        uint8 toAddressSize = _payload.toUint8(1);
+        require(toAddressSize == 20, "OFTCore: invalid to address size");
+
+        to = _payload.toAddress(2);
+        amountSD = _payload.toUint64(22);
     }
 
     function _debitFrom(address _from, uint16 _dstChainId, bytes memory _toAddress, uint _amount) internal virtual returns (uint);
