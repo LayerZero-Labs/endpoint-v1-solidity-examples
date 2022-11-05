@@ -64,7 +64,7 @@ describe("OFT v2: ", function () {
             bob.address,
             amount,
             amount,
-            ethers.utils.AbiCoder.prototype.encode(['address', 'address'], [alice.address, ethers.constants.AddressZero]),
+            [alice.address, ethers.constants.AddressZero],
             "0x",
             { value: nativeFee }
         )
@@ -86,7 +86,7 @@ describe("OFT v2: ", function () {
             alice.address,
             halfAmount,
             halfAmount,
-            ethers.utils.AbiCoder.prototype.encode(['address', 'address'], [bob.address, ethers.constants.AddressZero]),
+            [bob.address, ethers.constants.AddressZero],
             "0x",
             { value: nativeFee }
         )
@@ -116,7 +116,7 @@ describe("OFT v2: ", function () {
             bob.address,
             amount,
             amount,
-            ethers.utils.AbiCoder.prototype.encode(['address', 'address'], [alice.address, ethers.constants.AddressZero]),
+            [alice.address, ethers.constants.AddressZero],
             "0x",
             { value: nativeFee }
         )
@@ -132,7 +132,8 @@ describe("OFT v2: ", function () {
                 remoteChainId,
                 bob.address,
                 amount,
-                ethers.utils.AbiCoder.prototype.encode(['address', 'address'], [alice.address, ethers.constants.AddressZero]),
+                amount,
+                [alice.address, ethers.constants.AddressZero],
                 "0x",
                 {value: nativeFee}
             )
@@ -184,7 +185,7 @@ describe("OFT v2: ", function () {
             bob.address,
             amount,
             halfAmount,
-            ethers.utils.AbiCoder.prototype.encode(['address', 'address'], [alice.address, ethers.constants.AddressZero]),
+            [alice.address, ethers.constants.AddressZero],
             "0x",
             { value: nativeFee }
         )
