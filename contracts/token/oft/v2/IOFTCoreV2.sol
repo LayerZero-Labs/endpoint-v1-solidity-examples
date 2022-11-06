@@ -23,6 +23,8 @@ interface IOFTCoreV2 is IERC165 {
      */
     function estimateSendFee(uint16 _dstChainId, bytes calldata _toAddress, uint _amount, bool _useZro, bytes calldata _adapterParams) external view returns (uint nativeFee, uint zroFee);
 
+    function estimateSendAndCallFee(uint16 _dstChainId, bytes calldata _toAddress, uint _amount, bytes calldata _payload, uint64 _dstGasForCall, bool _useZro, bytes calldata _adapterParams) external view returns (uint nativeFee, uint zroFee);
+
     /**
      * @dev send `_amount` amount of token to (`_dstChainId`, `_toAddress`) from `_from`
      * `_from` the owner of token
@@ -35,6 +37,10 @@ interface IOFTCoreV2 is IERC165 {
      * `_adapterParams` is a flexible bytes array to indicate messaging adapter services
      */
     function sendFrom(address _from, uint16 _dstChainId, bytes calldata _toAddress, uint _amount, uint _minAmount, LzCallParams calldata _callParams, bytes calldata _adapterParams) external payable;
+
+    function sendAndCall(address _from, uint16 _dstChainId, bytes calldata _toAddress, uint _amount, uint _minAmount, bytes calldata _payload, uint64 _dstGasForCall, LzCallParams calldata _callParams, bytes calldata _adapterParams) external payable;
+
+    function retryOFTReceived(uint16 _srcChainId, bytes calldata _srcAddress, uint64 _nonce, bytes calldata _from, address _to, uint _amount, bytes calldata _payload) external;
 
     /**
      * @dev returns the circulating amount of tokens on current chain
@@ -59,4 +65,12 @@ interface IOFTCoreV2 is IERC165 {
     event ReceiveFromChain(uint16 indexed _srcChainId, address indexed _to, uint _amount);
 
     event SetUseCustomAdapterParams(bool _useCustomAdapterParams);
+
+    event CallOFTReceivedFailure(uint16 indexed _srcChainId, bytes _srcAddress, uint64 _nonce, bytes _from, address indexed _to, uint _amount, bytes _payload, bytes _reason);
+
+    event CallOFTReceivedSuccess(uint16 indexed _srcChainId, bytes _srcAddress, uint64 _nonce, bytes32 _hash);
+
+    event RetryOFTReceivedSuccess(bytes32 _messageHash);
+
+    event NonContractAddress(address _address);
 }
