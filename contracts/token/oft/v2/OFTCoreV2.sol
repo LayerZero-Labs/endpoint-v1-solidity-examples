@@ -208,7 +208,7 @@ abstract contract OFTCoreV2 is NonblockingLzApp, Fee, ERC165, IOFTV2 {
 
         uint8 toAddressSize = _payload.toUint8(1);
         to = _payload.slice(2, toAddressSize);
-        amountSD = _payload.toUint64(22);
+        amountSD = _payload.toUint64(2 + toAddressSize);
     }
 
     function _encodeSendAndCallPayload(address _from, bytes memory _toAddress, uint64 _amountSD, bytes calldata _payload, uint64 _dstGasForCall) internal virtual view returns (bytes memory) {
