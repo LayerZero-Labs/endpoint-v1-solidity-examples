@@ -4,12 +4,9 @@ pragma solidity ^0.8.0;
 
 import "../../../lzApp/NonblockingLzApp.sol";
 import "../../../util/ExcessivelySafeCall.sol";
-import "./IOFTV2.sol";
-import "./Fee.sol";
 import "../composable/IOFTReceiver.sol";
-import "@openzeppelin/contracts/utils/introspection/ERC165.sol";
 
-abstract contract OFTCoreV2 is NonblockingLzApp, Fee, ERC165, IOFTV2 {
+abstract contract OFTCoreV2 is NonblockingLzApp {
     using BytesLib for bytes;
     using ExcessivelySafeCall for address;
 
@@ -25,36 +22,58 @@ abstract contract OFTCoreV2 is NonblockingLzApp, Fee, ERC165, IOFTV2 {
     
     mapping(uint16 => mapping(bytes => mapping(uint64 => bytes32))) public failedOFTReceivedMessages;
 
+    /**
+     * @dev Emitted when `_amount` tokens are moved from the `_sender` to (`_dstChainId`, `_toAddress`)
+     * `_nonce` is the outbound nonce
+     */
+    event SendToChain(uint16 indexed _dstChainId, address indexed _from, bytes _toAddress, uint _amount);
+
+    /**
+     * @dev Emitted when `_amount` tokens are received from `_srcChainId` into the `_toAddress` on the local chain.
+     * `_nonce` is the inbound nonce.
+     */
+    event ReceiveFromChain(uint16 indexed _srcChainId, address indexed _to, uint _amount);
+
+    event SetUseCustomAdapterParams(bool _useCustomAdapterParams);
+
+    event CallOFTReceivedFailure(uint16 indexed _srcChainId, bytes _srcAddress, uint64 _nonce, bytes _from, address indexed _to, uint _amount, bytes _payload, bytes _reason);
+
+    event CallOFTReceivedSuccess(uint16 indexed _srcChainId, bytes _srcAddress, uint64 _nonce, bytes32 _hash);
+
+    event RetryOFTReceivedSuccess(bytes32 _messageHash);
+
+    event NonContractAddress(address _address);
+
     // _sharedDecimals should be the minimum decimals on all chains
     constructor(uint8 _sharedDecimals, address _lzEndpoint) NonblockingLzApp(_lzEndpoint) {
         sharedDecimals = _sharedDecimals;
     }
 
-    function supportsInterface(bytes4 interfaceId) public view virtual override(ERC165, IERC165) returns (bool) {
-        return interfaceId == type(IOFTV2).interfaceId || super.supportsInterface(interfaceId);
+    // todo: lzapp?
+    /************************************************************************
+    * owner functions
+    ************************************************************************/
+    function setUseCustomAdapterParams(bool _useCustomAdapterParams) public virtual onlyOwner {
+        useCustomAdapterParams = _useCustomAdapterParams;
+        emit SetUseCustomAdapterParams(_useCustomAdapterParams);
     }
 
-    function estimateSendFee(uint16 _dstChainId, bytes calldata _toAddress, uint _amount, bool _useZro, bytes calldata _adapterParams) public view virtual override returns (uint nativeFee, uint zroFee) {
+    /************************************************************************
+    * internal functions
+    ************************************************************************/
+    function _estimateSendFee(uint16 _dstChainId, bytes calldata _toAddress, uint _amount, bool _useZro, bytes calldata _adapterParams) internal view virtual returns (uint nativeFee, uint zroFee) {
         // mock the payload for sendFrom()
         bytes memory payload = _encodeSendPayload(_toAddress, _ld2sd(_amount));
         return lzEndpoint.estimateFees(_dstChainId, address(this), payload, _useZro, _adapterParams);
     }
 
-    function estimateSendAndCallFee(uint16 _dstChainId, bytes calldata _toAddress, uint _amount, bytes calldata _payload, uint64 _dstGasForCall, bool _useZro, bytes calldata _adapterParams) public view virtual override returns (uint nativeFee, uint zroFee) {
+    function _estimateSendAndCallFee(uint16 _dstChainId, bytes calldata _toAddress, uint _amount, bytes calldata _payload, uint64 _dstGasForCall, bool _useZro, bytes calldata _adapterParams) internal view virtual returns (uint nativeFee, uint zroFee) {
         // mock the payload for sendAndCall()
         bytes memory payload = _encodeSendAndCallPayload(msg.sender, _toAddress, _ld2sd(_amount), _payload, _dstGasForCall);
         return lzEndpoint.estimateFees(_dstChainId, address(this), payload, _useZro, _adapterParams);
     }
 
-    function sendFrom(address _from, uint16 _dstChainId, bytes calldata _toAddress, uint _amount, uint _minAmount, LzCallParams calldata _callParams, bytes calldata _adapterParams) public payable virtual override {
-        _send(_from, _dstChainId, _toAddress, _amount, _minAmount, _callParams, _adapterParams);
-    }
-
-    function sendAndCall(address _from, uint16 _dstChainId, bytes calldata _toAddress, uint _amount, uint _minAmount, bytes calldata _payload, uint64 _dstGasForCall, LzCallParams calldata _callParams, bytes calldata _adapterParams) public payable virtual override {
-        _sendAndCall(_from, _dstChainId, _toAddress, _amount, _minAmount, _payload, _dstGasForCall, _callParams, _adapterParams);
-    }
-
-    function retryOFTReceived(uint16 _srcChainId, bytes calldata _srcAddress, uint64 _nonce, bytes calldata _from, address _to, uint _amount, bytes calldata _payload) public virtual override {
+    function _retryOFTReceived(uint16 _srcChainId, bytes calldata _srcAddress, uint64 _nonce, bytes calldata _from, address _to, uint _amount, bytes calldata _payload) internal virtual {
         bytes32 msgHash = failedOFTReceivedMessages[_srcChainId][_srcAddress][_nonce];
         require(msgHash != bytes32(0), "OFTCore: no failed message to retry");
 
@@ -64,11 +83,6 @@ abstract contract OFTCoreV2 is NonblockingLzApp, Fee, ERC165, IOFTV2 {
         delete failedOFTReceivedMessages[_srcChainId][_srcAddress][_nonce];
         IOFTReceiver(_to).onOFTReceived(_srcChainId, _srcAddress, _nonce, _from, _amount, _payload);
         emit RetryOFTReceivedSuccess(hash);
-    }
-
-    function setUseCustomAdapterParams(bool _useCustomAdapterParams) public virtual onlyOwner {
-        useCustomAdapterParams = _useCustomAdapterParams;
-        emit SetUseCustomAdapterParams(_useCustomAdapterParams);
     }
 
     function _nonblockingLzReceive(uint16 _srcChainId, bytes memory _srcAddress, uint64 _nonce, bytes memory _payload) internal virtual override {
@@ -83,17 +97,14 @@ abstract contract OFTCoreV2 is NonblockingLzApp, Fee, ERC165, IOFTV2 {
         }
     }
 
-    function _send(address _from, uint16 _dstChainId, bytes memory _toAddress, uint _amount, uint _minAmount, LzCallParams calldata _callParams, bytes memory _adapterParams) internal virtual {
+    function _send(address _from, uint16 _dstChainId, bytes memory _toAddress, uint _amount, address payable _refundAddress, address _zroPaymentAddress, bytes memory _adapterParams) internal virtual returns (uint amount) {
         _checkAdapterParams(_dstChainId, PT_SEND, _adapterParams, NO_EXTRA_GAS);
 
-        (uint amount,) = _payOFTFee(_from, _dstChainId, _amount);
-
-        (amount,) = _removeDust(amount);
+        (amount,) = _removeDust(_amount);
         amount = _debitFrom(_from, _dstChainId, _toAddress, amount);
-        require(amount >= _minAmount, "OFTCore: amount < minAmount");
 
         bytes memory lzPayload = _encodeSendPayload(_toAddress, _ld2sd(amount));
-        _lzSend(_dstChainId, lzPayload, _callParams.refundAddress, _callParams.zroPaymentAddress, _adapterParams, msg.value);
+        _lzSend(_dstChainId, lzPayload, _refundAddress, _zroPaymentAddress, _adapterParams, msg.value);
 
         emit SendToChain(_dstChainId, _from, _toAddress, amount);
     }
@@ -105,18 +116,15 @@ abstract contract OFTCoreV2 is NonblockingLzApp, Fee, ERC165, IOFTV2 {
         emit ReceiveFromChain(_srcChainId, to, amount);
     }
 
-    function _sendAndCall(address _from, uint16 _dstChainId, bytes memory _toAddress, uint _amount, uint _minAmount, bytes calldata _payload, uint64 _dstGasForCall, LzCallParams calldata _callParams, bytes memory _adapterParams) internal virtual {
+    function _sendAndCall(address _from, uint16 _dstChainId, bytes memory _toAddress, uint _amount, bytes calldata _payload, uint64 _dstGasForCall, address payable _refundAddress, address _zroPaymentAddress, bytes memory _adapterParams) internal virtual returns (uint amount) {
         _checkAdapterParams(_dstChainId, PT_SEND_AND_CALL, _adapterParams, _dstGasForCall);
 
-        (uint amount,) = _payOFTFee(_from, _dstChainId, _amount);
-
-        (amount,) = _removeDust(amount);
+        (amount,) = _removeDust(_amount);
         amount = _debitFrom(_from, _dstChainId, _toAddress, amount);
-        require(amount >= _minAmount, "OFTCore: amount < minAmount");
 
         // encode the msg.sender into the payload instead of _from
         bytes memory lzPayload = _encodeSendAndCallPayload(msg.sender, _toAddress, _ld2sd(amount), _payload, _dstGasForCall);
-        _lzSend(_dstChainId, lzPayload, _callParams.refundAddress, _callParams.zroPaymentAddress, _adapterParams, msg.value);
+        _lzSend(_dstChainId, lzPayload, _refundAddress, _zroPaymentAddress, _adapterParams, msg.value);
 
         emit SendToChain(_dstChainId, _from, _toAddress, amount);
     }

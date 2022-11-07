@@ -7,11 +7,11 @@ import "@openzeppelin/contracts/access/Ownable.sol";
 abstract contract Fee is Ownable {
     uint public constant BP_DENOMINATOR = 10000;
 
-    mapping(uint16 => Fee) public chainIdToFeeBps;
+    mapping(uint16 => FeeConfig) public chainIdToFeeBps;
     uint16 public defaultFeeBp;
     address public feeOwner; // defaults to owner
 
-    struct Fee {
+    struct FeeConfig {
         uint16 feeBP;
         bool enabled;
     }
@@ -32,7 +32,7 @@ abstract contract Fee is Ownable {
 
     function setFeeBp(uint16 _dstChainId, bool _enabled, uint16 _feeBp) public virtual onlyOwner {
         require(_feeBp <= BP_DENOMINATOR, "OFTFee: fee bp must be <= BP_DENOMINATOR");
-        chainIdToFeeBps[_dstChainId] = Fee(_feeBp, _enabled);
+        chainIdToFeeBps[_dstChainId] = FeeConfig(_feeBp, _enabled);
         emit SetFeeBp(_dstChainId, _enabled, _feeBp);
     }
 
@@ -43,7 +43,7 @@ abstract contract Fee is Ownable {
     }
 
     function quoteOFTFee(uint16 _dstChainId, uint _amount) public virtual view returns (uint fee) {
-        Fee memory config = chainIdToFeeBps[_dstChainId];
+        FeeConfig memory config = chainIdToFeeBps[_dstChainId];
         if (config.enabled) {
             fee = _amount * config.feeBP / BP_DENOMINATOR;
         } else if (defaultFeeBp > 0) {

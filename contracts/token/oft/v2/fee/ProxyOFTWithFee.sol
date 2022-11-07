@@ -2,10 +2,10 @@
 
 pragma solidity ^0.8.0;
 
-import "./BaseOFTV2.sol";
 import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
+import "./BaseOFTWithFee.sol";
 
-contract ProxyOFTV2 is BaseOFTV2 {
+contract ProxyOFTWithFee is BaseOFTWithFee {
     using SafeERC20 for IERC20;
 
     IERC20 internal immutable innerToken;
@@ -14,7 +14,7 @@ contract ProxyOFTV2 is BaseOFTV2 {
     // total amount in sd is transferred from this chain to other chains, ensuring the total is less than max of uint64
     uint64 public outboundAmountSD;
 
-    constructor(address _token, uint8 _sharedDecimals, address _lzEndpoint) BaseOFTV2(_sharedDecimals, _lzEndpoint) {
+    constructor(address _token, uint8 _sharedDecimals, address _lzEndpoint) BaseOFTWithFee(_sharedDecimals, _lzEndpoint) {
         innerToken = IERC20(_token);
 
         (bool success, bytes memory data) = _token.staticcall(
@@ -65,7 +65,7 @@ contract ProxyOFTV2 is BaseOFTV2 {
         return innerToken.balanceOf(_toAddress) - before;
     }
 
-    function _transferFrom(address _from, address _to, uint _amount) internal virtual {
+    function _transferFrom(address _from, address _to, uint _amount) internal virtual override {
         require(_from == _msgSender(), "ProxyOFT: owner is not send caller");
         innerToken.safeTransferFrom(_from, _to, _amount);
     }

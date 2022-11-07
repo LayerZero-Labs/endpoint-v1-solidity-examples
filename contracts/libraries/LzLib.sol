@@ -71,9 +71,7 @@ library LzLib {
 
     //---------------------------------------------------------------------------
     // Address type handling
-    // TODO: testing
     function bytes32ToAddress(bytes32 _bytes32Address) internal pure returns (address _address) {
-        require(bytes12(_bytes32Address) == bytes12(0), "Invalid address"); // first 12 bytes should be empty
         return address(uint160(uint(_bytes32Address)));
     }
 

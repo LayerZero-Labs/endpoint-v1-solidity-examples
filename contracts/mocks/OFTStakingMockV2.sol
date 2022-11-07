@@ -76,8 +76,8 @@ contract OFTStakingMockV2 is IOFTReceiver {
         IERC20(oft.token()).safeTransferFrom(msg.sender, address(this), _amount);
 
         bytes memory payload = abi.encode(PT_DEPOSIT_TO_REMOTE_CHAIN, _to);
-        IOFTV2.LzCallParams memory callParams = IOFTV2.LzCallParams(payable(msg.sender), address(0));
-        oft.sendAndCall{value: msg.value}(address(this), _dstChainId, dstStakingContract, _amount, _minAmount, payload, DST_GAS_FOR_CALL, callParams, _adapterParams);
+        IOFTV2.LzCallParams memory callParams = ICommonOFT.LzCallParams(payable(msg.sender), address(0), _adapterParams);
+        oft.sendAndCall{value: msg.value}(address(this), _dstChainId, dstStakingContract, _amount, payload, DST_GAS_FOR_CALL, callParams);
 
         emit DepositToDstChain(msg.sender, _dstChainId, _to, _amount);
     }
