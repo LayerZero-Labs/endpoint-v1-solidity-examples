@@ -52,7 +52,6 @@ describe("Composable ProxyOFT v2: ", function () {
     it("deposit on dst chain", async function () {
         // owner transfer 100 ether token to alice
         const amount = ethers.utils.parseEther("100")
-        const minAmount = ethers.utils.parseEther("100")
         await token.transfer(alice.address, amount)
         expect(await token.balanceOf(alice.address)).to.equal(amount)
 
@@ -63,7 +62,7 @@ describe("Composable ProxyOFT v2: ", function () {
         // deposit on dst chain
         const fee = await srcStaking.quoteForDeposit(dstChainId, bob.address, amount, adapterParam)
 
-        await srcStaking.connect(alice).depositToDstChain(dstChainId, bob.address, amount, minAmount, adapterParam, { value: fee[0] })
+        await srcStaking.connect(alice).depositToDstChain(dstChainId, bob.address, amount, adapterParam, { value: fee[0] })
 
         // check balance
         expect(await token.balanceOf(alice.address)).to.equal(0)
@@ -79,7 +78,6 @@ describe("Composable ProxyOFT v2: ", function () {
     it("failed to call on oft received for paused", async function () {
         // owner transfer 50 ether token to alice
         const amount = ethers.utils.parseEther("50")
-        const minAmount = ethers.utils.parseEther("50")
 
         await token.transfer(alice.address, amount)
         expect(await token.balanceOf(alice.address)).to.equal(amount)
@@ -93,7 +91,7 @@ describe("Composable ProxyOFT v2: ", function () {
 
         // deposit on dst chain
         const fee = await srcStaking.quoteForDeposit(dstChainId, carol.address, amount, adapterParam)
-        await srcStaking.connect(alice).depositToDstChain(dstChainId, carol.address, amount, minAmount, adapterParam, { value: fee[0] })
+        await srcStaking.connect(alice).depositToDstChain(dstChainId, carol.address, amount, adapterParam, { value: fee[0] })
 
         // check balance
         expect(await token.balanceOf(alice.address)).to.equal(0)

@@ -63,7 +63,6 @@ contract OFTStakingMockV2 is IOFTReceiver {
         uint16 _dstChainId,
         bytes calldata _to, // address of the owner of token on the destination chain
         uint _amount, // amount of token to deposit
-        uint _minAmount, // minimum amount of token to receive on the destination chain
         bytes calldata _adapterParams
     ) external payable {
         bytes memory dstStakingContract = remoteStakingContracts[_dstChainId];
