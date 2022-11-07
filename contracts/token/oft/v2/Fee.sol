@@ -4,7 +4,7 @@ pragma solidity ^0.8.0;
 
 import "@openzeppelin/contracts/access/Ownable.sol";
 
-abstract contract OFTFee is Ownable {
+abstract contract Fee is Ownable {
     uint public constant BP_DENOMINATOR = 10000;
 
     mapping(uint16 => Fee) public chainIdToFeeBps;

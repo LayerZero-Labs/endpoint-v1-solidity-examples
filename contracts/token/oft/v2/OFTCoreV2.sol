@@ -5,11 +5,11 @@ pragma solidity ^0.8.0;
 import "../../../lzApp/NonblockingLzApp.sol";
 import "../../../util/ExcessivelySafeCall.sol";
 import "./IOFTV2.sol";
-import "./OFTFee.sol";
+import "./Fee.sol";
 import "../composable/IOFTReceiver.sol";
 import "@openzeppelin/contracts/utils/introspection/ERC165.sol";
 
-abstract contract OFTCoreV2 is NonblockingLzApp, OFTFee, ERC165, IOFTV2 {
+abstract contract OFTCoreV2 is NonblockingLzApp, Fee, ERC165, IOFTV2 {
     using BytesLib for bytes;
     using ExcessivelySafeCall for address;
 
