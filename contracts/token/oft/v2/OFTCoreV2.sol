@@ -169,8 +169,8 @@ abstract contract OFTCoreV2 is NonblockingLzApp {
     }
 
     function _safeConvertReceiverAddress(bytes memory _address) internal view virtual returns (bool, address) {
-        if (_address.length != 20) { // if invalid address, send to the owner
-            return (false, owner());
+        if (_address.length != 20) {
+            return (false, address(0xdead));
         }
 
         address to = _address.toAddress(0);

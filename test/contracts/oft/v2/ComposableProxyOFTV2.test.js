@@ -12,7 +12,7 @@ describe("Composable ProxyOFT v2: ", function () {
         const LZEndpointMock = await ethers.getContractFactory("LZEndpointMock")
         const ProxyOFT = await ethers.getContractFactory("ProxyOFTV2")
         const MockToken = await ethers.getContractFactory("MockToken")
-        const OFT = await ethers.getContractFactory("ExampleOFTV2")
+        const OFT = await ethers.getContractFactory("OFTV2")
         const OFTStakingMock = await ethers.getContractFactory("OFTStakingMockV2")
 
         srcEndpoint = await LZEndpointMock.deploy(srcChainId)
@@ -20,7 +20,7 @@ describe("Composable ProxyOFT v2: ", function () {
         token = await MockToken.deploy("Mock", "MOCK")
 
         proxyOFT = await ProxyOFT.deploy(token.address, 6, srcEndpoint.address)
-        dstOFT = await OFT.deploy(dstEndpoint.address, 0, 6)
+        dstOFT = await OFT.deploy("OFT", "OFT", 6, dstEndpoint.address)
 
         srcStaking = await OFTStakingMock.deploy(proxyOFT.address)
         dstStaking = await OFTStakingMock.deploy(dstOFT.address)
