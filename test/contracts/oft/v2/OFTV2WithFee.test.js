@@ -134,6 +134,21 @@ describe("OFT with fee: ", function () {
         // swaps max amount of token to remote chain
         await erc20.connect(alice).approve(localOFT.address, amount)
         let nativeFee = (await localOFT.estimateSendFee(remoteChainId, bob.address, amount, false, "0x")).nativeFee
+        try {
+            await localOFT.connect(alice).sendFrom(
+                alice.address,
+                remoteChainId,
+                bob.address,
+                amount,
+                amount,
+                [alice.address, ethers.constants.AddressZero, "0x"],
+                { value: nativeFee }
+            )
+            expect(false).to.be.true
+        } catch (e) {
+            expect(e.message).to.match(/BaseOFTWithFee: amount is less than minAmount/)
+        }
+
         await localOFT.connect(alice).sendFrom(
             alice.address,
             remoteChainId,
