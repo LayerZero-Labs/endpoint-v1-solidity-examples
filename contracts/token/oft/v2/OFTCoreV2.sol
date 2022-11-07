@@ -4,12 +4,12 @@ pragma solidity ^0.8.0;
 
 import "../../../lzApp/NonblockingLzApp.sol";
 import "../../../util/ExcessivelySafeCall.sol";
-import "./IOFTCoreV2.sol";
+import "./IOFTV2.sol";
 import "./OFTFee.sol";
 import "../composable/IOFTReceiver.sol";
 import "@openzeppelin/contracts/utils/introspection/ERC165.sol";
 
-abstract contract OFTCoreV2 is NonblockingLzApp, OFTFee, ERC165, IOFTCoreV2 {
+abstract contract OFTCoreV2 is NonblockingLzApp, OFTFee, ERC165, IOFTV2 {
     using BytesLib for bytes;
     using ExcessivelySafeCall for address;
 
@@ -31,7 +31,7 @@ abstract contract OFTCoreV2 is NonblockingLzApp, OFTFee, ERC165, IOFTCoreV2 {
     }
 
     function supportsInterface(bytes4 interfaceId) public view virtual override(ERC165, IERC165) returns (bool) {
-        return interfaceId == type(IOFTCoreV2).interfaceId || super.supportsInterface(interfaceId);
+        return interfaceId == type(IOFTV2).interfaceId || super.supportsInterface(interfaceId);
     }
 
     function estimateSendFee(uint16 _dstChainId, bytes calldata _toAddress, uint _amount, bool _useZro, bytes calldata _adapterParams) public view virtual override returns (uint nativeFee, uint zroFee) {

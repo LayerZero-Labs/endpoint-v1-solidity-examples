@@ -5,7 +5,7 @@ pragma solidity ^0.8.0;
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import "../token/oft/composable/IOFTReceiver.sol";
-import "../token/oft/v2/IOFTCoreV2.sol";
+import "../token/oft/v2/IOFTV2.sol";
 import "../util/BytesLib.sol";
 
 import "hardhat/console.sol";
@@ -23,7 +23,7 @@ contract OFTStakingMockV2 is IOFTReceiver {
     // ... other types
 
     // variables
-    IOFTCoreV2 public oft;
+    IOFTV2 public oft;
     mapping(uint16 => bytes) public remoteStakingContracts;
     mapping(address => uint) public balances;
     bool public paused; // for testing try/catch
@@ -34,7 +34,7 @@ contract OFTStakingMockV2 is IOFTReceiver {
 
     // _oft can be any composable OFT contract, e.g. ComposableOFT, ComposableBasedOFT and ComposableProxyOFT.
     constructor(address _oft) {
-        oft = IOFTCoreV2(_oft);
+        oft = IOFTV2(_oft);
         IERC20(oft.token()).safeApprove(_oft, type(uint).max);
     }
 
@@ -76,7 +76,7 @@ contract OFTStakingMockV2 is IOFTReceiver {
         IERC20(oft.token()).safeTransferFrom(msg.sender, address(this), _amount);
 
         bytes memory payload = abi.encode(PT_DEPOSIT_TO_REMOTE_CHAIN, _to);
-        IOFTCoreV2.LzCallParams memory callParams = IOFTCoreV2.LzCallParams(payable(msg.sender), address(0));
+        IOFTV2.LzCallParams memory callParams = IOFTV2.LzCallParams(payable(msg.sender), address(0));
         oft.sendAndCall{value: msg.value}(address(this), _dstChainId, dstStakingContract, _amount, _minAmount, payload, DST_GAS_FOR_CALL, callParams, _adapterParams);
 
         emit DepositToDstChain(msg.sender, _dstChainId, _to, _amount);
