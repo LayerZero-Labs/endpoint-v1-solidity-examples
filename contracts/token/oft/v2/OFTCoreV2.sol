@@ -110,13 +110,15 @@ abstract contract OFTCoreV2 is NonblockingLzAppV2 {
     function _sendAck(uint16 _srcChainId, bytes memory, uint64, bytes memory _payload) internal virtual {
         (bytes memory toAddress, uint64 amountSD) = _decodeSendPayload(_payload);
         (bool isValid, address to) = _safeConvertReceiverAddress(toAddress);
-        if (!isValid) {
-            emit InvalidReceiver(toAddress);
-        }
 
         uint amount = _sd2ld(amountSD);
         amount = _creditTo(_srcChainId, to, amount);
-        emit ReceiveFromChain(_srcChainId, to, amount);
+
+        if(!isValid) {
+            emit InvalidReceiver(toAddress);
+        } else {
+            emit ReceiveFromChain(_srcChainId, to, amount);
+        }
     }
 
     function _sendAndCall(address _from, uint16 _dstChainId, bytes memory _toAddress, uint _amount, bytes calldata _payload, uint64 _dstGasForCall, address payable _refundAddress, address _zroPaymentAddress, bytes memory _adapterParams) internal virtual returns (uint amount) {
@@ -185,8 +187,9 @@ abstract contract OFTCoreV2 is NonblockingLzAppV2 {
 
         address to = _address.toAddress(0);
         if (to == address(0)) {
-            to = address(0xdead);
+            return (false, address(0xdead));
         }
+
         return (true, to);
     }
 
