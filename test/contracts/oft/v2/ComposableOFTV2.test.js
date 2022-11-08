@@ -95,10 +95,11 @@ describe("ComposableOFT v2: ", function () {
         expect(await dstOFT.balanceOf(dstOFT.address)).to.equal(amount)
         expect(await dstStaking.balances(carol.address)).to.equal(0) // failed to call onOFTReceived() for paused
 
-        // todo: check contract balance
+        // should be 0 for failure to call onOFTReceived()
+        expect(await dstOFT.balanceOf(dstStaking.address)).to.equal(0)
     })
 
-    it("retry to call onOft received ", async function () {
+    it("retry to call onOFTReceived() by calling retryMessage()", async function () {
         await dstStaking.setPaused(false) // unpaused on dst chain
 
         const amount = ethers.utils.parseEther("50")
@@ -106,9 +107,9 @@ describe("ComposableOFT v2: ", function () {
         const payloadForCall = ethers.utils.defaultAbiCoder.encode(["uint8", "bytes"], [1, carol.address])
 
         // retry to call onOFTReceived()
-        const payload = ethers.utils.defaultAbiCoder.encode(
+        const payload = ethers.utils.solidityPack(
             ["uint8", "uint8", "bytes", "uint64", "uint8", "bytes", "uint8", "bytes", "uint64"],
-            [1, 20, dstStaking.address, amountSD, 20, srcStaking.address, 85, payloadForCall, 300000]
+            [1, 20, dstStaking.address, amountSD, 20, srcStaking.address, 128, payloadForCall, 300000]
         )
 
         // console.log("_from", alice.address)
@@ -117,5 +118,6 @@ describe("ComposableOFT v2: ", function () {
         // console.log("payload", payload)
         await dstOFT.retryMessage(srcChainId, srcPath, 2, payload)
         expect(await dstStaking.balances(carol.address)).to.equal(amount)
+        expect(await dstOFT.balanceOf(dstStaking.address)).to.equal(amount)
     })
 })
