@@ -2,11 +2,13 @@
 
 pragma solidity ^0.8.0;
 
+import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "../../../lzApp/NonblockingLzApp.sol";
 import "../../../util/ExcessivelySafeCall.sol";
 import "../composable/IOFTReceiver.sol";
+import "./ICommonOFT.sol";
 
-abstract contract OFTCoreV2 is NonblockingLzApp {
+abstract contract OFTCoreV2 is NonblockingLzApp, ICommonOFT {
     using BytesLib for bytes;
     using ExcessivelySafeCall for address;
 
@@ -83,7 +85,10 @@ abstract contract OFTCoreV2 is NonblockingLzApp {
         require(hash == msgHash, "OFTCore: failed message hash mismatch");
 
         delete failedOFTReceivedMessages[_srcChainId][_srcAddress][_nonce];
+
+        IERC20(token()).transfer(_to, _amount);
         IOFTReceiver(_to).onOFTReceived(_srcChainId, _srcAddress, _nonce, _from, _amount, _payload);
+
         emit RetryOFTReceivedSuccess(hash);
     }
 
@@ -141,7 +146,7 @@ abstract contract OFTCoreV2 is NonblockingLzApp {
         (bool isValid, address to) = _safeConvertReceiverAddress(toAddress);
 
         uint amount = _sd2ld(amountSD);
-        amount = _creditTo(_srcChainId, to, amount);
+        amount = _creditTo(_srcChainId, address(this), amount);
         emit ReceiveFromChain(_srcChainId, to, amount);
 
         if (!isValid) {
@@ -154,18 +159,22 @@ abstract contract OFTCoreV2 is NonblockingLzApp {
             return;
         }
 
-        _safeCallOnOFTReceived(_srcChainId, _srcAddress, _nonce, from, to, amount, payload, gasForCall);
+        try this.safeCallOnOFTReceived(_srcChainId, _srcAddress, _nonce, from, to, amount, payload, gasForCall) {
+            bytes32 hash = keccak256(abi.encode(from, to, amount, payload));
+            emit CallOFTReceivedSuccess(_srcChainId, _srcAddress, _nonce, hash);
+        } catch(bytes memory reason) {
+            failedOFTReceivedMessages[_srcChainId][_srcAddress][_nonce] = keccak256(abi.encode(from, to, amount, payload));
+            emit CallOFTReceivedFailure(_srcChainId, _srcAddress, _nonce, from, to, amount, payload, reason);
+        }
     }
 
-    function _safeCallOnOFTReceived(uint16 _srcChainId, bytes memory _srcAddress, uint64 _nonce, bytes memory _from, address _to, uint _amount, bytes memory _payload, uint64 _gasForCall) internal virtual {
+    function safeCallOnOFTReceived(uint16 _srcChainId, bytes memory _srcAddress, uint64 _nonce, bytes memory _from, address _to, uint _amount, bytes memory _payload, uint64 _gasForCall) public virtual {
+        require(_msgSender() == address(this), "OFTCoreV2: caller must be OFTCoreV2");
+
+        IERC20(token()).transfer(_to, _amount);
         (bool success, bytes memory reason) = _to.excessivelySafeCall(_gasForCall, 150, abi.encodeWithSelector(IOFTReceiver.onOFTReceived.selector, _srcChainId, _srcAddress, _nonce, _from, _amount, _payload));
-        if (!success) {
-            failedOFTReceivedMessages[_srcChainId][_srcAddress][_nonce] = keccak256(abi.encode(_from, _to, _amount, _payload));
-            emit CallOFTReceivedFailure(_srcChainId, _srcAddress, _nonce, _from, _to, _amount, _payload, reason);
-        } else {
-            bytes32 hash = keccak256(abi.encode(_from, _to, _amount, _payload));
-            emit CallOFTReceivedSuccess(_srcChainId, _srcAddress, _nonce, hash);
-        }
+
+        require(success, string(reason));
     }
 
     function _safeConvertReceiverAddress(bytes memory _address) internal view virtual returns (bool, address) {
@@ -260,4 +269,8 @@ abstract contract OFTCoreV2 is NonblockingLzApp {
     function _creditTo(uint16 _srcChainId, address _toAddress, uint _amount) internal virtual returns (uint);
 
     function _ld2sdRate() internal view virtual returns (uint);
+
+    function circulatingSupply() public view virtual override returns (uint);
+
+    function token() public view virtual override returns (address);
 }

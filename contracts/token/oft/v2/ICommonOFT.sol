@@ -8,13 +8,6 @@ import "@openzeppelin/contracts/utils/introspection/IERC165.sol";
  * @dev Interface of the IOFT core standard
  */
 interface ICommonOFT is IERC165 {
-
-    struct LzCallParams {
-        address payable refundAddress;
-        address zroPaymentAddress;
-        bytes adapterParams;
-    }
-
     /**
      * @dev estimate send token `_tokenId` to (`_dstChainId`, `_toAddress`)
      * _dstChainId - L0 defined chain id to send tokens too

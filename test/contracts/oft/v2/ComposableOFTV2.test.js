@@ -92,13 +92,13 @@ describe("ComposableOFT v2: ", function () {
 
         // check balance
         expect(await srcOFT.balanceOf(alice.address)).to.equal(0)
-        expect(await dstOFT.balanceOf(dstStaking.address)).to.equal(amount)
+        expect(await dstOFT.balanceOf(dstOFT.address)).to.equal(amount)
         expect(await dstStaking.balances(carol.address)).to.equal(0) // failed to call onOFTReceived() for paused
     })
 
     it("retry to call on oft received", async function () {
         await dstStaking.setPaused(false) // unpaused on dst chain
-        const amount = await dstOFT.balanceOf(dstStaking.address)
+        const amount = await dstOFT.balanceOf(dstOFT.address)
 
         // retry to call onOFTReceived()
         const payload = ethers.utils.defaultAbiCoder.encode(["uint8", "bytes"], [1, carol.address])
