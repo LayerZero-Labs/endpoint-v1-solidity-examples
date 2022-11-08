@@ -104,7 +104,10 @@ describe("Composable ProxyOFT v2: ", function () {
         const amount = await dstOFT.balanceOf(dstOFT.address)
 
         // retry to call onOFTReceived()
-        const payload = ethers.utils.defaultAbiCoder.encode(["uint8", "bytes"], [1, carol.address])
+        const payload = ethers.utils.defaultAbiCoder.encode(
+            ["uint8", "uint8", "bytes", "uint64", "uint8", "bytes", "uint8", "bytes", "uint64"],
+            [1, 20, srcStaking.address, ]
+        )
         // console.log("_from", alice.address)
         // console.log("_to", dstOFT.address)
         // console.log("_amount", amount)

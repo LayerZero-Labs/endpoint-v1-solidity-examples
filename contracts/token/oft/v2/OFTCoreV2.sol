@@ -157,12 +157,13 @@ abstract contract OFTCoreV2 is NonblockingLzAppV2 {
         bytes memory payload = _payload;
         bool isRetry = _isRetry;
         bytes memory from_ = from;
+        address to_ = to;
         uint amount_ = amount;
         bytes memory payloadForCall_ = payloadForCall;
 
         // no gas limit for the call if retry
         uint gas = isRetry ? gasleft() : gasForCall;
-        (bool success, bytes memory reason) = address(this).excessivelySafeCall(gasleft(), 150, abi.encodeWithSelector(this.callOnOFTReceived.selector, srcChainId, srcAddress, nonce, from_, amount_, payloadForCall_, gas));
+        (bool success, bytes memory reason) = address(this).excessivelySafeCall(gasleft(), 150, abi.encodeWithSelector(this.callOnOFTReceived.selector, srcChainId, srcAddress, nonce, from_, to_, amount_, payloadForCall_, gas));
 
         bytes32 hash = keccak256(payload);
         if (success) {

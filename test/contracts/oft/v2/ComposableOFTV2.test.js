@@ -94,20 +94,28 @@ describe("ComposableOFT v2: ", function () {
         expect(await srcOFT.balanceOf(alice.address)).to.equal(0)
         expect(await dstOFT.balanceOf(dstOFT.address)).to.equal(amount)
         expect(await dstStaking.balances(carol.address)).to.equal(0) // failed to call onOFTReceived() for paused
+
+        // todo: check contract balance
     })
 
-    it("retry to call on oft received", async function () {
+    it("retry to call onOft received ", async function () {
         await dstStaking.setPaused(false) // unpaused on dst chain
-        const amount = await dstOFT.balanceOf(dstOFT.address)
+
+        const amount = ethers.utils.parseEther("50")
+        const amountSD = amount.div(Math.pow(10, 12))
+        const payloadForCall = ethers.utils.defaultAbiCoder.encode(["uint8", "bytes"], [1, carol.address])
 
         // retry to call onOFTReceived()
-        const payload = ethers.utils.defaultAbiCoder.encode(["uint8", "bytes"], [1, carol.address])
+        const payload = ethers.utils.defaultAbiCoder.encode(
+            ["uint8", "uint8", "bytes", "uint64", "uint8", "bytes", "uint8", "bytes", "uint64"],
+            [1, 20, dstStaking.address, amountSD, 20, srcStaking.address, 85, payloadForCall, 300000]
+        )
+
         // console.log("_from", alice.address)
         // console.log("_to", dstOFT.address)
         // console.log("_amount", amount)
         // console.log("payload", payload)
-        let dstPath = ethers.utils.solidityPack(["address", "address"], [srcOFT.address, dstOFT.address]);
-        await dstOFT.retryOFTReceived(srcChainId, dstPath, 2, srcStaking.address, dstStaking.address, amount, payload)
+        await dstOFT.retryMessage(srcChainId, srcPath, 2, payload)
         expect(await dstStaking.balances(carol.address)).to.equal(amount)
     })
 })
