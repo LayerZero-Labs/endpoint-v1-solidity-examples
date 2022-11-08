@@ -169,7 +169,7 @@ abstract contract OFTCoreV2 is NonblockingLzApp, ICommonOFT {
     }
 
     function safeCallOnOFTReceived(uint16 _srcChainId, bytes memory _srcAddress, uint64 _nonce, bytes memory _from, address _to, uint _amount, bytes memory _payload, uint64 _gasForCall) public virtual {
-        require(_msgSender() == address(this), "OFTCoreV2: caller must be OFTCoreV2");
+        require(_msgSender() == address(this), "OFTCore: caller must be OFTCore");
 
         IERC20(token()).transfer(_to, _amount);
         (bool success, bytes memory reason) = _to.excessivelySafeCall(_gasForCall, 150, abi.encodeWithSelector(IOFTReceiver.onOFTReceived.selector, _srcChainId, _srcAddress, _nonce, _from, _amount, _payload));
