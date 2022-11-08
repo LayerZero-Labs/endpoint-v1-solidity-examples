@@ -22,10 +22,6 @@ abstract contract BaseOFTV2 is OFTCoreV2, ERC165, IOFTV2 {
         _sendAndCall(_from, _dstChainId, _toAddress, _amount, _payload, _dstGasForCall, _callParams.refundAddress, _callParams.zroPaymentAddress, _callParams.adapterParams);
     }
 
-    function retryOFTReceived(uint16 _srcChainId, bytes calldata _srcAddress, uint64 _nonce, bytes calldata _from, address _to, uint _amount, bytes calldata _payload) public virtual override {
-        _retryOFTReceived(_srcChainId, _srcAddress, _nonce, _from, _to, _amount, _payload);
-    }
-
     /************************************************************************
     * public view functions
     ************************************************************************/

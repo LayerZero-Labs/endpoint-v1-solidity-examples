@@ -3,12 +3,12 @@
 pragma solidity ^0.8.0;
 
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
-import "../../../lzApp/NonblockingLzApp.sol";
+import "../../../lzApp/NonblockingLzAppV2.sol";
 import "../../../util/ExcessivelySafeCall.sol";
 import "../composable/IOFTReceiver.sol";
 import "./ICommonOFT.sol";
 
-abstract contract OFTCoreV2 is NonblockingLzApp, ICommonOFT {
+abstract contract OFTCoreV2 is NonblockingLzAppV2, ICommonOFT {
     using BytesLib for bytes;
     using ExcessivelySafeCall for address;
 
@@ -21,8 +21,6 @@ abstract contract OFTCoreV2 is NonblockingLzApp, ICommonOFT {
     uint8 public immutable sharedDecimals;
 
     bool public useCustomAdapterParams;
-    
-    mapping(uint16 => mapping(bytes => mapping(uint64 => bytes32))) public failedOFTReceivedMessages;
 
     /**
      * @dev Emitted when `_amount` tokens are moved from the `_sender` to (`_dstChainId`, `_toAddress`)
@@ -38,25 +36,32 @@ abstract contract OFTCoreV2 is NonblockingLzApp, ICommonOFT {
 
     event SetUseCustomAdapterParams(bool _useCustomAdapterParams);
 
-    event CallOFTReceivedFailure(uint16 indexed _srcChainId, bytes _srcAddress, uint64 _nonce, bytes _from, address indexed _to, uint _amount, bytes _payload, bytes _reason);
+    event CallOFTReceivedFailure(uint16 indexed _srcChainId, bytes _srcAddress, uint64 _nonce, bytes _payload, bytes _reason);
 
     event CallOFTReceivedSuccess(uint16 indexed _srcChainId, bytes _srcAddress, uint64 _nonce, bytes32 _hash);
-
-    event RetryOFTReceivedSuccess(bytes32 _messageHash);
 
     event NonContractAddress(address _address);
 
     event InvalidReceiver(bytes _receiver);
 
     // _sharedDecimals should be the minimum decimals on all chains
-    constructor(uint8 _sharedDecimals, address _lzEndpoint) NonblockingLzApp(_lzEndpoint) {
+    constructor(uint8 _sharedDecimals, address _lzEndpoint) NonblockingLzAppV2(_lzEndpoint) {
         sharedDecimals = _sharedDecimals;
     }
 
-    // todo: lzapp?
     /************************************************************************
-    * owner functions
+    * public functions
     ************************************************************************/
+    function callOnOFTReceived(uint16 _srcChainId, bytes memory _srcAddress, uint64 _nonce, bytes memory _from, address _to, uint _amount, bytes memory _payload, uint _gasForCall) public virtual {
+        require(_msgSender() == address(this), "OFTCore: caller must be OFTCore");
+
+        // todo: fee?
+        IERC20(token()).transfer(_to, _amount);
+        emit ReceiveFromChain(_srcChainId, _to, _amount);
+
+        IOFTReceiver(_to).onOFTReceived{gas: _gasForCall}(_srcChainId, _srcAddress, _nonce, _from, _amount, _payload);
+    }
+
     function setUseCustomAdapterParams(bool _useCustomAdapterParams) public virtual onlyOwner {
         useCustomAdapterParams = _useCustomAdapterParams;
         emit SetUseCustomAdapterParams(_useCustomAdapterParams);
@@ -77,28 +82,13 @@ abstract contract OFTCoreV2 is NonblockingLzApp, ICommonOFT {
         return lzEndpoint.estimateFees(_dstChainId, address(this), payload, _useZro, _adapterParams);
     }
 
-    function _retryOFTReceived(uint16 _srcChainId, bytes calldata _srcAddress, uint64 _nonce, bytes calldata _from, address _to, uint _amount, bytes calldata _payload) internal virtual {
-        bytes32 msgHash = failedOFTReceivedMessages[_srcChainId][_srcAddress][_nonce];
-        require(msgHash != bytes32(0), "OFTCore: no failed message to retry");
-
-        bytes32 hash = keccak256(abi.encode(_from, _to, _amount, _payload));
-        require(hash == msgHash, "OFTCore: failed message hash mismatch");
-
-        delete failedOFTReceivedMessages[_srcChainId][_srcAddress][_nonce];
-
-        IERC20(token()).transfer(_to, _amount);
-        IOFTReceiver(_to).onOFTReceived(_srcChainId, _srcAddress, _nonce, _from, _amount, _payload);
-
-        emit RetryOFTReceivedSuccess(hash);
-    }
-
-    function _nonblockingLzReceive(uint16 _srcChainId, bytes memory _srcAddress, uint64 _nonce, bytes memory _payload) internal virtual override {
+    function _nonblockingLzReceive(uint16 _srcChainId, bytes memory _srcAddress, uint64 _nonce, bytes memory _payload, bool _isRetry) internal virtual override {
         uint8 packetType = _payload.toUint8(0);
 
         if (packetType == PT_SEND) {
             _sendAck(_srcChainId, _srcAddress, _nonce, _payload);
         } else if (packetType == PT_SEND_AND_CALL) {
-            _sendAndCallAck(_srcChainId, _srcAddress, _nonce, _payload);
+            _sendAndCallAck(_srcChainId, _srcAddress, _nonce, _payload, _isRetry);
         } else {
             revert("OFTCore: unknown packet type");
         }
@@ -141,13 +131,14 @@ abstract contract OFTCoreV2 is NonblockingLzApp, ICommonOFT {
         emit SendToChain(_dstChainId, _from, _toAddress, amount);
     }
 
-    function _sendAndCallAck(uint16 _srcChainId, bytes memory _srcAddress, uint64 _nonce, bytes memory _payload) internal virtual {
-        (bytes memory from, bytes memory toAddress, uint64 amountSD, bytes memory payload, uint64 gasForCall) = _decodeSendAndCallPayload(_payload);
+    function _sendAndCallAck(uint16 _srcChainId, bytes memory _srcAddress, uint64 _nonce, bytes memory _payload, bool _isRetry) internal virtual {
+        (bytes memory from, bytes memory toAddress, uint64 amountSD, bytes memory payloadForCall, uint64 gasForCall) = _decodeSendAndCallPayload(_payload);
         (bool isValid, address to) = _safeConvertReceiverAddress(toAddress);
 
         uint amount = _sd2ld(amountSD);
-        amount = _creditTo(_srcChainId, address(this), amount);
-        emit ReceiveFromChain(_srcChainId, to, amount);
+        if (!_isRetry) {
+            amount = _creditTo(_srcChainId, address(this), amount);
+        }
 
         if (!isValid) {
             emit InvalidReceiver(toAddress);
@@ -159,22 +150,28 @@ abstract contract OFTCoreV2 is NonblockingLzApp, ICommonOFT {
             return;
         }
 
-        try this.safeCallOnOFTReceived(_srcChainId, _srcAddress, _nonce, from, to, amount, payload, gasForCall) {
-            bytes32 hash = keccak256(abi.encode(from, to, amount, payload));
-            emit CallOFTReceivedSuccess(_srcChainId, _srcAddress, _nonce, hash);
-        } catch(bytes memory reason) {
-            failedOFTReceivedMessages[_srcChainId][_srcAddress][_nonce] = keccak256(abi.encode(from, to, amount, payload));
-            emit CallOFTReceivedFailure(_srcChainId, _srcAddress, _nonce, from, to, amount, payload, reason);
+        // workaround for stack too deep
+        uint16 srcChainId = _srcChainId;
+        bytes memory srcAddress = _srcAddress;
+        uint64 nonce = _nonce;
+        bytes memory payload = _payload;
+        bool isRetry = _isRetry;
+        bytes memory from_ = from;
+        uint amount_ = amount;
+        bytes memory payloadForCall_ = payloadForCall;
+
+        // no gas limit for the call if retry
+        uint gas = isRetry ? gasleft() : gasForCall;
+        (bool success, bytes memory reason) = address(this).excessivelySafeCall(gasleft(), 150, abi.encodeWithSelector(this.callOnOFTReceived.selector, srcChainId, srcAddress, nonce, from_, amount_, payloadForCall_, gas));
+
+        bytes32 hash = keccak256(payload);
+        if (success) {
+            emit CallOFTReceivedSuccess(srcChainId, srcAddress, nonce, hash);
+        } else {
+            // store the failed message into the nonblockingLzApp
+            failedMessages[srcChainId][srcAddress][nonce] = hash;
+            emit CallOFTReceivedFailure(srcChainId, srcAddress, nonce, payload, reason);
         }
-    }
-
-    function safeCallOnOFTReceived(uint16 _srcChainId, bytes memory _srcAddress, uint64 _nonce, bytes memory _from, address _to, uint _amount, bytes memory _payload, uint64 _gasForCall) public virtual {
-        require(_msgSender() == address(this), "OFTCore: caller must be OFTCore");
-
-        IERC20(token()).transfer(_to, _amount);
-        (bool success, bytes memory reason) = _to.excessivelySafeCall(_gasForCall, 150, abi.encodeWithSelector(IOFTReceiver.onOFTReceived.selector, _srcChainId, _srcAddress, _nonce, _from, _amount, _payload));
-
-        require(success, string(reason));
     }
 
     function _safeConvertReceiverAddress(bytes memory _address) internal view virtual returns (bool, address) {
