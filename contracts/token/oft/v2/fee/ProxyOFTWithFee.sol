@@ -2,8 +2,8 @@
 
 pragma solidity ^0.8.0;
 
-import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import "./BaseOFTWithFee.sol";
+import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 
 contract ProxyOFTWithFee is BaseOFTWithFee {
     using SafeERC20 for IERC20;
@@ -61,6 +61,7 @@ contract ProxyOFTWithFee is BaseOFTWithFee {
     function _creditTo(uint16, address _toAddress, uint _amount) internal virtual override returns (uint) {
         outboundAmountSD -= _ld2sd(_amount);
 
+        // tokens are already in this contract, so no need to transfer
         if (_toAddress == address(this)) {
             return _amount;
         }
