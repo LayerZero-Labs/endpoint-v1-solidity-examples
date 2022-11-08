@@ -2,13 +2,12 @@
 
 pragma solidity ^0.8.0;
 
-import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "../../../lzApp/NonblockingLzAppV2.sol";
 import "../../../util/ExcessivelySafeCall.sol";
 import "../composable/IOFTReceiver.sol";
 import "./ICommonOFT.sol";
 
-abstract contract OFTCoreV2 is NonblockingLzAppV2, ICommonOFT {
+abstract contract OFTCoreV2 is NonblockingLzAppV2 {
     using BytesLib for bytes;
     using ExcessivelySafeCall for address;
 
@@ -55,10 +54,11 @@ abstract contract OFTCoreV2 is NonblockingLzAppV2, ICommonOFT {
     function callOnOFTReceived(uint16 _srcChainId, bytes memory _srcAddress, uint64 _nonce, bytes memory _from, address _to, uint _amount, bytes memory _payload, uint _gasForCall) public virtual {
         require(_msgSender() == address(this), "OFTCore: caller must be OFTCore");
 
-        // todo: fee?
-        IERC20(token()).transfer(_to, _amount);
+        // send
+        _amount = _transferFrom(address(this), _to, _amount);
         emit ReceiveFromChain(_srcChainId, _to, _amount);
 
+        // call
         IOFTReceiver(_to).onOFTReceived{gas: _gasForCall}(_srcChainId, _srcAddress, _nonce, _from, _amount, _payload);
     }
 
@@ -265,9 +265,7 @@ abstract contract OFTCoreV2 is NonblockingLzAppV2, ICommonOFT {
 
     function _creditTo(uint16 _srcChainId, address _toAddress, uint _amount) internal virtual returns (uint);
 
+    function _transferFrom(address _from, address _to, uint _amount) internal virtual returns (uint);
+
     function _ld2sdRate() internal view virtual returns (uint);
-
-    function circulatingSupply() public view virtual override returns (uint);
-
-    function token() public view virtual override returns (address);
 }

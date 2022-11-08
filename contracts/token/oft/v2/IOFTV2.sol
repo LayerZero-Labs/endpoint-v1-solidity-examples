@@ -2,15 +2,12 @@
 
 pragma solidity >=0.5.0;
 
+import "./ICommonOFT.sol";
+
 /**
  * @dev Interface of the IOFT core standard
  */
-interface IOFTV2 {
-    struct LzCallParams {
-        address payable refundAddress;
-        address zroPaymentAddress;
-        bytes adapterParams;
-    }
+interface IOFTV2 is ICommonOFT {
 
     /**
      * @dev send `_amount` amount of token to (`_dstChainId`, `_toAddress`) from `_from`

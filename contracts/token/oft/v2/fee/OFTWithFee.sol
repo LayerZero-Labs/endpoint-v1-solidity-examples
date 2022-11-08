@@ -12,7 +12,7 @@ contract OFTWithFee is BaseOFTWithFee, ERC20 {
 
     constructor(string memory _name, string memory _symbol, uint8 _sharedDecimals, address _lzEndpoint) ERC20(_name, _symbol) BaseOFTWithFee(_sharedDecimals, _lzEndpoint) {
         uint8 decimals = decimals();
-        require(_sharedDecimals <= decimals, "OFT: sharedDecimals must be <= decimals");
+        require(_sharedDecimals <= decimals, "OFTWithFee: sharedDecimals must be <= decimals");
         ld2sdRate = 10 ** (decimals - _sharedDecimals);
     }
 
@@ -42,10 +42,11 @@ contract OFTWithFee is BaseOFTWithFee, ERC20 {
         return _amount;
     }
 
-    function _transferFrom(address _from, address _to, uint _amount) internal virtual override {
+    function _transferFrom(address _from, address _to, uint _amount) internal virtual override returns (uint) {
         address spender = _msgSender();
-        if (_from != spender) _spendAllowance(_from, spender, _amount);
+        if (_from != address(this) && _from != spender) _spendAllowance(_from, spender, _amount);
         _transfer(_from, _to, _amount);
+        return _amount;
     }
 
     function _ld2sdRate() internal view virtual override returns (uint) {

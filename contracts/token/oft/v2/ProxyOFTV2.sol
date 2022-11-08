@@ -44,9 +44,7 @@ contract ProxyOFTV2 is BaseOFTV2 {
     function _debitFrom(address _from, uint16, bytes memory, uint _amount) internal virtual override returns (uint) {
         require(_from == _msgSender(), "ProxyOFT: owner is not send caller");
 
-        uint before = innerToken.balanceOf(address(this));
-        innerToken.safeTransferFrom(_from, address(this), _amount);
-        _amount = innerToken.balanceOf(address(this)) - before;
+        _amount = _transferFrom(_from, address(this), _amount);
 
         // _amount still may have dust if the token has transfer fee, then give the dust back to the sender
         (uint amount, uint dust) = _removeDust(_amount);
@@ -62,9 +60,22 @@ contract ProxyOFTV2 is BaseOFTV2 {
 
     function _creditTo(uint16, address _toAddress, uint _amount) internal virtual override returns (uint) {
         outboundAmountSD -= _ld2sd(_amount);
-        uint before = innerToken.balanceOf(_toAddress);
-        innerToken.safeTransfer(_toAddress, _amount);
-        return innerToken.balanceOf(_toAddress) - before;
+
+        if (_toAddress == address(this)) {
+            return _amount;
+        }
+
+        return _transferFrom(address(this), _toAddress, _amount);
+    }
+
+    function _transferFrom(address _from, address _to, uint _amount) internal virtual override returns (uint) {
+        uint before = innerToken.balanceOf(_to);
+        if (_from == address(this)) {
+            innerToken.safeTransfer(_to, _amount);
+        } else {
+            innerToken.safeTransferFrom(_from, _to, _amount);
+        }
+        return innerToken.balanceOf(_to) - before;
     }
 
     function _ld2sdRate() internal view virtual override returns (uint) {

@@ -20,10 +20,10 @@ contract ProxyOFTWithFee is BaseOFTWithFee {
         (bool success, bytes memory data) = _token.staticcall(
             abi.encodeWithSignature("decimals()")
         );
-        require(success, "ProxyOFT: failed to get token decimals");
+        require(success, "ProxyOFTWithFee: failed to get token decimals");
         uint8 decimals = abi.decode(data, (uint8));
 
-        require(_sharedDecimals <= decimals, "ProxyOFT: sharedDecimals must be <= decimals");
+        require(_sharedDecimals <= decimals, "ProxyOFTWithFee: sharedDecimals must be <= decimals");
         ld2sdRate = 10 ** (decimals - _sharedDecimals);
     }
 
@@ -42,9 +42,9 @@ contract ProxyOFTWithFee is BaseOFTWithFee {
     * internal functions
     ************************************************************************/
     function _debitFrom(address _from, uint16, bytes memory, uint _amount) internal virtual override returns (uint) {
-        uint before = innerToken.balanceOf(address(this));
-        _transferFrom(_from, address(this), _amount);
-        _amount = innerToken.balanceOf(address(this)) - before;
+        require(_from == _msgSender(), "ProxyOFTWithFee: owner is not send caller");
+
+        _amount = _transferFrom(_from, address(this), _amount);
 
         // _amount still may have dust if the token has transfer fee, then give the dust back to the sender
         (uint amount, uint dust) = _removeDust(_amount);
@@ -52,7 +52,7 @@ contract ProxyOFTWithFee is BaseOFTWithFee {
 
         // check total outbound amount
         uint64 amountSD = _ld2sd(amount);
-        require(type(uint64).max - outboundAmountSD >= amountSD, "ProxyOFT: outboundAmountSD overflow");
+        require(type(uint64).max - outboundAmountSD >= amountSD, "ProxyOFTWithFee: outboundAmountSD overflow");
         outboundAmountSD += amountSD;
 
         return amount;
@@ -60,14 +60,22 @@ contract ProxyOFTWithFee is BaseOFTWithFee {
 
     function _creditTo(uint16, address _toAddress, uint _amount) internal virtual override returns (uint) {
         outboundAmountSD -= _ld2sd(_amount);
-        uint before = innerToken.balanceOf(_toAddress);
-        innerToken.safeTransfer(_toAddress, _amount);
-        return innerToken.balanceOf(_toAddress) - before;
+
+        if (_toAddress == address(this)) {
+            return _amount;
+        }
+
+        return _transferFrom(address(this), _toAddress, _amount);
     }
 
-    function _transferFrom(address _from, address _to, uint _amount) internal virtual override {
-        require(_from == _msgSender(), "ProxyOFT: owner is not send caller");
-        innerToken.safeTransferFrom(_from, _to, _amount);
+    function _transferFrom(address _from, address _to, uint _amount) internal virtual override returns (uint) {
+        uint before = innerToken.balanceOf(_to);
+        if (_from == address(this)) {
+            innerToken.safeTransfer(_to, _amount);
+        } else {
+            innerToken.safeTransferFrom(_from, _to, _amount);
+        }
+        return innerToken.balanceOf(_to) - before;
     }
 
     function _ld2sdRate() internal view virtual override returns (uint) {

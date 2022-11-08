@@ -42,6 +42,13 @@ contract OFTV2 is BaseOFTV2, ERC20 {
         return _amount;
     }
 
+    function _transferFrom(address _from, address _to, uint _amount) internal virtual override returns (uint) {
+        address spender = _msgSender();
+        if (_from != address(this) && _from != spender) _spendAllowance(_from, spender, _amount);
+        _transfer(_from, _to, _amount);
+        return _amount;
+    }
+
     function _ld2sdRate() internal view virtual override returns (uint) {
         return ld2sdRate;
     }

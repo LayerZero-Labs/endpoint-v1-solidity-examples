@@ -61,5 +61,5 @@ abstract contract Fee is Ownable {
         }
     }
 
-    function _transferFrom(address _from, address _to, uint _amount) internal virtual;
+    function _transferFrom(address _from, address _to, uint _amount) internal virtual returns (uint);
 }

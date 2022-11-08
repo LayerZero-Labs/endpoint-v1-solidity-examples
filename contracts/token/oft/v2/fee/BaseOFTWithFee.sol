@@ -41,4 +41,10 @@ abstract contract BaseOFTWithFee is OFTCoreV2, Fee, ERC165, IOFTWithFee {
     function estimateSendAndCallFee(uint16 _dstChainId, bytes calldata _toAddress, uint _amount, bytes calldata _payload, uint64 _dstGasForCall, bool _useZro, bytes calldata _adapterParams) public view virtual override returns (uint nativeFee, uint zroFee) {
         return _estimateSendAndCallFee(_dstChainId, _toAddress, _amount, _payload, _dstGasForCall, _useZro, _adapterParams);
     }
+
+    function circulatingSupply() public view virtual override returns (uint);
+
+    function token() public view virtual override returns (address);
+
+    function _transferFrom(address _from, address _to, uint _amount) internal virtual override (Fee, OFTCoreV2) returns (uint);
 }
