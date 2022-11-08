@@ -61,6 +61,7 @@ contract ProxyOFTV2 is BaseOFTV2 {
     function _creditTo(uint16, address _toAddress, uint _amount) internal virtual override returns (uint) {
         outboundAmountSD -= _ld2sd(_amount);
 
+        // tokens are already in this contract, so no need to transfer
         if (_toAddress == address(this)) {
             return _amount;
         }
