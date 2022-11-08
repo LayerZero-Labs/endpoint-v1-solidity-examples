@@ -5,7 +5,6 @@ pragma solidity ^0.8.0;
 import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 import "./BaseOFTV2.sol";
 
-// override decimal() function is needed
 contract OFTV2 is BaseOFTV2, ERC20 {
 
     uint internal immutable ld2sdRate;

@@ -5,7 +5,6 @@ pragma solidity ^0.8.0;
 import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 import "./BaseOFTWithFee.sol";
 
-// override decimal() function is needed
 contract OFTWithFee is BaseOFTWithFee, ERC20 {
 
     uint internal immutable ld2sdRate;
