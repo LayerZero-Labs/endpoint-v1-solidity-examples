@@ -98,7 +98,7 @@ abstract contract OFTCoreV2 is NonblockingLzAppV2 {
         _checkAdapterParams(_dstChainId, PT_SEND, _adapterParams, NO_EXTRA_GAS);
 
         (amount,) = _removeDust(_amount);
-        amount = _debitFrom(_from, _dstChainId, _toAddress, amount);
+        amount = _debitFrom(_from, _dstChainId, _toAddress, amount); // amount returned should not have dust
         require(amount > 0, "OFTCore: amount too small");
 
         bytes memory lzPayload = _encodeSendPayload(_toAddress, _ld2sd(amount));
@@ -141,7 +141,8 @@ abstract contract OFTCoreV2 is NonblockingLzAppV2 {
         // credit to this contract first, and then transfer to receiver only if callOnOFTReceived() succeeds
         uint amount = _sd2ld(amountSD);
         if (!_isRetry) {
-            amount = _creditTo(_srcChainId, address(this), amount);
+            uint amt = _creditTo(_srcChainId, address(this), amount);
+            require(amt == amount, "OFTCore: amount cannot be changed");
         }
 
         (bool isValid, address to) = _safeConvertReceiverAddress(toAddress);

@@ -17,7 +17,7 @@ abstract contract Fee is Ownable {
     }
 
     event SetFeeBp(uint16 dstchainId, bool enabled, uint16 feeBp);
-    event SetDefaultFeeBp(uint feeBp);
+    event SetDefaultFeeBp(uint16 feeBp);
     event SetFeeOwner(address feeOwner);
 
     constructor(){

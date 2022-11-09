@@ -31,7 +31,7 @@ contract ProxyOFTV2 is BaseOFTV2 {
     * public functions
     ************************************************************************/
     function circulatingSupply() public view virtual override returns (uint) {
-        return innerToken.totalSupply() - innerToken.balanceOf(address(this));
+        return innerToken.totalSupply() - _sd2ld(outboundAmountSD);
     }
 
     function token() public view virtual override returns (address) {
