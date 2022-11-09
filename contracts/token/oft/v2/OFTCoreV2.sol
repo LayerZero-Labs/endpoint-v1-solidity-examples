@@ -241,7 +241,7 @@ abstract contract OFTCoreV2 is NonblockingLzAppV2 {
             _amountSD,
             uint8(20),
             _from,
-            uint8(_payload.length),
+            uint64(_payload.length),
             _payload,
             _dstGasForCall
         );
@@ -262,11 +262,11 @@ abstract contract OFTCoreV2 is NonblockingLzAppV2 {
         from = _payload.slice(11 + toAddressSize, fromAddressSize);
 
         // payload
-        uint8 payloadSize = _payload.toUint8(11 + toAddressSize + fromAddressSize);
-        payload = _payload.slice(12 + toAddressSize + fromAddressSize, payloadSize);
+        uint64 payloadSize = _payload.toUint64(11 + toAddressSize + fromAddressSize);
+        payload = _payload.slice(19 + toAddressSize + fromAddressSize, payloadSize);
 
         // dst gas
-        dstGasForCall = _payload.toUint64(12 + toAddressSize + fromAddressSize + payloadSize);
+        dstGasForCall = _payload.toUint64(19 + toAddressSize + fromAddressSize + payloadSize);
     }
 
     function _debitFrom(address _from, uint16 _dstChainId, bytes memory _toAddress, uint _amount) internal virtual returns (uint);

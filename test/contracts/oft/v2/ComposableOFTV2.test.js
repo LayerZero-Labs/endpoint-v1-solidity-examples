@@ -108,7 +108,7 @@ describe("ComposableOFT v2: ", function () {
 
         // retry to call onOFTReceived()
         const payload = ethers.utils.solidityPack(
-            ["uint8", "uint8", "bytes", "uint64", "uint8", "bytes", "uint8", "bytes", "uint64"],
+            ["uint8", "uint8", "bytes", "uint64", "uint8", "bytes", "uint64", "bytes", "uint64"],
             [1, 20, dstStaking.address, amountSD, 20, srcStaking.address, 128, payloadForCall, 300000]
         )
 
