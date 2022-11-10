@@ -7,6 +7,7 @@ describe("Composable ProxyOFT v2: ", function () {
 
     let srcEndpoint, dstEndpoint, proxyOFT, dstOFT, srcStaking, dstStaking, dstPath, srcPath, token
     let owner, alice, bob, carol
+    let dstStakingAddressBytes32, srcStakingAddressBytes32
 
     before(async function () {
         const LZEndpointMock = await ethers.getContractFactory("LZEndpointMock")
@@ -36,8 +37,10 @@ describe("Composable ProxyOFT v2: ", function () {
         await dstOFT.setTrustedRemote(srcChainId, srcPath) // for B, set A
 
         // set each contracts source address so it can send to each other
-        await srcStaking.setRemoteStakingContract(dstChainId, dstStaking.address)
-        await dstStaking.setRemoteStakingContract(srcChainId, srcStaking.address)
+        dstStakingAddressBytes32 = ethers.utils.defaultAbiCoder.encode(["address"], [dstStaking.address])
+        srcStakingAddressBytes32 = ethers.utils.defaultAbiCoder.encode(["address"], [srcStaking.address])
+        await srcStaking.setRemoteStakingContract(dstChainId, dstStakingAddressBytes32)
+        await dstStaking.setRemoteStakingContract(srcChainId, srcStakingAddressBytes32)
 
         //set destination min gas
         await proxyOFT.setMinDstGas(dstChainId, parseInt(await proxyOFT.PT_SEND()), 225000)
@@ -111,8 +114,8 @@ describe("Composable ProxyOFT v2: ", function () {
 
         // retry to call onOFTReceived()
         const payload = ethers.utils.solidityPack(
-            ["uint8", "uint8", "bytes", "uint64", "uint8", "bytes", "uint64", "bytes", "uint64"],
-            [1, 20, dstStaking.address, amountSD, 20, srcStaking.address, 128, payloadForCall, 300000]
+            ["uint8", "bytes32", "uint64", "bytes32", "uint64", "uint64", "bytes"],
+            [1, dstStakingAddressBytes32, amountSD, srcStakingAddressBytes32, 300000, 128, payloadForCall]
         )
 
         // console.log("_from", alice.address)

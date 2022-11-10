@@ -41,7 +41,7 @@ contract ProxyOFTV2 is BaseOFTV2 {
     /************************************************************************
     * internal functions
     ************************************************************************/
-    function _debitFrom(address _from, uint16, bytes memory, uint _amount) internal virtual override returns (uint) {
+    function _debitFrom(address _from, uint16, bytes32, uint _amount) internal virtual override returns (uint) {
         require(_from == _msgSender(), "ProxyOFT: owner is not send caller");
 
         _amount = _transferFrom(_from, address(this), _amount);

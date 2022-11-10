@@ -57,11 +57,12 @@ describe("OFT v2: ", function () {
         await erc20.connect(alice).approve(localOFT.address, amount)
 
         // swaps token to remote chain
-        let nativeFee = (await localOFT.estimateSendFee(remoteChainId, bob.address, amount, false, "0x")).nativeFee
+        const bobAddressBytes32 = ethers.utils.defaultAbiCoder.encode(["address"], [bob.address])
+        let nativeFee = (await localOFT.estimateSendFee(remoteChainId, bobAddressBytes32, amount, false, "0x")).nativeFee
         await localOFT.connect(alice).sendFrom(
             alice.address,
             remoteChainId,
-            bob.address,
+            bobAddressBytes32,
             amount,
             [alice.address, ethers.constants.AddressZero, "0x"],
             { value: nativeFee }
@@ -76,12 +77,13 @@ describe("OFT v2: ", function () {
         expect(await remoteOFT.balanceOf(bob.address)).to.be.equal(amount)
 
         // bob send tokens back to alice from remote chain
+        const aliceAddressBytes32 = ethers.utils.defaultAbiCoder.encode(["address"], [alice.address])
         const halfAmount = amount.div(2)
-        nativeFee = (await remoteOFT.estimateSendFee(localChainId, alice.address, halfAmount, false, "0x")).nativeFee
+        nativeFee = (await remoteOFT.estimateSendFee(localChainId, aliceAddressBytes32, halfAmount, false, "0x")).nativeFee
         await remoteOFT.connect(bob).sendFrom(
             bob.address,
             localChainId,
-            alice.address,
+            aliceAddressBytes32,
             halfAmount,
             [bob.address, ethers.constants.AddressZero, "0x"],
             { value: nativeFee }
@@ -105,11 +107,12 @@ describe("OFT v2: ", function () {
 
         // swaps max amount of token to remote chain
         await erc20.connect(alice).approve(localOFT.address, ethers.constants.MaxUint256)
-        let nativeFee = (await localOFT.estimateSendFee(remoteChainId, bob.address, amount, false, "0x")).nativeFee
+        const bobAddressBytes32 = ethers.utils.defaultAbiCoder.encode(["address"], [bob.address])
+        let nativeFee = (await localOFT.estimateSendFee(remoteChainId, bobAddressBytes32, amount, false, "0x")).nativeFee
         await localOFT.connect(alice).sendFrom(
             alice.address,
             remoteChainId,
-            bob.address,
+            bobAddressBytes32,
             amount,
             [alice.address, ethers.constants.AddressZero, "0x"],
             { value: nativeFee }
@@ -118,13 +121,13 @@ describe("OFT v2: ", function () {
         amount = BigNumber.from(10).pow(18 - sharedDecimals) // min amount without dust
 
         // fails to send more for cap overflow
-        nativeFee = (await localOFT.estimateSendFee(remoteChainId, bob.address, amount, false, "0x")).nativeFee
+        nativeFee = (await localOFT.estimateSendFee(remoteChainId, bobAddressBytes32, amount, false, "0x")).nativeFee
 
         try {
             await localOFT.connect(alice).sendFrom(
                 alice.address,
                 remoteChainId,
-                bob.address,
+                bobAddressBytes32,
                 amount,
                 [alice.address, ethers.constants.AddressZero, "0x"],
                 {value: nativeFee}

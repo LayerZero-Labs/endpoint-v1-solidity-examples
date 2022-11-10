@@ -25,19 +25,19 @@ abstract contract Fee is Ownable {
     }
 
     function setDefaultFeeBp(uint16 _feeBp) public virtual onlyOwner {
-        require(_feeBp <= BP_DENOMINATOR, "OFTFee: fee bp must be <= BP_DENOMINATOR");
+        require(_feeBp <= BP_DENOMINATOR, "Fee: fee bp must be <= BP_DENOMINATOR");
         defaultFeeBp = _feeBp;
         emit SetDefaultFeeBp(defaultFeeBp);
     }
 
     function setFeeBp(uint16 _dstChainId, bool _enabled, uint16 _feeBp) public virtual onlyOwner {
-        require(_feeBp <= BP_DENOMINATOR, "OFTFee: fee bp must be <= BP_DENOMINATOR");
+        require(_feeBp <= BP_DENOMINATOR, "Fee: fee bp must be <= BP_DENOMINATOR");
         chainIdToFeeBps[_dstChainId] = FeeConfig(_feeBp, _enabled);
         emit SetFeeBp(_dstChainId, _enabled, _feeBp);
     }
 
     function setFeeOwner(address _feeOwner) public virtual onlyOwner {
-        require(_feeOwner != address(0x0), "OFTFee: feeOwner cannot be 0x");
+        require(_feeOwner != address(0x0), "Fee: feeOwner cannot be 0x");
         feeOwner = _feeOwner;
         emit SetFeeOwner(_feeOwner);
     }

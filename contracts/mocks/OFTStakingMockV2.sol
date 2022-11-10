@@ -4,15 +4,15 @@ pragma solidity ^0.8.0;
 
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
-import "../token/oft/composable/IOFTReceiver.sol";
 import "../token/oft/v2/IOFTV2.sol";
+import "../token/oft/v2/IOFTReceiverV2.sol";
 import "../util/BytesLib.sol";
 
 import "hardhat/console.sol";
 
 // OFTStakingMock is an example to integrate with OFT. It shows how to send OFT cross chain with a custom payload and
 // call a receiver contract on the destination chain when oft is received.
-contract OFTStakingMockV2 is IOFTReceiver {
+contract OFTStakingMockV2 is IOFTReceiverV2 {
     using SafeERC20 for IERC20;
     using BytesLib for bytes;
 
@@ -24,7 +24,7 @@ contract OFTStakingMockV2 is IOFTReceiver {
 
     // variables
     IOFTV2 public oft;
-    mapping(uint16 => bytes) public remoteStakingContracts;
+    mapping(uint16 => bytes32) public remoteStakingContracts;
     mapping(address => uint) public balances;
     bool public paused; // for testing try/catch
 
@@ -38,7 +38,7 @@ contract OFTStakingMockV2 is IOFTReceiver {
         IERC20(oft.token()).safeApprove(_oft, type(uint).max);
     }
 
-    function setRemoteStakingContract(uint16 _chainId, bytes calldata _stakingContract) external {
+    function setRemoteStakingContract(uint16 _chainId, bytes32 _stakingContract) external {
         remoteStakingContracts[_chainId] = _stakingContract;
     }
 
@@ -65,8 +65,8 @@ contract OFTStakingMockV2 is IOFTReceiver {
         uint _amount, // amount of token to deposit
         bytes calldata _adapterParams
     ) external payable {
-        bytes memory dstStakingContract = remoteStakingContracts[_dstChainId];
-        require(keccak256(dstStakingContract) != keccak256(""), "invalid _dstChainId");
+        bytes32 dstStakingContract = remoteStakingContracts[_dstChainId];
+        require(dstStakingContract != bytes32(0), "invalid _dstChainId");
 
         // transfer token from sender to this contract
         // if the oft is not the proxy oft, dont need to transfer token to this contract
@@ -87,18 +87,18 @@ contract OFTStakingMockV2 is IOFTReceiver {
         uint _amount, // amount of token to deposit
         bytes calldata _adapterParams
     ) public view returns (uint nativeFee, uint zroFee) {
-        bytes memory dstStakingContract = remoteStakingContracts[_dstChainId];
-        require(keccak256(dstStakingContract) != keccak256(""), "invalid _dstChainId");
+        bytes32 dstStakingContract = remoteStakingContracts[_dstChainId];
+        require(dstStakingContract != bytes32(0), "invalid _dstChainId");
 
         bytes memory payload = abi.encode(PT_DEPOSIT_TO_REMOTE_CHAIN, _to);
         return oft.estimateSendAndCallFee(_dstChainId, dstStakingContract, _amount, payload, DST_GAS_FOR_CALL, false, _adapterParams);
     }
 
     //-----------------------------------------------------------------------------------------------------------------------
-    function onOFTReceived(uint16 _srcChainId, bytes calldata, uint64, bytes calldata _from, uint _amount, bytes memory _payload) external override {
+    function onOFTReceived(uint16 _srcChainId, bytes calldata, uint64, bytes32 _from, uint _amount, bytes memory _payload) external override {
         require(!paused, "paused"); // for testing safe call
         require(msg.sender == address(oft), "only oft can call onOFTReceived()");
-        require(keccak256(_from) == keccak256(remoteStakingContracts[_srcChainId]), "invalid from");
+        require(_from == remoteStakingContracts[_srcChainId], "invalid from");
 
         uint8 pkType;
         assembly {
