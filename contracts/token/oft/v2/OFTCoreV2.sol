@@ -216,7 +216,6 @@ abstract contract OFTCoreV2 is NonblockingLzAppV2 {
             _amountSD,
             _addressToBytes32(_from),
             _dstGasForCall,
-            uint64(_payload.length),
             _payload
         );
     }
@@ -228,10 +227,7 @@ abstract contract OFTCoreV2 is NonblockingLzAppV2 {
         amountSD = _payload.toUint64(33);
         from = _payload.toBytes32(41);
         dstGasForCall = _payload.toUint64(73);
-
-        // payload
-        uint64 payloadSize = _payload.toUint64(81);
-        payload = _payload.slice(89, payloadSize);
+        payload = _payload.slice(81, _payload.length - 81);
     }
 
     function _addressToBytes32(address _address) internal pure virtual returns (bytes32) {
