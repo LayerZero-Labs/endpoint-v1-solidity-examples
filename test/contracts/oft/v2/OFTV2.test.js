@@ -134,7 +134,7 @@ describe("OFT v2: ", function () {
             )
             expect(false).to.be.true
         } catch (e) {
-            expect(e.message).to.match(/ProxyOFT: outboundAmountSD overflow/)
+            expect(e.message).to.match(/ProxyOFT: outboundAmount overflow/)
         }
     })
 })

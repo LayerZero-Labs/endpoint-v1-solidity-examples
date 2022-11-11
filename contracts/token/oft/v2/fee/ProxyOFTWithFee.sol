@@ -11,8 +11,8 @@ contract ProxyOFTWithFee is BaseOFTWithFee {
     IERC20 internal immutable innerToken;
     uint internal immutable ld2sdRate;
 
-    // total amount in sd is transferred from this chain to other chains, ensuring the total is less than max of uint64
-    uint64 public outboundAmountSD;
+    // total amount is transferred from this chain to other chains, ensuring the total is less than uint64.max in sd
+    uint public outboundAmount;
 
     constructor(address _token, uint8 _sharedDecimals, address _lzEndpoint) BaseOFTWithFee(_sharedDecimals, _lzEndpoint) {
         innerToken = IERC20(_token);
@@ -31,7 +31,7 @@ contract ProxyOFTWithFee is BaseOFTWithFee {
     * public functions
     ************************************************************************/
     function circulatingSupply() public view virtual override returns (uint) {
-        return innerToken.totalSupply() - _sd2ld(outboundAmountSD);
+        return innerToken.totalSupply() - outboundAmount;
     }
 
     function token() public view virtual override returns (address) {
@@ -51,15 +51,15 @@ contract ProxyOFTWithFee is BaseOFTWithFee {
         if (dust > 0) innerToken.safeTransfer(_from, dust);
 
         // check total outbound amount
-        uint64 amountSD = _ld2sd(amount);
-        require(type(uint64).max - outboundAmountSD >= amountSD, "ProxyOFTWithFee: outboundAmountSD overflow");
-        outboundAmountSD += amountSD;
+        outboundAmount += amount;
+        uint cap = _sd2ld(type(uint64).max);
+        require(cap >= outboundAmount, "ProxyOFTWithFee: outboundAmount overflow");
 
         return amount;
     }
 
     function _creditTo(uint16, address _toAddress, uint _amount) internal virtual override returns (uint) {
-        outboundAmountSD -= _ld2sd(_amount);
+        outboundAmount -= _amount;
 
         // tokens are already in this contract, so no need to transfer
         if (_toAddress == address(this)) {
