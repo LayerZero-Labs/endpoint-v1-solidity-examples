@@ -2,12 +2,12 @@
 
 pragma solidity ^0.8.0;
 
-import "../../../lzApp/NonblockingLzAppV2.sol";
+import "../../../lzApp/NonblockingLzApp.sol";
 import "../../../util/ExcessivelySafeCall.sol";
 import "./ICommonOFT.sol";
 import "./IOFTReceiverV2.sol";
 
-abstract contract OFTCoreV2 is NonblockingLzAppV2 {
+abstract contract OFTCoreV2 is NonblockingLzApp {
     using BytesLib for bytes;
     using ExcessivelySafeCall for address;
 
@@ -20,6 +20,12 @@ abstract contract OFTCoreV2 is NonblockingLzAppV2 {
     uint8 public immutable sharedDecimals;
 
     bool public useCustomAdapterParams;
+    mapping(uint16 => mapping(bytes => mapping(uint64 => AmountForCall))) public amountsForCall;
+
+    struct AmountForCall {
+        uint amount;
+        bool credited;
+    }
 
     /**
      * @dev Emitted when `_amount` tokens are moved from the `_sender` to (`_dstChainId`, `_toAddress`)
@@ -35,14 +41,12 @@ abstract contract OFTCoreV2 is NonblockingLzAppV2 {
 
     event SetUseCustomAdapterParams(bool _useCustomAdapterParams);
 
-    event CallOFTReceivedFailure(uint16 indexed _srcChainId, bytes _srcAddress, uint64 _nonce, bytes _payload, bytes _reason);
-
     event CallOFTReceivedSuccess(uint16 indexed _srcChainId, bytes _srcAddress, uint64 _nonce, bytes32 _hash);
 
     event NonContractAddress(address _address);
 
     // _sharedDecimals should be the minimum decimals on all chains
-    constructor(uint8 _sharedDecimals, address _lzEndpoint) NonblockingLzAppV2(_lzEndpoint) {
+    constructor(uint8 _sharedDecimals, address _lzEndpoint) NonblockingLzApp(_lzEndpoint) {
         sharedDecimals = _sharedDecimals;
     }
 
@@ -80,13 +84,13 @@ abstract contract OFTCoreV2 is NonblockingLzAppV2 {
         return lzEndpoint.estimateFees(_dstChainId, address(this), payload, _useZro, _adapterParams);
     }
 
-    function _nonblockingLzReceive(uint16 _srcChainId, bytes memory _srcAddress, uint64 _nonce, bytes memory _payload, bool _isRetry) internal virtual override {
+    function _nonblockingLzReceive(uint16 _srcChainId, bytes memory _srcAddress, uint64 _nonce, bytes memory _payload) internal virtual override {
         uint8 packetType = _payload.toUint8(0);
 
         if (packetType == PT_SEND) {
             _sendAck(_srcChainId, _srcAddress, _nonce, _payload);
         } else if (packetType == PT_SEND_AND_CALL) {
-            _sendAndCallAck(_srcChainId, _srcAddress, _nonce, _payload, _isRetry);
+            _sendAndCallAck(_srcChainId, _srcAddress, _nonce, _payload);
         } else {
             revert("OFTCore: unknown packet type");
         }
@@ -131,14 +135,17 @@ abstract contract OFTCoreV2 is NonblockingLzAppV2 {
         emit SendToChain(_dstChainId, _from, _toAddress, amount);
     }
 
-    function _sendAndCallAck(uint16 _srcChainId, bytes memory _srcAddress, uint64 _nonce, bytes memory _payload, bool _isRetry) internal virtual {
+    function _sendAndCallAck(uint16 _srcChainId, bytes memory _srcAddress, uint64 _nonce, bytes memory _payload) internal virtual {
         (bytes32 from, address to, uint64 amountSD, bytes memory payloadForCall, uint64 gasForCall) = _decodeSendAndCallPayload(_payload);
 
+        AmountForCall memory amountForCall = amountsForCall[_srcChainId][_srcAddress][_nonce];
+        uint amount = amountForCall.amount;
+
         // credit to this contract first, and then transfer to receiver only if callOnOFTReceived() succeeds
-        uint amount = _sd2ld(amountSD);
-        if (!_isRetry) {
-            uint amt = _creditTo(_srcChainId, address(this), amount);
-            require(amt == amount, "OFTCore: amount cannot be changed");
+        if (!amountForCall.credited) {
+            amount = _sd2ld(amountSD);
+            amount = _creditTo(_srcChainId, address(this), amount);
+            amountsForCall[_srcChainId][_srcAddress][_nonce] = AmountForCall(amount, true);
         }
 
         if (!_isContract(to)) {
@@ -151,23 +158,21 @@ abstract contract OFTCoreV2 is NonblockingLzAppV2 {
         bytes memory srcAddress = _srcAddress;
         uint64 nonce = _nonce;
         bytes memory payload = _payload;
-        bool isRetry = _isRetry;
         bytes32 from_ = from;
         address to_ = to;
         uint amount_ = amount;
         bytes memory payloadForCall_ = payloadForCall;
 
         // no gas limit for the call if retry
-        uint gas = isRetry ? gasleft() : gasForCall;
+        uint gas = amountForCall.credited ? gasleft() : gasForCall;
         (bool success, bytes memory reason) = address(this).excessivelySafeCall(gasleft(), 150, abi.encodeWithSelector(this.callOnOFTReceived.selector, srcChainId, srcAddress, nonce, from_, to_, amount_, payloadForCall_, gas));
 
-        bytes32 hash = keccak256(payload);
         if (success) {
+            bytes32 hash = keccak256(payload);
             emit CallOFTReceivedSuccess(srcChainId, srcAddress, nonce, hash);
         } else {
             // store the failed message into the nonblockingLzApp
-            failedMessages[srcChainId][srcAddress][nonce] = hash;
-            emit CallOFTReceivedFailure(srcChainId, srcAddress, nonce, payload, reason);
+            _storeFailedMessage(srcChainId, srcAddress, nonce, payload, reason);
         }
     }
 
