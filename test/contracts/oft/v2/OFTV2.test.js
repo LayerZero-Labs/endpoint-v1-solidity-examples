@@ -45,32 +45,34 @@ describe("OFT v2: ", function () {
     })
 
     it("send tokens from proxy oft and receive them back", async function () {
-        const amount = ethers.utils.parseEther("1") // 1 ether
-        await erc20.mint(alice.address, amount)
+        const initialAmount =  ethers.utils.parseEther("1.00000001") // 1 ether
+        const amount = ethers.utils.parseEther("1.00000000")
+        const dust = ethers.utils.parseEther("0.00000001")
+        await erc20.mint(alice.address, initialAmount)
 
         // verify alice has tokens and bob has no tokens on remote chain
-        expect(await erc20.balanceOf(alice.address)).to.be.equal(amount)
+        expect(await erc20.balanceOf(alice.address)).to.be.equal(initialAmount)
         expect(await remoteOFT.balanceOf(bob.address)).to.be.equal(0)
 
         // alice sends tokens to bob on remote chain
         // approve the proxy to swap your tokens
-        await erc20.connect(alice).approve(localOFT.address, amount)
+        await erc20.connect(alice).approve(localOFT.address, initialAmount)
 
         // swaps token to remote chain
         const bobAddressBytes32 = ethers.utils.defaultAbiCoder.encode(["address"], [bob.address])
-        let nativeFee = (await localOFT.estimateSendFee(remoteChainId, bobAddressBytes32, amount, false, "0x")).nativeFee
+        let nativeFee = (await localOFT.estimateSendFee(remoteChainId, bobAddressBytes32, initialAmount, false, "0x")).nativeFee
         await localOFT.connect(alice).sendFrom(
             alice.address,
             remoteChainId,
             bobAddressBytes32,
-            amount,
+            initialAmount,
             [alice.address, ethers.constants.AddressZero, "0x"],
             { value: nativeFee }
         )
 
         // tokens are now owned by the proxy contract, because this is the original oft chain
         expect(await erc20.balanceOf(localOFT.address)).to.equal(amount)
-        expect(await erc20.balanceOf(alice.address)).to.equal(0)
+        expect(await erc20.balanceOf(alice.address)).to.equal(dust)
 
         // tokens received on the remote chain
         expect(await remoteOFT.totalSupply()).to.equal(amount)
@@ -95,7 +97,9 @@ describe("OFT v2: ", function () {
 
         // tokens received on the local chain and unlocked from the proxy
         expect(await erc20.balanceOf(localOFT.address)).to.be.equal(halfAmount)
-        expect(await erc20.balanceOf(alice.address)).to.be.equal(halfAmount)
+        console.log(halfAmount, dust, typeof halfAmount, typeof dust)
+        console.log(halfAmount.add(dust), typeof halfAmount.add(dust))
+        expect(await erc20.balanceOf(alice.address)).to.be.equal(halfAmount.add(dust))
     })
 
     it("total outbound amount overflow", async function () {
