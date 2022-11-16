@@ -20,12 +20,7 @@ abstract contract OFTCoreV2 is NonblockingLzApp {
     uint8 public immutable sharedDecimals;
 
     bool public useCustomAdapterParams;
-    mapping(uint16 => mapping(bytes => mapping(uint64 => AmountForCall))) public amountsForCall;
-
-    struct AmountForCall {
-        uint amount;
-        bool credited;
-    }
+    mapping(uint16 => mapping(bytes => mapping(uint64 => bool))) public creditedPackets;
 
     /**
      * @dev Emitted when `_amount` tokens are moved from the `_sender` to (`_dstChainId`, `_toAddress`)
@@ -138,14 +133,13 @@ abstract contract OFTCoreV2 is NonblockingLzApp {
     function _sendAndCallAck(uint16 _srcChainId, bytes memory _srcAddress, uint64 _nonce, bytes memory _payload) internal virtual {
         (bytes32 from, address to, uint64 amountSD, bytes memory payloadForCall, uint64 gasForCall) = _decodeSendAndCallPayload(_payload);
 
-        AmountForCall memory amountForCall = amountsForCall[_srcChainId][_srcAddress][_nonce];
-        uint amount = amountForCall.amount;
+        bool credited = creditedPackets[_srcChainId][_srcAddress][_nonce];
+        uint amount = _sd2ld(amountSD);
 
         // credit to this contract first, and then transfer to receiver only if callOnOFTReceived() succeeds
-        if (!amountForCall.credited) {
-            amount = _sd2ld(amountSD);
+        if (!credited) {
             amount = _creditTo(_srcChainId, address(this), amount);
-            amountsForCall[_srcChainId][_srcAddress][_nonce] = AmountForCall(amount, true);
+            creditedPackets[_srcChainId][_srcAddress][_nonce] = true;
         }
 
         if (!_isContract(to)) {
@@ -164,7 +158,7 @@ abstract contract OFTCoreV2 is NonblockingLzApp {
         bytes memory payloadForCall_ = payloadForCall;
 
         // no gas limit for the call if retry
-        uint gas = amountForCall.credited ? gasleft() : gasForCall;
+        uint gas = credited ? gasleft() : gasForCall;
         (bool success, bytes memory reason) = address(this).excessivelySafeCall(gasleft(), 150, abi.encodeWithSelector(this.callOnOFTReceived.selector, srcChainId, srcAddress, nonce, from_, to_, amount_, payloadForCall_, gas));
 
         if (success) {
