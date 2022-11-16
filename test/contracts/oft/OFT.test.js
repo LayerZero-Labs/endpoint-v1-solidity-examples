@@ -108,7 +108,7 @@ describe("OFT: ", function () {
             // balance before transfer is 0
             expect(await OFTDst.balanceOf(owner.address)).to.be.equal(0)
 
-            const payload = ethers.utils.defaultAbiCoder.encode(["uint16", "bytes", "bytes", "uint256"], [0, owner.address, owner.address, sendQty])
+            const payload = ethers.utils.defaultAbiCoder.encode(["uint16", "bytes", "uint256"], [0, owner.address, sendQty])
             await expect(lzEndpointDstMock.retryPayload(chainIdSrc, srcPath, payload)).to.emit(lzEndpointDstMock, "PayloadCleared")
 
             // balance after transfer is sendQty

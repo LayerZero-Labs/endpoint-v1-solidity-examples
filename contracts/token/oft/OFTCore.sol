@@ -24,7 +24,7 @@ abstract contract OFTCore is NonblockingLzApp, ERC165, IOFTCore {
 
     function estimateSendFee(uint16 _dstChainId, bytes calldata _toAddress, uint _amount, bool _useZro, bytes calldata _adapterParams) public view virtual override returns (uint nativeFee, uint zroFee) {
         // mock the payload for sendFrom()
-        bytes memory payload = abi.encode(PT_SEND, abi.encodePacked(msg.sender), _toAddress, _amount);
+        bytes memory payload = abi.encode(PT_SEND, _toAddress, _amount);
         return lzEndpoint.estimateFees(_dstChainId, address(this), payload, _useZro, _adapterParams);
     }
 
@@ -53,21 +53,21 @@ abstract contract OFTCore is NonblockingLzApp, ERC165, IOFTCore {
     function _send(address _from, uint16 _dstChainId, bytes memory _toAddress, uint _amount, address payable _refundAddress, address _zroPaymentAddress, bytes memory _adapterParams) internal virtual {
         _checkAdapterParams(_dstChainId, PT_SEND, _adapterParams, NO_EXTRA_GAS);
 
-        _debitFrom(_from, _dstChainId, _toAddress, _amount);
+        uint amount = _debitFrom(_from, _dstChainId, _toAddress, _amount);
 
-        bytes memory lzPayload = abi.encode(PT_SEND, abi.encodePacked(_from), _toAddress, _amount);
+        bytes memory lzPayload = abi.encode(PT_SEND, _toAddress, amount);
         _lzSend(_dstChainId, lzPayload, _refundAddress, _zroPaymentAddress, _adapterParams, msg.value);
 
-        emit SendToChain(_dstChainId, _from, _toAddress, _amount);
+        emit SendToChain(_dstChainId, _from, _toAddress, amount);
     }
 
     function _sendAck(uint16 _srcChainId, bytes memory, uint64, bytes memory _payload) internal virtual {
-        (, bytes memory from, bytes memory toAddressBytes, uint amount) = abi.decode(_payload, (uint16, bytes, bytes, uint));
+        (, bytes memory toAddressBytes, uint amount) = abi.decode(_payload, (uint16, bytes, uint));
 
         address to = toAddressBytes.toAddress(0);
 
-        _creditTo(_srcChainId, to, amount);
-        emit ReceiveFromChain(_srcChainId, from, to, amount);
+        amount = _creditTo(_srcChainId, to, amount);
+        emit ReceiveFromChain(_srcChainId, to, amount);
     }
 
     function _checkAdapterParams(uint16 _dstChainId, uint16 _pkType, bytes memory _adapterParams, uint _extraGas) internal virtual {
@@ -78,7 +78,7 @@ abstract contract OFTCore is NonblockingLzApp, ERC165, IOFTCore {
         }
     }
 
-    function _debitFrom(address _from, uint16 _dstChainId, bytes memory _toAddress, uint _amount) internal virtual;
+    function _debitFrom(address _from, uint16 _dstChainId, bytes memory _toAddress, uint _amount) internal virtual returns(uint);
 
-    function _creditTo(uint16 _srcChainId, address _toAddress, uint _amount) internal virtual;
+    function _creditTo(uint16 _srcChainId, address _toAddress, uint _amount) internal virtual returns(uint);
 }

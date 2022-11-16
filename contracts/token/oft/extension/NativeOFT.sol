@@ -18,7 +18,7 @@ contract NativeOFT is OFT, ReentrancyGuard {
 
     function _send(address _from, uint16 _dstChainId, bytes memory _toAddress, uint _amount, address payable _refundAddress, address _zroPaymentAddress, bytes memory _adapterParams) internal virtual override(OFTCore) {
         uint messageFee = _debitFromNative(_from, _dstChainId, _toAddress, _amount);
-        bytes memory lzPayload = abi.encode(PT_SEND, abi.encodePacked(_from), _toAddress, _amount);
+        bytes memory lzPayload = abi.encode(PT_SEND, _toAddress, _amount);
 
         if (useCustomAdapterParams) {
             _checkGasLimit(_dstChainId, PT_SEND, _adapterParams, NO_EXTRA_GAS);
@@ -93,10 +93,11 @@ contract NativeOFT is OFT, ReentrancyGuard {
         return messageFee;
     }
 
-    function _creditTo(uint16, address _toAddress, uint _amount) internal override(OFT) {
+    function _creditTo(uint16, address _toAddress, uint _amount) internal override(OFT) returns(uint) {
         _burn(address(this), _amount);
         (bool success, ) = _toAddress.call{value: _amount}("");
         require(success, "NativeOFT: failed to _creditTo");
+        return _amount;
     }
 
     receive() external payable {

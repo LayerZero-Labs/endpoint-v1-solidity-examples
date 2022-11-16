@@ -25,9 +25,13 @@ abstract contract NonblockingLzApp is LzApp {
         (bool success, bytes memory reason) = address(this).excessivelySafeCall(gasleft(), 150, abi.encodeWithSelector(this.nonblockingLzReceive.selector, _srcChainId, _srcAddress, _nonce, _payload));
         // try-catch all errors/exceptions
         if (!success) {
-            failedMessages[_srcChainId][_srcAddress][_nonce] = keccak256(_payload);
-            emit MessageFailed(_srcChainId, _srcAddress, _nonce, _payload, reason);
+            _storeFailedMessage(_srcChainId, _srcAddress, _nonce, _payload, reason);
         }
+    }
+
+    function _storeFailedMessage(uint16 _srcChainId, bytes memory _srcAddress, uint64 _nonce, bytes memory _payload, bytes memory _reason) internal virtual {
+        failedMessages[_srcChainId][_srcAddress][_nonce] = keccak256(_payload);
+        emit MessageFailed(_srcChainId, _srcAddress, _nonce, _payload, _reason);
     }
 
     function nonblockingLzReceive(uint16 _srcChainId, bytes calldata _srcAddress, uint64 _nonce, bytes calldata _payload) public virtual {

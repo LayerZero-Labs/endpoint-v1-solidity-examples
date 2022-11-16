@@ -1,26 +1,27 @@
 const { expect } = require("chai")
 const { ethers } = require("hardhat")
 
-describe("ComposableProxyOFT: ", function () {
+describe("Composable ProxyOFT v2: ", function () {
     const srcChainId = 1
     const dstChainId = 2
 
     let srcEndpoint, dstEndpoint, proxyOFT, dstOFT, srcStaking, dstStaking, dstPath, srcPath, token
     let owner, alice, bob, carol
+    let dstStakingAddressBytes32, srcStakingAddressBytes32
 
     before(async function () {
         const LZEndpointMock = await ethers.getContractFactory("LZEndpointMock")
-        const ProxyOFT = await ethers.getContractFactory("ComposableProxyOFT")
+        const ProxyOFT = await ethers.getContractFactory("ProxyOFTV2")
         const MockToken = await ethers.getContractFactory("MockToken")
-        const OFT = await ethers.getContractFactory("ComposableOFT")
-        const OFTStakingMock = await ethers.getContractFactory("OFTStakingMock")
+        const OFT = await ethers.getContractFactory("OFTV2")
+        const OFTStakingMock = await ethers.getContractFactory("OFTStakingMockV2")
 
         srcEndpoint = await LZEndpointMock.deploy(srcChainId)
         dstEndpoint = await LZEndpointMock.deploy(dstChainId)
         token = await MockToken.deploy("Mock", "MOCK")
 
-        proxyOFT = await ProxyOFT.deploy(srcEndpoint.address, token.address)
-        dstOFT = await OFT.deploy("OFT", "OFT", dstEndpoint.address)
+        proxyOFT = await ProxyOFT.deploy(token.address, 6, srcEndpoint.address)
+        dstOFT = await OFT.deploy("OFT", "OFT", 6, dstEndpoint.address)
 
         srcStaking = await OFTStakingMock.deploy(proxyOFT.address)
         dstStaking = await OFTStakingMock.deploy(dstOFT.address)
@@ -36,8 +37,10 @@ describe("ComposableProxyOFT: ", function () {
         await dstOFT.setTrustedRemote(srcChainId, srcPath) // for B, set A
 
         // set each contracts source address so it can send to each other
-        await srcStaking.setRemoteStakingContract(dstChainId, dstStaking.address)
-        await dstStaking.setRemoteStakingContract(srcChainId, srcStaking.address)
+        dstStakingAddressBytes32 = ethers.utils.defaultAbiCoder.encode(["address"], [dstStaking.address])
+        srcStakingAddressBytes32 = ethers.utils.defaultAbiCoder.encode(["address"], [srcStaking.address])
+        await srcStaking.setRemoteStakingContract(dstChainId, dstStakingAddressBytes32)
+        await dstStaking.setRemoteStakingContract(srcChainId, srcStakingAddressBytes32)
 
         //set destination min gas
         await proxyOFT.setMinDstGas(dstChainId, parseInt(await proxyOFT.PT_SEND()), 225000)
@@ -78,6 +81,7 @@ describe("ComposableProxyOFT: ", function () {
     it("failed to call on oft received for paused", async function () {
         // owner transfer 50 ether token to alice
         const amount = ethers.utils.parseEther("50")
+
         await token.transfer(alice.address, amount)
         expect(await token.balanceOf(alice.address)).to.equal(amount)
 
@@ -94,22 +98,32 @@ describe("ComposableProxyOFT: ", function () {
 
         // check balance
         expect(await token.balanceOf(alice.address)).to.equal(0)
-        expect(await dstOFT.balanceOf(dstStaking.address)).to.equal(amount)
+        expect(await dstOFT.balanceOf(dstOFT.address)).to.equal(amount)
         expect(await dstStaking.balances(carol.address)).to.equal(0) // failed to call onOFTReceived() for paused
+
+        // should be 0 for failure to call onOFTReceived()
+        expect(await dstOFT.balanceOf(dstStaking.address)).to.equal(0)
     })
 
-    it("retry to call on oft received", async function () {
+    it("retry to call onOFTReceived() by calling retryMessage()", async function () {
         await dstStaking.setPaused(false) // unpaused on dst chain
-        const amount = await dstOFT.balanceOf(dstStaking.address)
+
+        const amount = ethers.utils.parseEther("50")
+        const amountSD = amount.div(Math.pow(10, 12))
+        const payloadForCall = ethers.utils.defaultAbiCoder.encode(["uint8", "bytes"], [1, carol.address])
 
         // retry to call onOFTReceived()
-        const payload = ethers.utils.defaultAbiCoder.encode(["uint8", "bytes"], [1, carol.address])
+        const payload = ethers.utils.solidityPack(
+            ["uint8", "bytes32", "uint64", "bytes32", "uint64", "bytes"],
+            [1, dstStakingAddressBytes32, amountSD, srcStakingAddressBytes32, 300000, payloadForCall]
+        )
+
         // console.log("_from", alice.address)
         // console.log("_to", dstOFT.address)
         // console.log("_amount", amount)
         // console.log("payload", payload)
-        let dstPath = ethers.utils.solidityPack(["address", "address"], [proxyOFT.address, dstOFT.address]);
-        await dstOFT.retryOFTReceived(srcChainId, dstPath, 2, srcStaking.address, dstStaking.address, amount, payload)
+        await dstOFT.retryMessage(srcChainId, srcPath, 2, payload)
         expect(await dstStaking.balances(carol.address)).to.equal(amount)
+        expect(await dstOFT.balanceOf(dstStaking.address)).to.equal(amount)
     })
 })
