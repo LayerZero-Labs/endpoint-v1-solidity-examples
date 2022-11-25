@@ -40,5 +40,16 @@
     "arbitrum": "0x55bdb4164d28fbaf0898e0ef14a589ac09ac9970",
     "optimism": "0xe3b53af74a4bf62ae5511055290838050bf764df",
     "fantom": "0x9d1b1669c73b033dfe47ae5a0164ab96df25b944"
+  },
+  "widgetSwap": {
+    "fuji": "0x5d5350465FecC590100e91bEf509C41A288bC555",
+
+    "ethereum": "0x02489ac60F7f581445b7D2Dd59bb0A415A1009Df",
+    "bsc": "0xa8BA2FF9d0D7d175b2729866bE3D9c51cACb2e00",
+    "avalanche": "0x0cFF9ACef65A64B5D76e83B70787b27F7416644C",
+    "polygon": "0xc2a6A1A8ACcc8BD757BF4b34FBAcB20fbeA87f55",
+    "arbitrum": "0x962F92cEe9A559d705f8999C92752EbCDD550616",
+    "optimism": "0x16419058f15a86795933f78dC624B384D09E3a4e",
+    "fantom": "0x7eA8d498d4db3a8895454F4BF3bD56385ba80968"
   }
 }

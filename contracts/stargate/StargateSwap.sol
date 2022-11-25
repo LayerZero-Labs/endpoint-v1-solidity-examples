@@ -6,14 +6,20 @@ pragma abicoder v2;
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "../interfaces/IStargateRouter.sol";
 import "../interfaces/IStargateReceiver.sol";
+import "../interfaces/IStargateWidget.sol";
+
 
 contract StargateSwap is IStargateReceiver {
     address public stargateRouter;      // an IStargateRouter instance
+    address public widgetSwap;
+    bytes2 public partnerId;
 
     event ReceivedOnDestination(address token, uint qty);
 
-    constructor(address _stargateRouter) {
+    constructor(address _stargateRouter, address _widgetSwap, bytes2 _partnerId) {
         stargateRouter = _stargateRouter;
+        widgetSwap = _widgetSwap;
+        partnerId = _partnerId;
     }
 
     //-----------------------------------------------------------------------------------------------------------------------
@@ -50,6 +56,9 @@ contract StargateSwap is IStargateReceiver {
             abi.encodePacked(destStargateComposed),         // destination address, the sgReceive() implementer
             data                                            // bytes payload
         );
+
+        // OPTIONAL... Register the partner id for receiving fees from composing stargate
+        IStargateWidget(widgetSwap).partnerSwap(partnerId);
     }
 
     //-----------------------------------------------------------------------------------------------------------------------
