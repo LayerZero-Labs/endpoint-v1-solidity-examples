@@ -13,5 +13,6 @@
   "mumbai":           10109,
   "arbitrum-goerli":  10143,
   "optimism-goerli":  10132,
-  "fantom-testnet":   10112
+  "fantom-testnet":   10112,
+  "core-testnet":     10153
 }

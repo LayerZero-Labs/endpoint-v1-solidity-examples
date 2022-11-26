@@ -160,6 +160,11 @@ module.exports = {
       url: `https://rpc.testnet.fantom.network/`,
       chainId: 4002,
       accounts: accounts(),
+    },
+    'core-testnet': {
+      url: `https://rpc.test.btcs.network`,
+      chainId: 1115,
+      accounts: accounts(),
     }
   }
 };
