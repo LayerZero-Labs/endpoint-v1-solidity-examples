@@ -52,7 +52,7 @@ contract ProxyOFTWithFee is BaseOFTWithFee {
 
         // check total outbound amount
         outboundAmount += amount;
-        uint cap = _sd2ld(type(uint64).max);
+        uint cap = type(uint64).max *  _ld2sdRate(); //TODO:;
         require(cap >= outboundAmount, "ProxyOFTWithFee: outboundAmount overflow");
 
         return amount;

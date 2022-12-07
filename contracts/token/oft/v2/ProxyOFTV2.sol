@@ -52,7 +52,7 @@ contract ProxyOFTV2 is BaseOFTV2 {
 
         // check total outbound amount
         outboundAmount += amount;
-        uint cap = _sd2ld(type(uint64).max);
+        uint cap = type(uint64).max * _ld2sdRate(); //TODO:
         require(cap >= outboundAmount, "ProxyOFT: outboundAmount overflow");
 
         return amount;
