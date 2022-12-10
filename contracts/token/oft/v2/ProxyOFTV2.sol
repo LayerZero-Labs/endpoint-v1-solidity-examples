@@ -11,7 +11,7 @@ contract ProxyOFTV2 is BaseOFTV2 {
     IERC20 internal immutable innerToken;
     uint internal immutable ld2sdRate;
 
-    // total amount is transferred from this chain to other chains, ensuring the total is less than uint64.max in sd
+    // total amount is transferred from this chain to other chains
     uint public outboundAmount;
 
     constructor(address _token, uint8 _sharedDecimals, address _lzEndpoint) BaseOFTV2(_sharedDecimals, _lzEndpoint) {
@@ -50,10 +50,8 @@ contract ProxyOFTV2 is BaseOFTV2 {
         (uint amount, uint dust) = _removeDust(_amount);
         if (dust > 0) innerToken.safeTransfer(_from, dust);
 
-        // check total outbound amount
         outboundAmount += amount;
-        uint cap = type(uint64).max * _ld2sdRate(); //TODO:
-        require(cap >= outboundAmount, "ProxyOFT: outboundAmount overflow");
+       _checkOutboundAmount();
 
         return amount;
     }
@@ -82,4 +80,6 @@ contract ProxyOFTV2 is BaseOFTV2 {
     function _ld2sdRate() internal view virtual override returns (uint) {
         return ld2sdRate;
     }
+
+    function _checkOutboundAmount() internal virtual {}
 }

@@ -80,7 +80,10 @@ abstract contract OFTCoreV2 is NonblockingLzApp {
     }
 
     function _nonblockingLzReceive(uint16 _srcChainId, bytes memory _srcAddress, uint64 _nonce, bytes memory _payload) internal virtual override {
-        uint8 packetType = _payload.toUint8(0);
+        uint16 packetType;
+        assembly {
+            packetType := mload(add(_payload, 32))
+        }
 
         if (packetType == PT_SEND) {
             _sendAck(_srcChainId, _srcAddress, _nonce, _payload);
@@ -186,15 +189,14 @@ abstract contract OFTCoreV2 is NonblockingLzApp {
     }
 
     function _encodeSendPayload(bytes32 _toAddress, uint _amount) internal virtual view returns (bytes memory) {
-        uint amountSD = _amount / _ld2sdRate();       
+        uint amountSD = _amount / _ld2sdRate();
         return abi.encode(PT_SEND, _toAddress, amountSD);
     }
 
     function _decodeSendPayload(bytes memory _payload) internal virtual view returns (address to, uint amount) {
-        (uint8 packetType, bytes memory toAddressBytes, uint amountSD) = abi.decode(_payload, (uint8, bytes, uint));
-        require(packetType == PT_SEND, "OFTCore: invalid packet type");
+        (, bytes32 toAddressBytes, uint amountSD) = abi.decode(_payload, (uint8, bytes32, uint));
 
-        to = toAddressBytes.toAddress(0);
+        to = _bytes32ToAddress(toAddressBytes);
         amount = amountSD * _ld2sdRate();
     }
 
@@ -211,15 +213,16 @@ abstract contract OFTCoreV2 is NonblockingLzApp {
     }
 
     function _decodeSendAndCallPayload(bytes memory _payload) internal virtual view returns (bytes32 from, address to, uint amount, bytes memory payload, uint64 dstGasForCall) {
-        uint8 packetType;
-        bytes memory toAddressBytes;
-        uint64 amountSD;
-        (packetType, toAddressBytes, amountSD, from, dstGasForCall, payload) = abi.decode(_payload, (uint8, bytes, uint64, bytes32, uint64, bytes));
-        
-        require(packetType == PT_SEND_AND_CALL, "OFTCore: invalid packet type");
+        bytes32 toAddressBytes;
+        uint amountSD;
+        (, toAddressBytes, amountSD, from, dstGasForCall, payload) = abi.decode(_payload, (uint8, bytes32, uint, bytes32, uint64, bytes));
 
-        to = toAddressBytes.toAddress(0);
+        to = _bytes32ToAddress(toAddressBytes);
         amount = amountSD * _ld2sdRate();
+    }
+
+    function _bytes32ToAddress(bytes32 _bytes32Address) internal pure virtual returns (address) {
+        return address(uint160(uint(_bytes32Address)));
     }
 
     function _addressToBytes32(address _address) internal pure virtual returns (bytes32) {
