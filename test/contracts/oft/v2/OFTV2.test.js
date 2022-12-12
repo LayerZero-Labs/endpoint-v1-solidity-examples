@@ -16,7 +16,7 @@ describe("OFT v2: ", function () {
 
     before(async function () {
         LZEndpointMock = await ethers.getContractFactory("LZEndpointMock")
-        ProxyOFTV2 = await ethers.getContractFactory("AptosProxyOFTV2")
+        ProxyOFTV2 = await ethers.getContractFactory("ProxyOFTV2Aptos")
         OFTV2 = await ethers.getContractFactory("OFTV2")
         ERC20 = await ethers.getContractFactory("ERC20Mock")
         owner = (await ethers.getSigners())[0]
@@ -138,7 +138,7 @@ describe("OFT v2: ", function () {
             )
             expect(false).to.be.true
         } catch (e) {
-            expect(e.message).to.match(/AptosProxyOFTV2: outboundAmount overflow/)
+            expect(e.message).to.match(/ProxyOFTV2Aptos: outboundAmount overflow/)
         }
     })
 })
