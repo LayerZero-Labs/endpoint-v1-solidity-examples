@@ -113,8 +113,8 @@ describe("Composable ProxyOFT v2: ", function () {
         const payloadForCall = ethers.utils.defaultAbiCoder.encode(["uint8", "bytes"], [1, carol.address])
 
         // retry to call onOFTReceived()
-        const payload = ethers.utils.solidityPack(
-            ["uint8", "bytes32", "uint64", "bytes32", "uint64", "bytes"],
+        const payload = ethers.utils.defaultAbiCoder.encode(
+            ["uint8", "bytes32", "uint256", "bytes32", "uint64", "bytes"],
             [1, dstStakingAddressBytes32, amountSD, srcStakingAddressBytes32, 300000, payloadForCall]
         )
 
