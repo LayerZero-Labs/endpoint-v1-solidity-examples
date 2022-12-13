@@ -25,7 +25,7 @@ describe("Proxy OFTv2 Aptos", () => {
     let lzCallParams
 
     before(async () => {
-        ;[owner] = await ethers.getSigners()
+        [owner] = await ethers.getSigners()
         ownerAddressBytes32 = utils.defaultAbiCoder.encode(["address"], [owner.address])
         endpointFactory = await ethers.getContractFactory("LZEndpointMock")
         proxyOftFactory = await ethers.getContractFactory("ProxyOFTV2")
