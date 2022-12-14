@@ -39,6 +39,15 @@ The `OmnichainFungibleToken` deployed on other chains will use this configuratio
 Using the Ethereum network ```(testnet: goerli)``` as a `base` (really its like the source of truth) is a security decision.
 In the event a chain goes rogue, Ethereum will be the final source of truth for OFT tokens.
 
+## About OFTV2
+```shell
+NOTE: the OFTV2 uses uint64 to encode value transfer for compatability of aptos and solana. 
+
+The deployer is expected to set a lower decimal points like 6 or 8. 
+
+If the decimal point is 18, then uint64 can only represent approximately 18 tokens (uint64.max ~= 18 * 10^18).
+```
+
 ## Deploy Setup
 1. Add a .env file (to the root project directory) with your MNEMONIC="" and fund your wallet in order to deploy!
 2. Follow any of the tutorials below
