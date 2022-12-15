@@ -157,7 +157,7 @@ module.exports = {
       accounts: accounts(),
     },
     'fantom-testnet': {
-      url: `https://rpc.testnet.fantom.network/`,
+      url: `https://rpc.ankr.com/fantom_testnet`,
       chainId: 4002,
       accounts: accounts(),
     }
