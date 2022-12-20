@@ -7,7 +7,7 @@ module.exports = async function ({ deployments, getNamedAccounts }) {
         from: deployer,
         args: ["test", "t"],
         log: true,
-        waitConfirmations: 1,
+        waitConfirmations: 2,
     })
 
     await hre.run("verifyContract", { contract: "MockToken" })
