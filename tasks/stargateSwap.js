@@ -22,6 +22,21 @@ module.exports = async function (taskArgs, hre) {
 
     const deadline = (await ethers.provider.getBlock("latest")).timestamp + 10000
 
+    const quoteData = await router.quoteLayerZeroFee(
+        dstChainId, 
+        1, // function type: see Bridge.sol for all types
+        owner.address, 
+        "0x", // payload
+        {
+            dstGasForCall: 20000, // extra gas, if calling smart contract,
+            dstNativeAmount: 0,   // amount of dust dropped in destination wallet
+            dstNativeAddr: "0x",  // destination wallet for dust
+        }
+    )
+
+    const fee = quoteData[0].mul(10).div(8) // + 20%
+    console.log(`fee: ${fee.toString()} wei`)
+
     tx = await (
         await stargateSwap.swap(
             qty,
@@ -32,7 +47,7 @@ module.exports = async function (taskArgs, hre) {
             owner.address, // to address on destination
             deadline,
             dstStargateSwapAddr,
-            { value: ethers.utils.parseEther("4") }
+            { value: fee }
         )
     ).wait()
     console.log(`tx: ${tx.transactionHash}`)

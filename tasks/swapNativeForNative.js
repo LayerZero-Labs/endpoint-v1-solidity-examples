@@ -17,7 +17,23 @@ module.exports = async function (taskArgs, hre) {
     console.log(`[source] stargateComposed.address: ${stargateComposed.address}`)
 
     let qty = ethers.utils.parseEther(taskArgs.qty) // convert to wei
-    let deadline = parseInt(new Date().getTime() / 1000) + 1000
+    const deadline = (await ethers.provider.getBlock("latest")).timestamp + 10000
+
+    const quoteData = await router.quoteLayerZeroFee(
+        dstChainId,
+        1, // function type: see Bridge.sol for all types
+        owner.address,
+        "0x",  // payload, using abi.encode()
+        ({
+            dstGasForCall: 50000,   // extra gas, if calling smart contract,
+            dstNativeAmount: 0,     // amount of dust dropped in destination wallet 
+            dstNativeAddr: "0x"     // destination wallet for dust
+        })
+    )
+
+    const fee = quoteData[0].mul(10).div(8) // + 20%
+    console.log(`fee: ${fee.toString()} wei`)
+
     let tx = await (
         await stargateComposed.swapNativeForNative(
             dstChainId,
@@ -31,7 +47,7 @@ module.exports = async function (taskArgs, hre) {
             0,
             deadline,
             dstStargateComposed,
-            { value: ethers.utils.parseEther("1") }
+            { value: qty.add(fee) }
         )
     ).wait()
     console.log(`tx: ${tx.transactionaHash}`)
