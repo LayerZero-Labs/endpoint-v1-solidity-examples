@@ -3,6 +3,7 @@
 pragma solidity ^0.8.4;
 pragma abicoder v2;
 
+import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "../interfaces/IStargateRouter.sol";
 import "../interfaces/IStargateReceiver.sol";
@@ -10,6 +11,8 @@ import "../interfaces/IStargateWidget.sol";
 
 
 contract StargateSwap is IStargateReceiver {
+    using SafeERC20 for IERC20;
+
     address public stargateRouter;      // an IStargateRouter instance
     address public widgetSwap;
     bytes2 public partnerId;
@@ -31,7 +34,6 @@ contract StargateSwap is IStargateReceiver {
         uint16 srcPoolId,                       // stargate poolId - *must* be the poolId for the qty asset
         uint16 dstPoolId,                       // stargate destination poolId
         address to,                             // the address to send the destination tokens to
-        uint /*deadline*/,                          // overall deadline
         address destStargateComposed            // destination contract. it must implement sgReceive()
     ) external payable {
         require(msg.value > 0, "stargate requires a msg.value to pay crosschain message");
@@ -41,8 +43,8 @@ contract StargateSwap is IStargateReceiver {
         bytes memory data = abi.encode(to);
 
         // this contract calls stargate swap()
-        IERC20(bridgeToken).transferFrom(msg.sender, address(this), qty);
-        IERC20(bridgeToken).approve(address(stargateRouter), qty);
+        IERC20(bridgeToken).safeTransferFrom(msg.sender, address(this), qty);
+        IERC20(bridgeToken).safeApprove(address(stargateRouter), qty);
 
         // Stargate's Router.swap() function sends the tokens to the destination chain.
         IStargateRouter(stargateRouter).swap{value:msg.value}(

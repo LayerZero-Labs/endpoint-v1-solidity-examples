@@ -19,7 +19,10 @@ module.exports = async function (taskArgs, hre) {
     let qty = ethers.utils.parseEther(taskArgs.qty) // convert to wei
     const deadline = (await ethers.provider.getBlock("latest")).timestamp + 10000
 
-    const quoteData = await router.quoteLayerZeroFee(
+    const stargateRouterAddress = await stargateComposed.stargateRouter()
+    console.log(`[${hre.network.name}] StargateRouter: ${stargateRouterAddress}`)
+    const stargateRouter = await ethers.getContractAt("IStargateRouter", stargateRouterAddress)
+    const quoteData = await stargateRouter.quoteLayerZeroFee(
         dstChainId,
         1, // function type: see Bridge.sol for all types
         owner.address,

@@ -9,20 +9,22 @@ module.exports = async function (taskArgs, hre) {
     let tx
 
     const erc20 = await ethers.getContractAt("ERC20", taskArgs.bridgeToken)
-    console.log(`erc20.address: ${erc20.address}`)
+    console.log(`[${hre.network.name}] ERC20: ${erc20.address}`)
     const qty = taskArgs.qty
     const dstChainId = CHAIN_ID[taskArgs.targetNetwork]
     const dstStargateSwapAddr = getDeploymentAddresses(taskArgs.targetNetwork)["StargateSwap"]
     // get source contract instance
     const stargateSwap = await ethers.getContract("StargateSwap")
-    console.log(`[source] address: ${stargateSwap.address}`)
+    console.log(`[${hre.network.name}] StargateSwap: ${stargateSwap.address}`)
+    console.log(`[${taskArgs.targetNetwork}] StargateSwap: ${dstStargateSwapAddr}`)    
 
     tx = await (await erc20.approve(stargateSwap.address, qty)).wait()
-    console.log(`approve tx: ${tx.transactionHash}`)
+    console.log(`[${hre.network.name}] approve tx: ${tx.transactionHash}`)
 
-    const deadline = (await ethers.provider.getBlock("latest")).timestamp + 10000
-
-    const quoteData = await router.quoteLayerZeroFee(
+    const stargateRouterAddress = await stargateSwap.stargateRouter()
+    console.log(`[${hre.network.name}] StargateRouter: ${stargateRouterAddress}`)
+    const stargateRouter = await ethers.getContractAt("IStargateRouter", stargateRouterAddress)
+    const quoteData = await stargateRouter.quoteLayerZeroFee(
         dstChainId, 
         1, // function type: see Bridge.sol for all types
         owner.address, 
@@ -35,7 +37,7 @@ module.exports = async function (taskArgs, hre) {
     )
 
     const fee = quoteData[0].mul(10).div(8) // + 20%
-    console.log(`fee: ${fee.toString()} wei`)
+    console.log(`[${hre.network.name}] Stargate fee: ${fee.toString()} wei`)
 
     tx = await (
         await stargateSwap.swap(
@@ -45,10 +47,9 @@ module.exports = async function (taskArgs, hre) {
             taskArgs.srcPoolId,
             taskArgs.dstPoolId,
             owner.address, // to address on destination
-            deadline,
             dstStargateSwapAddr,
             { value: fee }
         )
     ).wait()
-    console.log(`tx: ${tx.transactionHash}`)
+    console.log(`tx: ${tx.transactionHash}`)   
 }
