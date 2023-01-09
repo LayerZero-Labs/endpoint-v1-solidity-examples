@@ -7,6 +7,7 @@ import "../lzApp/NonblockingLzApp.sol";
 
 /// @title A LayerZero example sending a cross chain message from a source chain to a destination chain to increment a counter
 contract OmniCounter is NonblockingLzApp {
+    bytes public constant PAYLOAD = "\x01\x02\x03\x04";
     uint public counter;
 
     constructor(address _lzEndpoint) NonblockingLzApp(_lzEndpoint) {}
@@ -15,7 +16,11 @@ contract OmniCounter is NonblockingLzApp {
         counter += 1;
     }
 
+    function estimateFee(uint16 _dstChainId, bool _useZro, bytes calldata _adapterParams) public view returns (uint nativeFee, uint zroFee) {
+        return lzEndpoint.estimateFees(_dstChainId, address(this), PAYLOAD, _useZro, _adapterParams);
+    }
+
     function incrementCounter(uint16 _dstChainId) public payable {
-        _lzSend(_dstChainId, bytes(""), payable(msg.sender), address(0x0), bytes(""), msg.value);
+        _lzSend(_dstChainId, PAYLOAD, payable(msg.sender), address(0x0), bytes(""), msg.value);
     }
 }
