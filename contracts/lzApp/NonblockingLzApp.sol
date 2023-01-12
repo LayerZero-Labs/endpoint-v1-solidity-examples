@@ -16,13 +16,14 @@ abstract contract NonblockingLzApp is LzApp {
     constructor(address _endpoint) LzApp(_endpoint) {}
 
     mapping(uint16 => mapping(bytes => mapping(uint64 => bytes32))) public failedMessages;
+    uint256 public gasAllocated;
 
     event MessageFailed(uint16 _srcChainId, bytes _srcAddress, uint64 _nonce, bytes _payload, bytes _reason);
     event RetryMessageSuccess(uint16 _srcChainId, bytes _srcAddress, uint64 _nonce, bytes32 _payloadHash);
 
     // overriding the virtual function in LzReceiver
     function _blockingLzReceive(uint16 _srcChainId, bytes memory _srcAddress, uint64 _nonce, bytes memory _payload) internal virtual override {
-        (bool success, bytes memory reason) = address(this).excessivelySafeCall(gasleft(), 150, abi.encodeWithSelector(this.nonblockingLzReceive.selector, _srcChainId, _srcAddress, _nonce, _payload));
+        (bool success, bytes memory reason) = address(this).excessivelySafeCall(gasleft() - gasAllocated, 150, abi.encodeWithSelector(this.nonblockingLzReceive.selector, _srcChainId, _srcAddress, _nonce, _payload));
         // try-catch all errors/exceptions
         if (!success) {
             _storeFailedMessage(_srcChainId, _srcAddress, _nonce, _payload, reason);
@@ -54,4 +55,10 @@ abstract contract NonblockingLzApp is LzApp {
         _nonblockingLzReceive(_srcChainId, _srcAddress, _nonce, _payload);
         emit RetryMessageSuccess(_srcChainId, _srcAddress, _nonce, payloadHash);
     }
+
+    function setAllocatedGas(uint256 _gasAllocated) external onlyOwner {
+        gasAllocated = _gasAllocated;
+    }
+    
+
 }
