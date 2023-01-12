@@ -9,6 +9,7 @@ import "@openzeppelin/contracts/utils/introspection/ERC165.sol";
 abstract contract ONFT721Core is NonblockingLzApp, ERC165, IONFT721Core {
     uint public constant NO_EXTRA_GAS = 0;
     uint16 public constant FUNCTION_TYPE_SEND = 1;
+    uint16 public constant FUNCTION_TYPE_SEND_BATCH = 2;
     bool public useCustomAdapterParams;
 
     event SetUseCustomAdapterParams(bool _useCustomAdapterParams);
@@ -20,28 +21,46 @@ abstract contract ONFT721Core is NonblockingLzApp, ERC165, IONFT721Core {
     }
 
     function estimateSendFee(uint16 _dstChainId, bytes memory _toAddress, uint _tokenId, bool _useZro, bytes memory _adapterParams) public view virtual override returns (uint nativeFee, uint zroFee) {
-        // mock the payload for send()
-        bytes memory payload = abi.encode(_toAddress, _tokenId);
+        return estimateSendBatchFee(_dstChainId, _toAddress, _toSingletonArray(_tokenId), _useZro, _adapterParams);
+    }
+
+    function estimateSendBatchFee(uint16 _dstChainId, bytes memory _toAddress, uint[] memory _tokenIds, bool _useZro, bytes memory _adapterParams) public view virtual override returns (uint nativeFee, uint zroFee) {
+        bytes memory payload = abi.encode(_toAddress, _tokenIds);
         return lzEndpoint.estimateFees(_dstChainId, address(this), payload, _useZro, _adapterParams);
     }
 
     function sendFrom(address _from, uint16 _dstChainId, bytes memory _toAddress, uint _tokenId, address payable _refundAddress, address _zroPaymentAddress, bytes memory _adapterParams) public payable virtual override {
-        _send(_from, _dstChainId, _toAddress, _tokenId, _refundAddress, _zroPaymentAddress, _adapterParams);
+        _sendBatch(_from, _dstChainId, _toAddress, _toSingletonArray(_tokenId), _refundAddress, _zroPaymentAddress, _adapterParams);
     }
 
-    function _send(address _from, uint16 _dstChainId, bytes memory _toAddress, uint _tokenId, address payable _refundAddress, address _zroPaymentAddress, bytes memory _adapterParams) internal virtual {
-        _debitFrom(_from, _dstChainId, _toAddress, _tokenId);
+    function sendBatchFrom(address _from, uint16 _dstChainId, bytes memory _toAddress, uint[] memory _tokenIds, address payable _refundAddress, address _zroPaymentAddress, bytes memory _adapterParams) public payable virtual override {
+        _sendBatch(_from, _dstChainId, _toAddress, _tokenIds, _refundAddress, _zroPaymentAddress, _adapterParams);
+    }
 
-        bytes memory payload = abi.encode(_toAddress, _tokenId);
+    function _sendBatch(address _from, uint16 _dstChainId, bytes memory _toAddress, uint[] memory _tokenIds, address payable _refundAddress, address _zroPaymentAddress, bytes memory _adapterParams) internal virtual {
+        _debitFrom(_from, _dstChainId, _toAddress, _tokenIds);
+        bytes memory payload = abi.encode(_toAddress, _tokenIds);
 
-        if (useCustomAdapterParams) {
-            _checkGasLimit(_dstChainId, FUNCTION_TYPE_SEND, _adapterParams, NO_EXTRA_GAS);
+        // TODO could be more efficient if we pass single id vs array of single _toSingletonArray
+        if (_tokenIds.length == 1) {
+            if (useCustomAdapterParams) {
+                _checkGasLimit(_dstChainId, FUNCTION_TYPE_SEND, _adapterParams, NO_EXTRA_GAS);
+            } else {
+                require(_adapterParams.length == 0, "LzApp: _adapterParams must be empty.");
+            }
+            _lzSend(_dstChainId, payload, _refundAddress, _zroPaymentAddress, _adapterParams, msg.value);
+            emit SendToChain(_dstChainId, _from, _toAddress, _tokenIds[0]);
+        } else if (_tokenIds.length > 1) {
+            if (useCustomAdapterParams) {
+                _checkGasLimit(_dstChainId, FUNCTION_TYPE_SEND_BATCH, _adapterParams, NO_EXTRA_GAS);
+            } else {
+                require(_adapterParams.length == 0, "LzApp: _adapterParams must be empty.");
+            }
+            _lzSend(_dstChainId, payload, _refundAddress, _zroPaymentAddress, _adapterParams, msg.value);
+            emit SendBatchToChain(_dstChainId, _from, _toAddress, _tokenIds);
         } else {
-            require(_adapterParams.length == 0, "LzApp: _adapterParams must be empty.");
+            revert("LzApp: tokenIds[] is empty");
         }
-        _lzSend(_dstChainId, payload, _refundAddress, _zroPaymentAddress, _adapterParams, msg.value);
-
-        emit SendToChain(_dstChainId, _from, _toAddress, _tokenId);
     }
 
     function _nonblockingLzReceive(
@@ -50,15 +69,21 @@ abstract contract ONFT721Core is NonblockingLzApp, ERC165, IONFT721Core {
         uint64, /*_nonce*/
         bytes memory _payload
     ) internal virtual override {
-        (bytes memory toAddressBytes, uint tokenId) = abi.decode(_payload, (bytes, uint));
+        // decode and load the toAddress
+        (bytes memory toAddressBytes, uint[] memory tokenIds) = abi.decode(_payload, (bytes, uint[]));
+
         address toAddress;
         assembly {
             toAddress := mload(add(toAddressBytes, 20))
         }
 
-        _creditTo(_srcChainId, toAddress, tokenId);
+        _creditTo(_srcChainId, toAddress, tokenIds);
 
-        emit ReceiveFromChain(_srcChainId, _srcAddress, toAddress, tokenId);
+        if (tokenIds.length == 1) {
+            emit ReceiveFromChain(_srcChainId, _srcAddress, toAddress, tokenIds[0]);
+        } else if (tokenIds.length > 1) {
+            emit ReceiveBatchFromChain(_srcChainId, _srcAddress, toAddress, tokenIds);
+        }
     }
 
     function setUseCustomAdapterParams(bool _useCustomAdapterParams) external onlyOwner {
@@ -66,7 +91,13 @@ abstract contract ONFT721Core is NonblockingLzApp, ERC165, IONFT721Core {
         emit SetUseCustomAdapterParams(_useCustomAdapterParams);
     }
 
-    function _debitFrom(address _from, uint16 _dstChainId, bytes memory _toAddress, uint _tokenId) internal virtual;
+    function _debitFrom(address _from, uint16 _dstChainId, bytes memory _toAddress, uint[] memory _tokenIds) internal virtual;
 
-    function _creditTo(uint16 _srcChainId, address _toAddress, uint _tokenId) internal virtual;
+    function _creditTo(uint16 _srcChainId, address _toAddress, uint[] memory _tokenIds) internal virtual;
+
+    function _toSingletonArray(uint element) internal pure returns (uint[] memory) {
+        uint[] memory array = new uint[](1);
+        array[0] = element;
+        return array;
+    }
 }

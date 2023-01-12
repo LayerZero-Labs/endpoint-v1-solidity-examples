@@ -15,7 +15,7 @@ contract UniversalONFT721 is ONFT721 {
     /// @param _layerZeroEndpoint handles message transmission across chains
     /// @param _startMintId the starting mint number on this chain
     /// @param _endMintId the max number of mints on this chain
-    constructor(string memory _name, string memory _symbol, address _layerZeroEndpoint, uint _startMintId, uint _endMintId) ONFT721(_name, _symbol, _layerZeroEndpoint) {
+    constructor(uint256 _minGasToStore, string memory _name, string memory _symbol, address _layerZeroEndpoint, uint _startMintId, uint _endMintId) ONFT721(_minGasToStore, _name, _symbol, _layerZeroEndpoint) {
         nextMintId = _startMintId;
         maxMintId = _endMintId;
     }
