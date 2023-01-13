@@ -6,6 +6,8 @@ describe("ONFT721: ", function () {
     const chainId_B = 2
     const name = "OmnichainNonFungibleToken"
     const symbol = "ONFT"
+    const minGasToStore = 40000
+    const batchSizeLimit = 1
 
     let owner, warlock, lzEndpointMockA, lzEndpointMockB, LZEndpointMock, ONFT, ONFT_A, ONFT_B
 
@@ -21,8 +23,8 @@ describe("ONFT721: ", function () {
         lzEndpointMockB = await LZEndpointMock.deploy(chainId_B)
 
         // generate a proxy to allow it to go ONFT
-        ONFT_A = await ONFT.deploy(name, symbol, lzEndpointMockA.address)
-        ONFT_B = await ONFT.deploy(name, symbol, lzEndpointMockB.address)
+        ONFT_A = await ONFT.deploy(name, symbol, minGasToStore, lzEndpointMockA.address)
+        ONFT_B = await ONFT.deploy(name, symbol, minGasToStore, lzEndpointMockB.address)
 
         // wire the lz endpoints to guide msgs back and forth
         lzEndpointMockA.setDestLzEndpoint(ONFT_B.address, lzEndpointMockB.address)
@@ -31,6 +33,10 @@ describe("ONFT721: ", function () {
         // set each contracts source address so it can send to each other
         await ONFT_A.setTrustedRemote(chainId_B, ethers.utils.solidityPack(["address", "address"], [ONFT_B.address, ONFT_A.address]))
         await ONFT_B.setTrustedRemote(chainId_A, ethers.utils.solidityPack(["address", "address"], [ONFT_A.address, ONFT_B.address]))
+
+        // set batch size limit
+        await ONFT_A.setDstChainIdToBatchLimit(chainId_B, batchSizeLimit)
+        await ONFT_B.setDstChainIdToBatchLimit(chainId_A, batchSizeLimit)
     })
 
     it("sendFrom() - your own tokens", async function () {

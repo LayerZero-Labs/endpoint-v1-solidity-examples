@@ -97,8 +97,8 @@ describe("OFT v2: ", function () {
 
         // tokens received on the local chain and unlocked from the proxy
         expect(await erc20.balanceOf(localOFT.address)).to.be.equal(halfAmount)
-        console.log(halfAmount, dust, typeof halfAmount, typeof dust)
-        console.log(halfAmount.add(dust), typeof halfAmount.add(dust))
+        // console.log(halfAmount, dust, typeof halfAmount, typeof dust)
+        // console.log(halfAmount.add(dust), typeof halfAmount.add(dust))
         expect(await erc20.balanceOf(alice.address)).to.be.equal(halfAmount.add(dust))
     })
 

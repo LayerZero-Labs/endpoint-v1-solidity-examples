@@ -6,6 +6,8 @@ describe("UniversalONFT721: ", function () {
     const chainIdDst = 2
     const name = "UniversalONFT"
     const symbol = "UONFT"
+    const minGasToStore = 40000
+    const batchSizeLimit = 1
 
     let owner, lzEndpointSrcMock, lzEndpointDstMock, ONFTSrc, ONFTDst, LZEndpointMock, ONFT, ONFTSrcIds, ONFTDstIds, dstPath, srcPath
 
@@ -22,8 +24,8 @@ describe("UniversalONFT721: ", function () {
         lzEndpointDstMock = await LZEndpointMock.deploy(chainIdDst)
 
         // create two UniversalONFT instances
-        ONFTSrc = await ONFT.deploy(name, symbol, lzEndpointSrcMock.address, ...ONFTSrcIds)
-        ONFTDst = await ONFT.deploy(name, symbol, lzEndpointDstMock.address, ...ONFTDstIds)
+        ONFTSrc = await ONFT.deploy(name, symbol, minGasToStore, lzEndpointSrcMock.address, ...ONFTSrcIds)
+        ONFTDst = await ONFT.deploy(name, symbol, minGasToStore, lzEndpointDstMock.address, ...ONFTDstIds)
 
         lzEndpointSrcMock.setDestLzEndpoint(ONFTDst.address, lzEndpointDstMock.address)
         lzEndpointDstMock.setDestLzEndpoint(ONFTSrc.address, lzEndpointSrcMock.address)
@@ -33,6 +35,10 @@ describe("UniversalONFT721: ", function () {
         srcPath = ethers.utils.solidityPack(["address", "address"], [ONFTSrc.address, ONFTDst.address])
         await ONFTSrc.setTrustedRemote(chainIdDst, dstPath) // for A, set B
         await ONFTDst.setTrustedRemote(chainIdSrc, srcPath) // for B, set A
+
+        // set batch size limit
+        await ONFTSrc.setDstChainIdToBatchLimit(chainIdDst, batchSizeLimit)
+        await ONFTDst.setDstChainIdToBatchLimit(chainIdSrc, batchSizeLimit)
 
         //set destination min gas
         await ONFTSrc.setMinDstGas(chainIdDst, parseInt(await ONFTSrc.FUNCTION_TYPE_SEND()), 225000)

@@ -7,6 +7,8 @@ describe("ProxyONFT721: ", function () {
     const chainId_C = 3
     const name = "OmnichainNonFungibleToken"
     const symbol = "ONFT"
+    const minGasToStore = 40000
+    const batchSizeLimit = 1
 
     let owner, warlock, lzEndpointMockA, lzEndpointMockB, lzEndpointMockC
     let ONFT_B, ONFT_C, LZEndpointMock, ONFT, ERC721, ERC721Src, ProxyONFT_A, ProxyONFT
@@ -28,11 +30,11 @@ describe("ProxyONFT721: ", function () {
         // make an ERC721 to mock a previous deploy
         ERC721Src = await ERC721.deploy("ERC721", "ERC721")
         // generate a proxy to allow it to go ONFT
-        ProxyONFT_A = await ProxyONFT.deploy(lzEndpointMockA.address, ERC721Src.address)
+        ProxyONFT_A = await ProxyONFT.deploy(minGasToStore, lzEndpointMockA.address, ERC721Src.address)
 
         // create ONFT on dstChains
-        ONFT_B = await ONFT.deploy(name, symbol, lzEndpointMockB.address)
-        ONFT_C = await ONFT.deploy(name, symbol, lzEndpointMockC.address)
+        ONFT_B = await ONFT.deploy(name, symbol, minGasToStore, lzEndpointMockB.address)
+        ONFT_C = await ONFT.deploy(name, symbol, minGasToStore, lzEndpointMockC.address)
 
         // wire the lz endpoints to guide msgs back and forth
         lzEndpointMockA.setDestLzEndpoint(ONFT_B.address, lzEndpointMockB.address)
@@ -49,6 +51,15 @@ describe("ProxyONFT721: ", function () {
         await ONFT_B.setTrustedRemote(chainId_C, ethers.utils.solidityPack(["address", "address"], [ONFT_C.address, ONFT_B.address]))
         await ONFT_C.setTrustedRemote(chainId_A, ethers.utils.solidityPack(["address", "address"], [ProxyONFT_A.address, ONFT_C.address]))
         await ONFT_C.setTrustedRemote(chainId_B, ethers.utils.solidityPack(["address", "address"], [ONFT_B.address, ONFT_C.address]))
+
+        // set batch size limit
+        await ProxyONFT_A.setDstChainIdToBatchLimit(chainId_B, batchSizeLimit)
+        await ProxyONFT_A.setDstChainIdToBatchLimit(chainId_C, batchSizeLimit)
+        await ONFT_B.setDstChainIdToBatchLimit(chainId_A, batchSizeLimit)
+        await ONFT_B.setDstChainIdToBatchLimit(chainId_C, batchSizeLimit)
+        await ONFT_C.setDstChainIdToBatchLimit(chainId_A, batchSizeLimit)
+        await ONFT_C.setDstChainIdToBatchLimit(chainId_B, batchSizeLimit)
+
     })
 
     it("sendFrom() - your own tokens", async function () {
