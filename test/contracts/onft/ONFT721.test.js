@@ -6,8 +6,8 @@ describe("ONFT721: ", function () {
     const chainId_B = 2
     const name = "OmnichainNonFungibleToken"
     const symbol = "ONFT"
-    const minGasToStore = 40000
-    const batchSizeLimit = 1
+    const minGasToStore = 100000
+    const batchSizeLimit = 10
 
     let owner, warlock, lzEndpointMockA, lzEndpointMockB, LZEndpointMock, ONFT, ONFT_A, ONFT_B
 
@@ -267,5 +267,35 @@ describe("ONFT721: ", function () {
                 "0x"
             )
         ).to.be.revertedWith("ONFT721: send caller is not owner nor approved")
+    })
+
+    it("sendBatchFrom()", async function () {
+        const tokenIds = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
+
+        // mint to owner
+        for (let tokenId of tokenIds) {
+            await ONFT_A.mint(warlock.address, tokenId)
+        }
+
+        // approve owner.address to transfer
+        await ONFT_A.connect(warlock).setApprovalForAll(ONFT_A.address, true)
+
+        // const payload = ethers.utils.defaultAbiCoder.encode(["address", "uint[]"], [warlock.address, tokenIds])
+
+        // estimate nativeFees
+        let nativeFee = (await ONFT_A.estimateSendBatchFee(chainId_B, warlock.address, tokenIds, false, "0x")).nativeFee
+
+        await ONFT_A.connect(warlock).sendBatchFrom(
+            warlock.address,
+            chainId_B,
+            warlock.address,
+            tokenIds,
+            warlock.address,
+            ethers.constants.AddressZero,
+            "0x", // TODO might need to change this
+            { value: nativeFee }
+        )
+
+        // TODO finish this
     })
 })

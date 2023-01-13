@@ -6,6 +6,8 @@ import "./IONFT721Core.sol";
 import "../../lzApp/NonblockingLzApp.sol";
 import "@openzeppelin/contracts/utils/introspection/ERC165.sol";
 
+import "hardhat/console.sol";
+
 abstract contract ONFT721Core is NonblockingLzApp, ERC165, IONFT721Core {
     uint public constant NO_EXTRA_GAS = 0;
     uint16 public constant FUNCTION_TYPE_SEND = 1;
@@ -96,14 +98,14 @@ abstract contract ONFT721Core is NonblockingLzApp, ERC165, IONFT721Core {
             toAddress := mload(add(toAddressBytes, 20))
         }
 
-        for (uint i = 0; i < tokenIds.length; i++) {
-            if (gasleft() < minGasToTransferAndStore) {
-                // not enough gas to transfer this index, so set it for the clearCredits() loop and store obj
-                storedCredits[keccak256(abi.encode(_payload))] = StoredCredit(_srcChainId, toAddress, i);
-                break;
-            }
-            _creditTo(_srcChainId, toAddress, tokenIds[i]);
+        uint nextIndex = _creditTill(_srcChainId, toAddress, 0, tokenIds);
+        if (nextIndex < tokenIds.length) {
+            // not enough gas to complete transfers, store to be cleared in another tx
+            bytes32 hashedPayload = keccak256(_payload);
+            storedCredits[hashedPayload] = StoredCredit(_srcChainId, toAddress, nextIndex);
+            emit CreditStored(hashedPayload, _payload);
         }
+
 
         if (tokenIds.length == 1) {
             emit ReceiveFromChain(_srcChainId, _srcAddress, toAddress, tokenIds[0]);
@@ -112,26 +114,41 @@ abstract contract ONFT721Core is NonblockingLzApp, ERC165, IONFT721Core {
         }
     }
 
-    function clearCredits(address _toAddress, uint[] memory _tokenIds) external {
-        bytes32 hashedPayload = keccak256(abi.encode(_toAddress, _tokenIds));
+    // Public function for anyone to clear and deliver the remaining batch sent tokenIds
+    function clearCredits(bytes memory _payload) external {
+        bytes32 hashedPayload = keccak256(_payload);
         require(storedCredits[hashedPayload].toAddress != address(0x0), "invalid payload");
 
-        uint i = storedCredits[hashedPayload].index;
-        while(i < _tokenIds.length) {
+        (, uint[] memory tokenIds) = abi.decode(_payload, (bytes, uint[]));
+
+        uint nextIndex = _creditTill(storedCredits[hashedPayload].srcChainId, storedCredits[hashedPayload].toAddress, storedCredits[hashedPayload].index, tokenIds);
+        if (nextIndex >= tokenIds.length) { // should never be >, but no harm in checking
+            // cleared the credits, delete the element
+            delete storedCredits[hashedPayload];
+            emit CreditCleared(hashedPayload);
+        } else {
+            // store the next index to mint
+            storedCredits[hashedPayload] = StoredCredit(storedCredits[hashedPayload].srcChainId, storedCredits[hashedPayload].toAddress, nextIndex);
+        }
+    }
+
+    // When a srcChain has the ability to transfer more chainIds in a single tx than the dst can do.
+    // Needs the ability to iterate and stop if the minGasToTransferAndStore is not met
+    function _creditTill(uint16 _srcChainId, address _toAddress, uint _startIndex, uint[] memory _tokenIds) internal returns (uint256){
+        uint i = _startIndex;
+        while (i < _tokenIds.length) {
             // if not enough gas to process, store this index for next loop
             if (gasleft() < minGasToTransferAndStore) break;
 
-            _creditTo(storedCredits[hashedPayload].srcChainId, _toAddress, _tokenIds[i]);
+            // TODO this minGas can vary a lot if it needs to mint, vs transfer out of contract !!!
+
+            _creditTo(_srcChainId, _toAddress, _tokenIds[i]);
             i++;
         }
 
-        if (i >= _tokenIds.length) {
-            // completed the credits, delete the element
-            delete storedCredits[hashedPayload];
-        } else {
-            // store the next index to mint
-            storedCredits[hashedPayload] = StoredCredit(storedCredits[hashedPayload].srcChainId, _toAddress, i);
-        }
+        // indicates the next index to send of tokenIds,
+        // if i == tokenIds.length, indicates we are finished
+        return i;
     }
 
     function setMinGasToTransferAndStore(uint256 _minGasToTransferAndStore) external onlyOwner {

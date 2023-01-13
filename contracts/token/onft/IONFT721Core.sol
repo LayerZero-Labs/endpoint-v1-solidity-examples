@@ -17,6 +17,8 @@ interface IONFT721Core is IERC165 {
     event SendBatchToChain(uint16 indexed _dstChainId, address indexed _from, bytes indexed _toAddress, uint[] _tokenIds);
     event ReceiveFromChain(uint16 indexed _srcChainId, bytes indexed _srcAddress, address indexed _toAddress, uint _tokenId);
     event ReceiveBatchFromChain(uint16 indexed _srcChainId, bytes indexed _srcAddress, address indexed _toAddress, uint[] _tokenIds);
+    event CreditStored(bytes32 _hashedPayload, bytes _payload);
+    event CreditCleared(bytes32 _hashedPayload);
 
     /**
      * @dev send token `_tokenId` to (`_dstChainId`, `_toAddress`) from `_from`
