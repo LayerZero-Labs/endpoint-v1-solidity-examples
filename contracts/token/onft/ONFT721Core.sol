@@ -6,8 +6,6 @@ import "./IONFT721Core.sol";
 import "../../lzApp/NonblockingLzApp.sol";
 import "@openzeppelin/contracts/utils/introspection/ERC165.sol";
 
-import "hardhat/console.sol";
-
 abstract contract ONFT721Core is NonblockingLzApp, ERC165, IONFT721Core {
     uint public constant NO_EXTRA_GAS = 0;
     uint16 public constant FUNCTION_TYPE_SEND = 1;
@@ -54,7 +52,8 @@ abstract contract ONFT721Core is NonblockingLzApp, ERC165, IONFT721Core {
     }
 
     function _sendBatch(address _from, uint16 _dstChainId, bytes memory _toAddress, uint[] memory _tokenIds, address payable _refundAddress, address _zroPaymentAddress, bytes memory _adapterParams) internal virtual {
-        require(_tokenIds.length <= dstChainIdToBatchLimit[_dstChainId], "ONFT721: batch size exceeds dst batch limit");
+        // allow 1 by default
+        require(_tokenIds.length == 1 || _tokenIds.length <= dstChainIdToBatchLimit[_dstChainId], "ONFT721: batch size exceeds dst batch limit");
 
         for (uint i = 0; i < _tokenIds.length; i++) {
             _debitFrom(_from, _dstChainId, _toAddress, _tokenIds[i]);
@@ -106,7 +105,6 @@ abstract contract ONFT721Core is NonblockingLzApp, ERC165, IONFT721Core {
             emit CreditStored(hashedPayload, _payload);
         }
 
-
         if (tokenIds.length == 1) {
             emit ReceiveFromChain(_srcChainId, _srcAddress, toAddress, tokenIds[0]);
         } else if (tokenIds.length > 1) {
@@ -117,7 +115,7 @@ abstract contract ONFT721Core is NonblockingLzApp, ERC165, IONFT721Core {
     // Public function for anyone to clear and deliver the remaining batch sent tokenIds
     function clearCredits(bytes memory _payload) external {
         bytes32 hashedPayload = keccak256(_payload);
-        require(storedCredits[hashedPayload].toAddress != address(0x0), "invalid payload");
+        require(storedCredits[hashedPayload].toAddress != address(0x0), "ONFT721: no credits stored");
 
         (, uint[] memory tokenIds) = abi.decode(_payload, (bytes, uint[]));
 
@@ -139,8 +137,6 @@ abstract contract ONFT721Core is NonblockingLzApp, ERC165, IONFT721Core {
         while (i < _tokenIds.length) {
             // if not enough gas to process, store this index for next loop
             if (gasleft() < minGasToTransferAndStore) break;
-
-            // TODO this minGas can vary a lot if it needs to mint, vs transfer out of contract !!!
 
             _creditTo(_srcChainId, _toAddress, _tokenIds[i]);
             i++;
