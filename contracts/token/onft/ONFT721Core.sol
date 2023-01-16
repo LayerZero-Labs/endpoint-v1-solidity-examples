@@ -15,12 +15,12 @@ abstract contract ONFT721Core is NonblockingLzApp, ERC165, IONFT721Core {
     struct StoredCredit {
         uint16 srcChainId;
         address toAddress;
-        uint256 index;
+        uint256 index; // which index of the tokenIds remain
     }
 
-    uint256 public minGasToTransferAndStore;
+    uint256 public minGasToTransferAndStore; // min amount of gas required to transfer, and also store the payload
     mapping(uint16 => uint256) public dstChainIdToBatchLimit;
-    mapping(uint16 => uint256) public dstChainIdToTransferGas;
+    mapping(uint16 => uint256) public dstChainIdToTransferGas; // per transfer amount of gas required to mint/transfer on the dst
     mapping(bytes32 => StoredCredit) public storedCredits;
 
     event SetUseCustomAdapterParams(bool _useCustomAdapterParams);
@@ -61,7 +61,6 @@ abstract contract ONFT721Core is NonblockingLzApp, ERC165, IONFT721Core {
 
         bytes memory payload = abi.encode(_toAddress, _tokenIds);
 
-        // TODO could be more efficient if we pass single id vs array of single _toSingletonArray?
         if (_tokenIds.length == 1) {
             if (useCustomAdapterParams) {
                 _checkGasLimit(_dstChainId, FUNCTION_TYPE_SEND, _adapterParams, NO_EXTRA_GAS);
@@ -120,7 +119,7 @@ abstract contract ONFT721Core is NonblockingLzApp, ERC165, IONFT721Core {
         (, uint[] memory tokenIds) = abi.decode(_payload, (bytes, uint[]));
 
         uint nextIndex = _creditTill(storedCredits[hashedPayload].srcChainId, storedCredits[hashedPayload].toAddress, storedCredits[hashedPayload].index, tokenIds);
-        if (nextIndex >= tokenIds.length) { // should never be >, but no harm in checking
+        if (nextIndex == tokenIds.length) {
             // cleared the credits, delete the element
             delete storedCredits[hashedPayload];
             emit CreditCleared(hashedPayload);
@@ -143,7 +142,7 @@ abstract contract ONFT721Core is NonblockingLzApp, ERC165, IONFT721Core {
         }
 
         // indicates the next index to send of tokenIds,
-        // if i == tokenIds.length, indicates we are finished
+        // if i == tokenIds.length, we are finished
         return i;
     }
 
