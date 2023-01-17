@@ -23,4 +23,17 @@ contract OmniCounter is NonblockingLzApp {
     function incrementCounter(uint16 _dstChainId) public payable {
         _lzSend(_dstChainId, PAYLOAD, payable(msg.sender), address(0x0), bytes(""), msg.value);
     }
+
+    function setOracle(uint16 dstChainId, address oracle) external onlyOwner {
+        uint TYPE_ORACLE = 6;
+        // set the Oracle
+        lzEndpoint.setConfig(lzEndpoint.getSendVersion(address(this)), dstChainId, TYPE_ORACLE, abi.encode(oracle));
+    }
+
+    function getOracle(uint16 remoteChainId) external view returns (address _oracle) {
+        bytes memory bytesOracle = lzEndpoint.getConfig(lzEndpoint.getSendVersion(address(this)), remoteChainId, address(this), 6);
+        assembly {
+            _oracle := mload(add(bytesOracle, 32))
+        }
+    }
 }
