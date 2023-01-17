@@ -277,10 +277,6 @@ describe("ONFT721: ", function () {
     })
 
     it("sendBatchFrom()", async function () {
-        // set min dst gas for batch swap
-        await ONFT_A.setMinDstGas(chainId_B, 2, 150000)
-        await ONFT_B.setMinDstGas(chainId_A, 2, 150000)
-
         await ONFT_A.setMinGasToTransferAndStore(400000)
         await ONFT_B.setMinGasToTransferAndStore(400000)
 
@@ -347,10 +343,6 @@ describe("ONFT721: ", function () {
     })
 
     it("sendBatchFrom() - large batch", async function () {
-        // set min dst gas for batch swap
-        await ONFT_A.setMinDstGas(chainId_B, 2, 150000)
-        await ONFT_B.setMinDstGas(chainId_A, 2, 150000)
-
         await ONFT_A.setMinGasToTransferAndStore(400000)
         await ONFT_B.setMinGasToTransferAndStore(400000)
 
