@@ -7,15 +7,13 @@ import "../../lzApp/NonblockingLzApp.sol";
 import "@openzeppelin/contracts/utils/introspection/ERC165.sol";
 
 abstract contract ONFT721Core is NonblockingLzApp, ERC165, IONFT721Core {
-    uint public constant NO_EXTRA_GAS = 0;
     uint16 public constant FUNCTION_TYPE_SEND = 1;
-    uint16 public constant FUNCTION_TYPE_SEND_BATCH = 2;
-    bool public useCustomAdapterParams;
 
     struct StoredCredit {
         uint16 srcChainId;
         address toAddress;
         uint256 index; // which index of the tokenIds remain
+        bool creditsRemain;
     }
 
     uint256 public minGasToTransferAndStore; // min amount of gas required to transfer, and also store the payload
@@ -44,14 +42,14 @@ abstract contract ONFT721Core is NonblockingLzApp, ERC165, IONFT721Core {
     }
 
     function sendFrom(address _from, uint16 _dstChainId, bytes memory _toAddress, uint _tokenId, address payable _refundAddress, address _zroPaymentAddress, bytes memory _adapterParams) public payable virtual override {
-        _sendBatch(_from, _dstChainId, _toAddress, _toSingletonArray(_tokenId), _refundAddress, _zroPaymentAddress, _adapterParams);
+        _send(_from, _dstChainId, _toAddress, _toSingletonArray(_tokenId), _refundAddress, _zroPaymentAddress, _adapterParams);
     }
 
     function sendBatchFrom(address _from, uint16 _dstChainId, bytes memory _toAddress, uint[] memory _tokenIds, address payable _refundAddress, address _zroPaymentAddress, bytes memory _adapterParams) public payable virtual override {
-        _sendBatch(_from, _dstChainId, _toAddress, _tokenIds, _refundAddress, _zroPaymentAddress, _adapterParams);
+        _send(_from, _dstChainId, _toAddress, _tokenIds, _refundAddress, _zroPaymentAddress, _adapterParams);
     }
 
-    function _sendBatch(address _from, uint16 _dstChainId, bytes memory _toAddress, uint[] memory _tokenIds, address payable _refundAddress, address _zroPaymentAddress, bytes memory _adapterParams) internal virtual {
+    function _send(address _from, uint16 _dstChainId, bytes memory _toAddress, uint[] memory _tokenIds, address payable _refundAddress, address _zroPaymentAddress, bytes memory _adapterParams) internal virtual {
         // allow 1 by default
         require(_tokenIds.length == 1 || _tokenIds.length <= dstChainIdToBatchLimit[_dstChainId], "ONFT721: batch size exceeds dst batch limit");
 
@@ -61,22 +59,10 @@ abstract contract ONFT721Core is NonblockingLzApp, ERC165, IONFT721Core {
 
         bytes memory payload = abi.encode(_toAddress, _tokenIds);
 
-        if (_tokenIds.length == 1) {
-            if (useCustomAdapterParams) {
-                _checkGasLimit(_dstChainId, FUNCTION_TYPE_SEND, _adapterParams, NO_EXTRA_GAS);
-            } else {
-                require(_adapterParams.length == 0, "LzApp: _adapterParams must be empty.");
-            }
+        if (_tokenIds.length > 0) {
+            _checkGasLimit(_dstChainId, FUNCTION_TYPE_SEND, _adapterParams, dstChainIdToTransferGas[_dstChainId] * _tokenIds.length);
             _lzSend(_dstChainId, payload, _refundAddress, _zroPaymentAddress, _adapterParams, msg.value);
-            emit SendToChain(_dstChainId, _from, _toAddress, _tokenIds[0]);
-        } else if (_tokenIds.length > 1) {
-            if (useCustomAdapterParams) {
-                _checkGasLimit(_dstChainId, FUNCTION_TYPE_SEND_BATCH, _adapterParams, dstChainIdToTransferGas[_dstChainId] * _tokenIds.length);
-            } else {
-                require(_adapterParams.length == 0, "LzApp: _adapterParams must be empty.");
-            }
-            _lzSend(_dstChainId, payload, _refundAddress, _zroPaymentAddress, _adapterParams, msg.value);
-            emit SendBatchToChain(_dstChainId, _from, _toAddress, _tokenIds);
+            emit SendToChain(_dstChainId, _from, _toAddress, _tokenIds);
         } else {
             revert("LzApp: tokenIds[] is empty");
         }
@@ -100,21 +86,17 @@ abstract contract ONFT721Core is NonblockingLzApp, ERC165, IONFT721Core {
         if (nextIndex < tokenIds.length) {
             // not enough gas to complete transfers, store to be cleared in another tx
             bytes32 hashedPayload = keccak256(_payload);
-            storedCredits[hashedPayload] = StoredCredit(_srcChainId, toAddress, nextIndex);
+            storedCredits[hashedPayload] = StoredCredit(_srcChainId, toAddress, nextIndex, true);
             emit CreditStored(hashedPayload, _payload);
         }
 
-        if (tokenIds.length == 1) {
-            emit ReceiveFromChain(_srcChainId, _srcAddress, toAddress, tokenIds[0]);
-        } else if (tokenIds.length > 1) {
-            emit ReceiveBatchFromChain(_srcChainId, _srcAddress, toAddress, tokenIds);
-        }
+        emit ReceiveFromChain(_srcChainId, _srcAddress, toAddress, tokenIds);
     }
 
     // Public function for anyone to clear and deliver the remaining batch sent tokenIds
     function clearCredits(bytes memory _payload) external {
         bytes32 hashedPayload = keccak256(_payload);
-        require(storedCredits[hashedPayload].toAddress != address(0x0), "ONFT721: no credits stored");
+        require(storedCredits[hashedPayload].creditsRemain, "ONFT721: no credits stored");
 
         (, uint[] memory tokenIds) = abi.decode(_payload, (bytes, uint[]));
 
@@ -125,7 +107,7 @@ abstract contract ONFT721Core is NonblockingLzApp, ERC165, IONFT721Core {
             emit CreditCleared(hashedPayload);
         } else {
             // store the next index to mint
-            storedCredits[hashedPayload] = StoredCredit(storedCredits[hashedPayload].srcChainId, storedCredits[hashedPayload].toAddress, nextIndex);
+            storedCredits[hashedPayload] = StoredCredit(storedCredits[hashedPayload].srcChainId, storedCredits[hashedPayload].toAddress, nextIndex, true);
         }
     }
 
@@ -161,11 +143,6 @@ abstract contract ONFT721Core is NonblockingLzApp, ERC165, IONFT721Core {
     function setDstChainIdToBatchLimit(uint16 _dstChainId, uint256 _dstChainIdToBatchLimit) external onlyOwner {
         require(_dstChainIdToBatchLimit > 0, "ONFT721: dstChainIdToBatchLimit must be > 0");
         dstChainIdToBatchLimit[_dstChainId] = _dstChainIdToBatchLimit;
-    }
-
-    function setUseCustomAdapterParams(bool _useCustomAdapterParams) external onlyOwner {
-        useCustomAdapterParams = _useCustomAdapterParams;
-        emit SetUseCustomAdapterParams(_useCustomAdapterParams);
     }
 
     function _debitFrom(address _from, uint16 _dstChainId, bytes memory _toAddress, uint _tokenId) internal virtual;

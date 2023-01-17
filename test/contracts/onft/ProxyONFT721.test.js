@@ -9,6 +9,7 @@ describe("ProxyONFT721: ", function () {
     const symbol = "ONFT"
     const minGasToStore = 40000
     const batchSizeLimit = 1
+    const defaultAdapterParams = ethers.utils.solidityPack(["uint16", "uint256"], [1, 200000])
 
     let owner, warlock, lzEndpointMockA, lzEndpointMockB, lzEndpointMockC
     let ONFT_B, ONFT_C, LZEndpointMock, ONFT, ERC721, ERC721Src, ProxyONFT_A, ProxyONFT
@@ -60,6 +61,13 @@ describe("ProxyONFT721: ", function () {
         await ONFT_C.setDstChainIdToBatchLimit(chainId_A, batchSizeLimit)
         await ONFT_C.setDstChainIdToBatchLimit(chainId_B, batchSizeLimit)
 
+        // set min dst gas for swap
+        await ProxyONFT_A.setMinDstGas(chainId_B, 1, 150000)
+        await ProxyONFT_A.setMinDstGas(chainId_C, 1, 150000)
+        await ONFT_B.setMinDstGas(chainId_A, 1, 150000)
+        await ONFT_B.setMinDstGas(chainId_C, 1, 150000)
+        await ONFT_C.setMinDstGas(chainId_A, 1, 150000)
+        await ONFT_C.setMinDstGas(chainId_B, 1, 150000)
     })
 
     it("sendFrom() - your own tokens", async function () {
@@ -80,7 +88,7 @@ describe("ProxyONFT721: ", function () {
         await ERC721Src.connect(warlock).approve(ProxyONFT_A.address, tokenId)
 
         // estimate nativeFees
-        let nativeFee = (await ProxyONFT_A.estimateSendFee(chainId_B, warlock.address, tokenId, false, "0x")).nativeFee
+        let nativeFee = (await ProxyONFT_A.estimateSendFee(chainId_B, warlock.address, tokenId, false, defaultAdapterParams)).nativeFee
 
         // swaps token to other chain
         await ProxyONFT_A.connect(warlock).sendFrom(
@@ -90,7 +98,7 @@ describe("ProxyONFT721: ", function () {
             tokenId,
             warlock.address,
             ethers.constants.AddressZero,
-            "0x",
+            defaultAdapterParams,
             { value: nativeFee }
         )
 
@@ -101,7 +109,7 @@ describe("ProxyONFT721: ", function () {
         expect(await ONFT_B.ownerOf(tokenId)).to.be.equal(warlock.address)
 
         // estimate nativeFees
-        nativeFee = (await ONFT_B.estimateSendFee(chainId_C, warlock.address, tokenId, false, "0x")).nativeFee
+        nativeFee = (await ONFT_B.estimateSendFee(chainId_C, warlock.address, tokenId, false, defaultAdapterParams)).nativeFee
 
         // can send to other onft contract eg. not the original nft contract chain
         await ONFT_B.connect(warlock).sendFrom(
@@ -111,7 +119,7 @@ describe("ProxyONFT721: ", function () {
             tokenId,
             warlock.address,
             ethers.constants.AddressZero,
-            "0x",
+            defaultAdapterParams,
             { value: nativeFee }
         )
 
@@ -122,7 +130,7 @@ describe("ProxyONFT721: ", function () {
         expect(await ONFT_C.ownerOf(tokenId)).to.be.equal(warlock.address)
 
         // estimate nativeFees
-        nativeFee = (await ONFT_C.estimateSendFee(chainId_A, warlock.address, tokenId, false, "0x")).nativeFee
+        nativeFee = (await ONFT_C.estimateSendFee(chainId_A, warlock.address, tokenId, false, defaultAdapterParams)).nativeFee
 
         // send it back to the original chain
         await ONFT_C.connect(warlock).sendFrom(
@@ -132,7 +140,7 @@ describe("ProxyONFT721: ", function () {
             tokenId,
             warlock.address,
             ethers.constants.AddressZero,
-            "0x",
+            defaultAdapterParams,
             { value: nativeFee }
         )
 
@@ -147,7 +155,7 @@ describe("ProxyONFT721: ", function () {
         const tokenId = 123
         await ERC721Src.mint(owner.address, tokenId)
         await expect(
-            ProxyONFT_A.sendFrom(owner.address, chainId_B, owner.address, tokenId, owner.address, ethers.constants.AddressZero, "0x")
+            ProxyONFT_A.sendFrom(owner.address, chainId_B, owner.address, tokenId, owner.address, ethers.constants.AddressZero, defaultAdapterParams)
         ).to.be.revertedWith("ERC721: caller is not token owner nor approved")
     })
 
@@ -167,7 +175,7 @@ describe("ProxyONFT721: ", function () {
                 tokenId,
                 owner.address,
                 ethers.constants.AddressZero,
-                "0x"
+                defaultAdapterParams
             )
         ).to.be.revertedWith("ProxyONFT721: owner is not send caller")
     })
@@ -180,10 +188,10 @@ describe("ProxyONFT721: ", function () {
         await ERC721Src.approve(ProxyONFT_A.address, tokenId)
 
         // estimate nativeFees
-        let nativeFee = (await ProxyONFT_A.estimateSendFee(chainId_B, owner.address, tokenId, false, "0x")).nativeFee
+        let nativeFee = (await ProxyONFT_A.estimateSendFee(chainId_B, owner.address, tokenId, false, defaultAdapterParams)).nativeFee
 
         // swaps token to other chain
-        await ProxyONFT_A.sendFrom(owner.address, chainId_B, owner.address, tokenId, owner.address, ethers.constants.AddressZero, "0x", {
+        await ProxyONFT_A.sendFrom(owner.address, chainId_B, owner.address, tokenId, owner.address, ethers.constants.AddressZero, defaultAdapterParams, {
             value: nativeFee,
         })
 
@@ -199,7 +207,7 @@ describe("ProxyONFT721: ", function () {
                 tokenId,
                 warlock.address,
                 ethers.constants.AddressZero,
-                "0x"
+                defaultAdapterParams
             )
         ).to.be.revertedWith("ONFT721: send caller is not owner nor approved")
     })
@@ -212,10 +220,10 @@ describe("ProxyONFT721: ", function () {
         await ERC721Src.approve(ProxyONFT_A.address, tokenId)
 
         // estimate nativeFees
-        let nativeFee = (await ProxyONFT_A.estimateSendFee(chainId_B, owner.address, tokenId, false, "0x")).nativeFee
+        let nativeFee = (await ProxyONFT_A.estimateSendFee(chainId_B, owner.address, tokenId, false, defaultAdapterParams)).nativeFee
 
         // swaps token to other chain
-        await ProxyONFT_A.sendFrom(owner.address, chainId_B, owner.address, tokenId, owner.address, ethers.constants.AddressZero, "0x", {
+        await ProxyONFT_A.sendFrom(owner.address, chainId_B, owner.address, tokenId, owner.address, ethers.constants.AddressZero, defaultAdapterParams, {
             value: nativeFee,
         })
 
@@ -226,7 +234,7 @@ describe("ProxyONFT721: ", function () {
         await ONFT_B.approve(warlock.address, tokenId)
 
         // estimate nativeFees
-        nativeFee = (await ONFT_B.estimateSendFee(chainId_C, warlock.address, tokenId, false, "0x")).nativeFee
+        nativeFee = (await ONFT_B.estimateSendFee(chainId_C, warlock.address, tokenId, false, defaultAdapterParams)).nativeFee
 
         // sends across
         await ONFT_B.connect(warlock).sendFrom(
@@ -236,7 +244,7 @@ describe("ProxyONFT721: ", function () {
             tokenId,
             warlock.address,
             ethers.constants.AddressZero,
-            "0x",
+            defaultAdapterParams,
             { value: nativeFee }
         )
 
@@ -252,10 +260,10 @@ describe("ProxyONFT721: ", function () {
         await ERC721Src.approve(ProxyONFT_A.address, tokenId)
 
         // estimate nativeFees
-        let nativeFee = (await ProxyONFT_A.estimateSendFee(chainId_B, owner.address, tokenId, false, "0x")).nativeFee
+        let nativeFee = (await ProxyONFT_A.estimateSendFee(chainId_B, owner.address, tokenId, false, defaultAdapterParams)).nativeFee
 
         // swaps token to other chain
-        await ProxyONFT_A.sendFrom(owner.address, chainId_B, owner.address, tokenId, owner.address, ethers.constants.AddressZero, "0x", {
+        await ProxyONFT_A.sendFrom(owner.address, chainId_B, owner.address, tokenId, owner.address, ethers.constants.AddressZero, defaultAdapterParams, {
             value: nativeFee,
         })
 
@@ -274,7 +282,7 @@ describe("ProxyONFT721: ", function () {
                 tokenId,
                 warlock.address,
                 ethers.constants.AddressZero,
-                "0x"
+                defaultAdapterParams
             )
         ).to.be.revertedWith("ONFT721: send caller is not owner nor approved")
     })
@@ -287,10 +295,10 @@ describe("ProxyONFT721: ", function () {
         await ERC721Src.approve(ProxyONFT_A.address, tokenId)
 
         // estimate nativeFees
-        let nativeFee = (await ProxyONFT_A.estimateSendFee(chainId_B, warlock.address, tokenId, false, "0x")).nativeFee
+        let nativeFee = (await ProxyONFT_A.estimateSendFee(chainId_B, warlock.address, tokenId, false, defaultAdapterParams)).nativeFee
 
         // swaps token to other chain
-        await ProxyONFT_A.sendFrom(owner.address, chainId_B, owner.address, tokenId, owner.address, ethers.constants.AddressZero, "0x", {
+        await ProxyONFT_A.sendFrom(owner.address, chainId_B, owner.address, tokenId, owner.address, ethers.constants.AddressZero, defaultAdapterParams, {
             value: nativeFee,
         })
 
@@ -306,7 +314,7 @@ describe("ProxyONFT721: ", function () {
                 tokenId,
                 warlock.address,
                 ethers.constants.AddressZero,
-                "0x"
+                defaultAdapterParams
             )
         ).to.be.revertedWith("ONFT721: send caller is not owner nor approved")
     })
@@ -329,7 +337,7 @@ describe("ProxyONFT721: ", function () {
                 tokenIdB,
                 warlock.address,
                 ethers.constants.AddressZero,
-                "0x"
+                defaultAdapterParams
             )
         ).to.be.revertedWith("ERC721: caller is not token owner nor approved")
         await expect(
@@ -340,7 +348,7 @@ describe("ProxyONFT721: ", function () {
                 tokenIdB,
                 owner.address,
                 ethers.constants.AddressZero,
-                "0x"
+                defaultAdapterParams
             )
         ).to.be.revertedWith("ERC721: caller is not token owner nor approved")
     })
@@ -363,7 +371,7 @@ describe("ProxyONFT721: ", function () {
                 tokenIdA,
                 warlock.address,
                 ethers.constants.AddressZero,
-                "0x"
+                defaultAdapterParams
             )
         ).to.be.revertedWith("ERC721: transfer from incorrect owner")
         await expect(
@@ -374,7 +382,7 @@ describe("ProxyONFT721: ", function () {
                 tokenIdA,
                 owner.address,
                 ethers.constants.AddressZero,
-                "0x"
+                defaultAdapterParams
             )
         ).to.be.revertedWith("ERC721: transfer from incorrect owner")
     })
