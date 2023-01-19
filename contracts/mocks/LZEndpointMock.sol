@@ -200,7 +200,7 @@ contract LZEndpointMock is ILayerZeroEndpoint {
         return outboundNonce[_chainID][_srcAddress];
     }
 
-    function estimateFees(uint16 _dstChainId, address _userApplication, bytes memory _payload, bool _payInZRO, bytes memory _adapterParams) public view returns (uint nativeFee, uint zroFee) {
+    function estimateFees(uint16 _dstChainId, address _userApplication, bytes memory _payload, bool _payInZRO, bytes memory _adapterParams) public view override returns (uint nativeFee, uint zroFee) {
         bytes memory adapterParams = _adapterParams.length > 0 ? _adapterParams : defaultAdapterParams;
 
         // Relayer Fee

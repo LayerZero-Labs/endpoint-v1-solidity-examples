@@ -12,7 +12,7 @@ contract ProxyONFT721 is ONFT721Core, IERC721Receiver {
 
     IERC721 public immutable token;
 
-    constructor(address _lzEndpoint, address _proxyToken) ONFT721Core(_lzEndpoint) {
+    constructor(uint256 _minGasToTransfer, address _lzEndpoint, address _proxyToken) ONFT721Core(_minGasToTransfer, _lzEndpoint) {
         require(_proxyToken.supportsInterface(type(IERC721).interfaceId), "ProxyONFT721: invalid ERC721 token");
         token = IERC721(_proxyToken);
     }
@@ -26,12 +26,13 @@ contract ProxyONFT721 is ONFT721Core, IERC721Receiver {
         token.safeTransferFrom(_from, address(this), _tokenId);
     }
 
+    // TODO apply same changes from regular ONFT721
     function _creditTo(uint16, address _toAddress, uint _tokenId) internal virtual override {
         token.safeTransferFrom(address(this), _toAddress, _tokenId);
     }
 
     function onERC721Received(address _operator, address, uint, bytes memory) public virtual override returns (bytes4) {
-        // only allow `this` to tranfser token from others
+        // only allow `this` to transfer token from others
         if (_operator != address(this)) return bytes4(0);
         return IERC721Receiver.onERC721Received.selector;
     }

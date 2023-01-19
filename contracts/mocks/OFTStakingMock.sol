@@ -8,8 +8,6 @@ import "../token/oft/composable/IOFTReceiver.sol";
 import "../token/oft/composable/IComposableOFTCore.sol";
 import "../util/BytesLib.sol";
 
-import "hardhat/console.sol";
-
 // OFTStakingMock is an example to integrate with OFT. It shows how to send OFT cross chain with a custom payload and
 // call a receiver contract on the destination chain when oft is received.
 contract OFTStakingMock is IOFTReceiver {
