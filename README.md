@@ -6,7 +6,7 @@
 
 # LayerZero Omnichain Contract Examples
 
-* A formal audit (May 21, 2022) can in /audit folder *
+* Formal audit(s) (May 21, 2022) can be found in /audit
 
  ### Install & Run tests
 ```shell
