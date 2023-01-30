@@ -4,11 +4,6 @@
 
 ---
 
-# MAINNET chainIds WERE UPDATED ON SEPTEMBER 6. PLEASE REFER TO https://github.com/LayerZero-Labs/set-trusted-remotes 
-
-# TESTNET will undergo a similar update in the future
-
-
 # LayerZero Omnichain Contract Examples
 
 * A formal audit (May 21, 2022) can in /audit folder *
@@ -158,6 +153,13 @@ npx hardhat checkWireUpAll --e testnet --contract OmniCounter
 Many of the example contracts make use of LayerZeroEndpointMock.sol which is a nice way to test LayerZero locally!
 
 ### For further reading, and a list of endpoint ids and deployed LayerZero contract addresses please take a look at the Gitbook here: https://layerzero.gitbook.io/
+
+
+# See testnet and mainnet chainIds and addresses, and the format for connecting contracts on different chains:
+ https://github.com/LayerZero-Labs/set-trusted-remotes 
+ https://layerzero.gitbook.io/docs/technical-reference/testnet/testnet-addresses
+ https://layerzero.gitbook.io/docs/technical-reference/mainnet/supported-chain-ids
+
 
 ## Most recently tested with node version `16.13.1` 
 
