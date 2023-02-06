@@ -14,9 +14,13 @@ import "../util/BytesLib.sol";
 abstract contract LzApp is Ownable, ILayerZeroReceiver, ILayerZeroUserApplicationConfig {
     using BytesLib for bytes;
 
+    // ua can not send payload larger than this by default, but it can be changed by the ua owner
+    uint constant public DEFAULT_PAYLOAD_SIZE_LIMIT = 10000;
+
     ILayerZeroEndpoint public immutable lzEndpoint;
     mapping(uint16 => bytes) public trustedRemoteLookup;
     mapping(uint16 => mapping(uint16 => uint)) public minDstGasLookup;
+    mapping(uint16 => uint) public payloadSizeLimitLookup;
     address public precrime;
 
     event SetPrecrime(address precrime);
@@ -45,6 +49,7 @@ abstract contract LzApp is Ownable, ILayerZeroReceiver, ILayerZeroUserApplicatio
     function _lzSend(uint16 _dstChainId, bytes memory _payload, address payable _refundAddress, address _zroPaymentAddress, bytes memory _adapterParams, uint _nativeFee) internal virtual {
         bytes memory trustedRemote = trustedRemoteLookup[_dstChainId];
         require(trustedRemote.length != 0, "LzApp: destination chain is not a trusted source");
+        _checkPayloadSize(_dstChainId, _payload.length);
         lzEndpoint.send{value: _nativeFee}(_dstChainId, trustedRemote, _payload, _refundAddress, _zroPaymentAddress, _adapterParams);
     }
 
@@ -60,6 +65,14 @@ abstract contract LzApp is Ownable, ILayerZeroReceiver, ILayerZeroUserApplicatio
         assembly {
             gasLimit := mload(add(_adapterParams, 34))
         }
+    }
+
+    function _checkPayloadSize(uint16 _dstChainId, uint _payloadSize) internal view virtual {
+        uint payloadSizeLimit = payloadSizeLimitLookup[_dstChainId];
+        if (payloadSizeLimit == 0) { // use default if not set
+            payloadSizeLimit = DEFAULT_PAYLOAD_SIZE_LIMIT;
+        }
+        require(_payloadSize <= payloadSizeLimit, "LzApp: payload size is too large");
     }
 
     //---------------------------UserApplication config----------------------------------------
@@ -111,6 +124,11 @@ abstract contract LzApp is Ownable, ILayerZeroReceiver, ILayerZeroUserApplicatio
         require(_minGas > 0, "LzApp: invalid minGas");
         minDstGasLookup[_dstChainId][_packetType] = _minGas;
         emit SetMinDstGas(_dstChainId, _packetType, _minGas);
+    }
+
+    // if the size is 0, it means default size limit
+    function setPayloadSizeLimit(uint16 _dstChainId, uint _size) external onlyOwner {
+        payloadSizeLimitLookup[_dstChainId] = _size;
     }
 
     //--------------------------- VIEW FUNCTION ----------------------------------------
