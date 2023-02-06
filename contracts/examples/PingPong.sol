@@ -58,7 +58,7 @@ contract PingPong is NonblockingLzApp, Pausable {
             payable(this), // (msg.sender will be this contract) refund address (LayerZero will refund any extra gas back to caller of send()
             address(0x0), // future param, unused for this example
             adapterParams, // v1 adapterParams, specify custom destination gas qty
-            msg.value
+            address(this).balance
         );
     }
 
