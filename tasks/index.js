@@ -147,3 +147,9 @@ task("deployWireCheck", "", require("./deployWireCheck"))
     .addParam("contract", "")
     .addOptionalParam("proxyChain", "")
     .addOptionalParam("proxyContract", "")
+
+
+task("showAppConfigAddress", "shows app configuration info for the target networks", require("./showDeployAppConfig.ts"))
+.addParam("targetNetworks", "")
+.addOptionalParam("ua","", "0x0000000000000000000000000000000000000000", types.string)
+
