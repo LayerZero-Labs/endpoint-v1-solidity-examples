@@ -27,23 +27,25 @@ module.exports = async function (taskArgs, hre) {
     // get local contract
     const localContractInstance = await ethers.getContract(localContract)
 
-    // quote fee with default adapterParams
-    let adapterParams = ethers.utils.solidityPack(["uint16", "uint256"], [1, 200000]) // default adapterParams example
+   // quote fee with default adapterParams
+   const adapterParam = ethers.utils.solidityPack(["uint16", "uint256"], [1, 225000])
 
-    let fees = await localContractInstance.estimateSendFee(remoteChainId, toAddress, tokenId, false, adapterParams)
-    console.log(`fees[0] (wei): ${fees[0]} / (eth): ${ethers.utils.formatEther(fees[0])}`)
-
+    const nativeFee = (await localContractInstance.estimateSendFee(CHAIN_ID[taskArgs.targetNetwork], owner.address, tokenId, false, adapterParam)).nativeFee
+    
     try {
+        await localContractInstance.setMinDstGas(10109, 1, 150000)
+
         let tx = await (
+
             await localContractInstance.sendFrom(
                 owner.address,                  // 'from' address to send tokens
-                remoteChainId,                  // remote LayerZero chainId
+                CHAIN_ID[taskArgs.targetNetwork],                  // remote LayerZero chainId
                 toAddress,                      // 'to' address to send tokens
                 tokenId,                        // tokenId to send
                 owner.address,                  // refund address (if too much message fee is sent, it gets refunded)
                 ethers.constants.AddressZero,   // address(0x0) if not paying in ZRO (LayerZero Token)
-                "0x",                           // flexible bytes array to indicate messaging adapter services
-                { value: fees[0] }
+                adapterParam,
+                { value: nativeFee }
             )
         ).wait()
         console.log(`✅ [${hre.network.name}] send(${remoteChainId}, ${tokenId})`)
