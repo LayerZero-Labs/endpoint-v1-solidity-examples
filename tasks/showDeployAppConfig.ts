@@ -25,18 +25,28 @@ module.exports = async function (taskArgs, hre) {
 console.log(`send library version = ${sV}
 receive library version = ${rV}
 send library address = ${sLA}
-receive library address = ${rLA}`)
-console.log(`Source chain: ${hre.network.name}`)
+receive library address = ${rLA}
+source chain: ${hre.network.name}`)
 
-      for(const targetNetwork of targetNetworks) {
-      let proofLibraryNum = await ultraLightNode.maxInboundProofLibrary(CHAIN_ID[targetNetwork])
-      console.log(`Proof library number for chain path: ${proofLibraryNum}`)
-      let targetEndpointId = getEndpointIdByName(targetNetwork)
-      let appConfig = await ultraLightNode.getAppConfig(targetEndpointId, taskArgs.ua)
-      let inboundProfLib = await ultraLightNode.inboundProofLibrary(targetEndpointId, appConfig.inboundProofLibraryVersion)
-       console.log(`* Chain ID:[${targetEndpointId}], inbound proof library version: [${appConfig.inboundProofLibraryVersion}], inbound proof library address: ${inboundProfLib}`)
-        console.table(appConfig)
+for(const targetNetwork of targetNetworks) {
+  let targetEndpointId = getEndpointIdByName(targetNetwork)
+  let appConfig = await ultraLightNode.getAppConfig(targetEndpointId, taskArgs.ua)
+  let inboundProfLib = await ultraLightNode.inboundProofLibrary(targetEndpointId, appConfig.inboundProofLibraryVersion)
+
+  let formattedAppConfig = {
+    targetNetwork: targetNetwork,
+    targetChainId: targetEndpointId,
+    inboundProofLibraryAddress: inboundProfLib,
+    inboundProofLibraryVersion: appConfig.inboundProofLibraryVersion,
+    inboundBlockConfirmations: appConfig.inboundBlockConfirmations.toString(),
+    relayer: appConfig.relayer.toString(),         
+    outboundProofType: appConfig.outboundProofType,     
+    outboundBlockConfirmations: appConfig.outboundBlockConfirmations.toString(),
+    oracle: appConfig.oracle.toString()
       }
+
+  console.table(formattedAppConfig)
+}
 }
 
 
