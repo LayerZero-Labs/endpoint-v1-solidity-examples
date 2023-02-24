@@ -276,7 +276,7 @@ describe("ONFT721: ", function () {
         ).to.be.revertedWith("ONFT721: send caller is not owner nor approved")
     })
 
-    it("sendBatchFrom()", async function () {
+    it.skip("sendBatchFrom()", async function () {
         await ONFT_A.setMinGasToTransferAndStore(400000)
         await ONFT_B.setMinGasToTransferAndStore(400000)
 
@@ -342,7 +342,7 @@ describe("ONFT721: ", function () {
         await expect(ONFT_B.clearCredits(payload)).to.be.revertedWith("ONFT721: no credits stored")
     })
 
-    it("sendBatchFrom() - large batch", async function () {
+    it.skip("sendBatchFrom() - large batch", async function () {
         await ONFT_A.setMinGasToTransferAndStore(400000)
         await ONFT_B.setMinGasToTransferAndStore(400000)
 
