@@ -7,10 +7,10 @@ import "@openzeppelin/contracts-upgradeable/utils/introspection/ERC165Upgradeabl
 import "./IONFT1155CoreUpgradeable.sol";
 
 abstract contract ONFT1155CoreUpgradeable is Initializable, NonblockingLzAppUpgradeable, ERC165Upgradeable, IONFT1155CoreUpgradeable {
-    uint public constant NO_EXTRA_GAS = 0;               // 32  bytes
-    uint16 public constant FUNCTION_TYPE_SEND = 1;       //  2  bytes
-    uint16 public constant FUNCTION_TYPE_SEND_BATCH = 2; //  2  bytes
-    bool public useCustomAdapterParams;                  //  1  bytes
+    uint public constant NO_EXTRA_GAS = 0;
+    uint16 public constant FUNCTION_TYPE_SEND = 1;
+    uint16 public constant FUNCTION_TYPE_SEND_BATCH = 2;
+    bool public useCustomAdapterParams;
 
     event SetUseCustomAdapterParams(bool _useCustomAdapterParams);
 

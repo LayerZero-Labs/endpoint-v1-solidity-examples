@@ -8,16 +8,16 @@ import "@openzeppelin/contracts-upgradeable/utils/introspection/ERC165Upgradeabl
 import "@openzeppelin/contracts-upgradeable/utils/introspection/IERC165Upgradeable.sol";
 
 abstract contract ONFT721CoreUpgradeable is Initializable, NonblockingLzAppUpgradeable, ERC165Upgradeable, IONFT721CoreUpgradeable {
-    uint16 public constant FUNCTION_TYPE_SEND = 1; // 2  bytes
+    uint16 public constant FUNCTION_TYPE_SEND = 1;
 
     struct StoredCredit {
-        uint16 srcChainId;  // 2  bytes
-        address toAddress;  // 20 bytes
-        uint256 index;      // 32 bytes
-        bool creditsRemain; // 1  bytes
+        uint16 srcChainId;
+        address toAddress;
+        uint256 index;
+        bool creditsRemain;
     }
 
-    uint256 public minGasToTransferAndStore; // min amount of gas required to transfer, and also store the payload // 32  bytes
+    uint256 public minGasToTransferAndStore; // min amount of gas required to transfer, and also store the payload
     mapping(uint16 => uint256) public dstChainIdToBatchLimit;
     mapping(uint16 => uint256) public dstChainIdToTransferGas; // per transfer amount of gas required to mint/transfer on the dst
     mapping(bytes32 => StoredCredit) public storedCredits;
