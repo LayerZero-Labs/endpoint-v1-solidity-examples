@@ -15,13 +15,13 @@ abstract contract LzAppUpgradeable is Initializable, OwnableUpgradeable, ILayerZ
     using BytesLib for bytes;
 
     // ua can not send payload larger than this by default, but it can be changed by the ua owner
-    uint constant public DEFAULT_PAYLOAD_SIZE_LIMIT = 10000; // 32 bytes
+    uint constant public DEFAULT_PAYLOAD_SIZE_LIMIT = 10000;
 
     ILayerZeroEndpointUpgradeable public lzEndpoint;
     mapping(uint16 => bytes) public trustedRemoteLookup;
     mapping(uint16 => mapping(uint16 => uint)) public minDstGasLookup;
     mapping(uint16 => uint) public payloadSizeLimitLookup;
-    address public precrime; // 20 bytes
+    address public precrime;
 
     event SetPrecrime(address precrime);
     event SetTrustedRemote(uint16 _remoteChainId, bytes _path);
@@ -29,6 +29,7 @@ abstract contract LzAppUpgradeable is Initializable, OwnableUpgradeable, ILayerZ
     event SetMinDstGas(uint16 _dstChainId, uint16 _type, uint _minDstGas);
 
     function __LzAppUpgradeable_init(address _endpoint) internal onlyInitializing {
+        __Ownable_init_unchained();
         __LzAppUpgradeable_init_unchained(_endpoint);
     }
 
@@ -57,14 +58,14 @@ abstract contract LzAppUpgradeable is Initializable, OwnableUpgradeable, ILayerZ
         lzEndpoint.send{value: _nativeFee}(_dstChainId, trustedRemote, _payload, _refundAddress, _zroPaymentAddress, _adapterParams);
     }
 
-    function _checkGasLimit(uint16 _dstChainId, uint16 _type, bytes memory _adapterParams, uint _extraGas) internal view {
+    function _checkGasLimit(uint16 _dstChainId, uint16 _type, bytes memory _adapterParams, uint _extraGas) internal view virtual {
         uint providedGasLimit = _getGasLimit(_adapterParams);
         uint minGasLimit = minDstGasLookup[_dstChainId][_type] + _extraGas;
         require(minGasLimit > 0, "LzApp: minGasLimit not set");
         require(providedGasLimit >= minGasLimit, "LzApp: gas limit is too low");
     }
 
-    function _getGasLimit(bytes memory _adapterParams) public pure returns (uint gasLimit) {
+    function _getGasLimit(bytes memory _adapterParams) internal pure virtual returns (uint gasLimit) {
         require(_adapterParams.length >= 34, "LzApp: invalid adapterParams");
         assembly {
             gasLimit := mload(add(_adapterParams, 34))
@@ -101,7 +102,8 @@ abstract contract LzAppUpgradeable is Initializable, OwnableUpgradeable, ILayerZ
         lzEndpoint.forceResumeReceive(_srcChainId, _srcAddress);
     }
 
-    // allow owner to set it multiple times.
+    // _path = abi.encodePacked(remoteAddress, localAddress)
+    // this function set the trusted path for the cross-chain communication
     function setTrustedRemote(uint16 _srcChainId, bytes calldata _path) external onlyOwner {
         trustedRemoteLookup[_srcChainId] = _path;
         emit SetTrustedRemote(_srcChainId, _path);
@@ -124,7 +126,7 @@ abstract contract LzAppUpgradeable is Initializable, OwnableUpgradeable, ILayerZ
     }
 
     function setMinDstGas(uint16 _dstChainId, uint16 _packetType, uint _minGas) external onlyOwner {
-        require(_minGas > 0, "LzApp: invalid _dstGasAmount");
+        require(_minGas > 0, "LzApp: invalid minGas");
         minDstGasLookup[_dstChainId][_packetType] = _minGas;
         emit SetMinDstGas(_dstChainId, _packetType, _minGas);
     }

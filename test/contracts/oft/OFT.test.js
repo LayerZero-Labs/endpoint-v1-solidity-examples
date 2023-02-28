@@ -36,7 +36,7 @@ describe("OFT: ", function () {
         await OFTDst.setTrustedRemote(chainIdSrc, srcPath) // for B, set A
 
         //set destination min gas
-        await OFTSrc.setMinDstGas(chainIdDst, parseInt(await OFTSrc.PT_SEND()), 225000)
+        await OFTSrc.setMinDstGas(chainIdDst, parseInt(await OFTSrc.PT_SEND()), 220000)
         await OFTSrc.setUseCustomAdapterParams(true)
     })
 

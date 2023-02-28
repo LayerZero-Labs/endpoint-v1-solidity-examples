@@ -36,14 +36,21 @@ interface IOFTCoreUpgradeable is IERC165Upgradeable {
     function circulatingSupply() external view returns (uint);
 
     /**
+     * @dev returns the address of the ERC20 token
+     */
+    function token() external view returns (address);
+
+    /**
      * @dev Emitted when `_amount` tokens are moved from the `_sender` to (`_dstChainId`, `_toAddress`)
      * `_nonce` is the outbound nonce
      */
-    event SendToChain(address indexed _sender, uint16 indexed _dstChainId, bytes indexed _toAddress, uint _amount, uint64 _nonce);
+    event SendToChain(uint16 indexed _dstChainId, address indexed _from, bytes _toAddress, uint _amount);
 
     /**
      * @dev Emitted when `_amount` tokens are received from `_srcChainId` into the `_toAddress` on the local chain.
      * `_nonce` is the inbound nonce.
      */
-    event ReceiveFromChain(uint16 indexed _srcChainId, bytes indexed _srcAddress, address indexed _toAddress, uint _amount, uint64 _nonce);
+    event ReceiveFromChain(uint16 indexed _srcChainId, address indexed _to, uint _amount);
+
+    event SetUseCustomAdapterParams(bool _useCustomAdapterParams);
 }
