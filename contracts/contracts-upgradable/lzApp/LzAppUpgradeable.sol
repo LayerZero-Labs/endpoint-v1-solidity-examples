@@ -147,5 +147,5 @@ abstract contract LzAppUpgradeable is Initializable, OwnableUpgradeable, ILayerZ
      * variables without shifting down storage in the inheritance chain.
      * See https://docs.openzeppelin.com/contracts/4.x/upgradeable#storage_gaps
      */
-    uint[44] private __gap;
+    uint[45] private __gap;
 }

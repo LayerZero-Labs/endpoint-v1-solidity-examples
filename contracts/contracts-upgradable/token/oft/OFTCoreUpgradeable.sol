@@ -17,6 +17,7 @@ abstract contract OFTCoreUpgradeable is Initializable, NonblockingLzAppUpgradeab
     bool public useCustomAdapterParams;
 
     function __OFTCoreUpgradeable_init(address _lzEndpoint) internal onlyInitializing {
+        __Ownable_init_unchained();
         __LzAppUpgradeable_init_unchained(_lzEndpoint);
     }
 
@@ -27,7 +28,7 @@ abstract contract OFTCoreUpgradeable is Initializable, NonblockingLzAppUpgradeab
     }
 
     function estimateSendFee(uint16 _dstChainId, bytes calldata _toAddress, uint _amount, bool _useZro, bytes calldata _adapterParams) public view virtual override returns (uint nativeFee, uint zroFee) {
-        // mock the payload for send()
+        // mock the payload for sendFrom()
         bytes memory payload = abi.encode(PT_SEND, _toAddress, _amount);
         return lzEndpoint.estimateFees(_dstChainId, address(this), payload, _useZro, _adapterParams);
     }
@@ -91,5 +92,5 @@ abstract contract OFTCoreUpgradeable is Initializable, NonblockingLzAppUpgradeab
      * variables without shifting down storage in the inheritance chain.
      * See https://docs.openzeppelin.com/contracts/4.x/upgradeable#storage_gaps
      */
-    uint[48] private __gap;
+    uint[49] private __gap;
 }

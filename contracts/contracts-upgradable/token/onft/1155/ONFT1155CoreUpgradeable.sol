@@ -2,9 +2,9 @@
 
 pragma solidity ^0.8.0;
 
+import "./IONFT1155CoreUpgradeable.sol";
 import "../../../lzApp/NonblockingLzAppUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/utils/introspection/ERC165Upgradeable.sol";
-import "./IONFT1155CoreUpgradeable.sol";
 
 abstract contract ONFT1155CoreUpgradeable is Initializable, NonblockingLzAppUpgradeable, ERC165Upgradeable, IONFT1155CoreUpgradeable {
     uint public constant NO_EXTRA_GAS = 0;
@@ -15,6 +15,7 @@ abstract contract ONFT1155CoreUpgradeable is Initializable, NonblockingLzAppUpgr
     event SetUseCustomAdapterParams(bool _useCustomAdapterParams);
 
     function __ONFT1155CoreUpgradeable_init(address _lzEndpoint) internal onlyInitializing {
+        __Ownable_init_unchained();
         __LzAppUpgradeable_init_unchained(_lzEndpoint);
     }
 
@@ -105,5 +106,5 @@ abstract contract ONFT1155CoreUpgradeable is Initializable, NonblockingLzAppUpgr
      * variables without shifting down storage in the inheritance chain.
      * See https://docs.openzeppelin.com/contracts/4.x/upgradeable#storage_gaps
      */
-    uint[48] private __gap;
+    uint[49] private __gap;
 }

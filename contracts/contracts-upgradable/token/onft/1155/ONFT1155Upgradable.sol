@@ -2,16 +2,16 @@
 
 pragma solidity ^0.8.0;
 
-import "@openzeppelin/contracts-upgradeable/token/ERC1155/ERC1155Upgradeable.sol";
-import "./ONFT1155CoreUpgradeable.sol";
 import "./IONFT1155Upgradeable.sol";
-import "hardhat/console.sol";
+import "./ONFT1155CoreUpgradeable.sol";
+import "@openzeppelin/contracts-upgradeable/token/ERC1155/ERC1155Upgradeable.sol";
 
 // NOTE: this ONFT contract has no public minting logic.
 // must implement your own minting logic in child classes
 contract ONFT1155Upgradeable is Initializable, ONFT1155CoreUpgradeable, ERC1155Upgradeable, IONFT1155Upgradeable {
     function __ONFT1155Upgradeable_init(string memory _uri, address _lzEndpoint) internal onlyInitializing {
         __ERC1155_init_unchained(_uri);
+        __Ownable_init_unchained();
         __LzAppUpgradeable_init_unchained(_lzEndpoint);
     }
 
