@@ -14,8 +14,8 @@ abstract contract NonblockingLzAppUpgradeable is Initializable, LzAppUpgradeable
     using ExcessivelySafeCall for address;
 
     function __NonblockingLzAppUpgradeable_init(address _endpoint) internal onlyInitializing {
+        __Ownable_init_unchained();
         __LzAppUpgradeable_init_unchained(_endpoint);
-        __NonblockingLzAppUpgradeable_init_unchained(_endpoint);
     }
 
     function __NonblockingLzAppUpgradeable_init_unchained(address _endpoint) internal onlyInitializing {}

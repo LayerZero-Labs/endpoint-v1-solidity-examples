@@ -2,10 +2,9 @@
 
 pragma solidity ^0.8.2;
 
-import "../../../lzApp/NonblockingLzAppUpgradeable.sol";
 import "./IONFT721CoreUpgradeable.sol";
+import "../../../lzApp/NonblockingLzAppUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/utils/introspection/ERC165Upgradeable.sol";
-import "@openzeppelin/contracts-upgradeable/utils/introspection/IERC165Upgradeable.sol";
 
 abstract contract ONFT721CoreUpgradeable is Initializable, NonblockingLzAppUpgradeable, ERC165Upgradeable, IONFT721CoreUpgradeable {
     uint16 public constant FUNCTION_TYPE_SEND = 1;
@@ -13,7 +12,7 @@ abstract contract ONFT721CoreUpgradeable is Initializable, NonblockingLzAppUpgra
     struct StoredCredit {
         uint16 srcChainId;
         address toAddress;
-        uint256 index;
+        uint256 index; // which index of the tokenIds remain
         bool creditsRemain;
     }
 
@@ -23,6 +22,7 @@ abstract contract ONFT721CoreUpgradeable is Initializable, NonblockingLzAppUpgra
     mapping(bytes32 => StoredCredit) public storedCredits;
 
     function __ONFT721CoreUpgradeable_init(uint256 _minGasToTransferAndStore, address _lzEndpoint) internal onlyInitializing {
+        __Ownable_init_unchained();
         __LzAppUpgradeable_init_unchained(_lzEndpoint);
         __ONFT721CoreUpgradeable_init_unchained(_minGasToTransferAndStore);
     }
@@ -163,5 +163,5 @@ abstract contract ONFT721CoreUpgradeable is Initializable, NonblockingLzAppUpgra
      * variables without shifting down storage in the inheritance chain.
      * See https://docs.openzeppelin.com/contracts/4.x/upgradeable#storage_gaps
      */
-    uint[44] private __gap;
+    uint[46] private __gap;
 }
