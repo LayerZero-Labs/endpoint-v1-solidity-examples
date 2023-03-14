@@ -10,11 +10,4 @@ contract ONFT721Mock is ONFT721 {
     function mint(address _tokenOwner, uint _newId) external payable {
         _safeMint(_tokenOwner, _newId);
     }
-
-    function rawOwnerOf(uint256 tokenId) public view returns (address) {
-        if(_exists(tokenId)) {
-            return ownerOf(tokenId);
-        }
-        return address(0);
-    }
 }

@@ -62,12 +62,12 @@ describe("ProxyONFT721: ", function () {
         await ONFT_C.setDstChainIdToBatchLimit(chainId_B, batchSizeLimit)
 
         // set min dst gas for swap
-        await ProxyONFT_A.setMinDstGas(chainId_B, ProxyONFT_A.PT_SEND(), 150000)
-        await ProxyONFT_A.setMinDstGas(chainId_C, ProxyONFT_A.PT_SEND(), 150000)
-        await ONFT_B.setMinDstGas(chainId_A, ProxyONFT_A.PT_SEND(), 150000)
-        await ONFT_B.setMinDstGas(chainId_C, ProxyONFT_A.PT_SEND(), 150000)
-        await ONFT_C.setMinDstGas(chainId_A, ProxyONFT_A.PT_SEND(), 150000)
-        await ONFT_C.setMinDstGas(chainId_B, ProxyONFT_A.PT_SEND(), 150000)
+        await ProxyONFT_A.setMinDstGas(chainId_B, 1, 150000)
+        await ProxyONFT_A.setMinDstGas(chainId_C, 1, 150000)
+        await ONFT_B.setMinDstGas(chainId_A, 1, 150000)
+        await ONFT_B.setMinDstGas(chainId_C, 1, 150000)
+        await ONFT_C.setMinDstGas(chainId_A, 1, 150000)
+        await ONFT_C.setMinDstGas(chainId_B, 1, 150000)
     })
 
     it("sendFrom() - your own tokens", async function () {
