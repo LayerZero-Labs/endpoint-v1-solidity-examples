@@ -7,7 +7,10 @@ import "../../lzApp/NonblockingLzApp.sol";
 import "@openzeppelin/contracts/utils/introspection/ERC165.sol";
 
 abstract contract ONFT721Core is NonblockingLzApp, ERC165, IONFT721Core {
-    uint16 public constant FUNCTION_TYPE_SEND = 1;
+
+    // packet type
+    uint16 public constant PT_SEND = 0;
+    uint16 public constant PT_SEND_WITH_META = 1;
 
     struct StoredCredit {
         uint16 srcChainId;
@@ -36,7 +39,12 @@ abstract contract ONFT721Core is NonblockingLzApp, ERC165, IONFT721Core {
     }
 
     function estimateSendBatchFee(uint16 _dstChainId, bytes memory _toAddress, uint[] memory _tokenIds, bool _useZro, bytes memory _adapterParams) public view virtual override returns (uint nativeFee, uint zroFee) {
-        bytes memory payload = abi.encode(_toAddress, _tokenIds, metaData);
+        bytes memory payload;
+        if(metaData.length > 0) {
+            payload = abi.encode(PT_SEND_WITH_META, _toAddress, _tokenIds, metaData);
+        } else {
+            payload = abi.encode(PT_SEND, _toAddress, _tokenIds);
+        }
         return lzEndpoint.estimateFees(_dstChainId, address(this), payload, _useZro, _adapterParams);
     }
 
@@ -57,11 +65,25 @@ abstract contract ONFT721Core is NonblockingLzApp, ERC165, IONFT721Core {
             _debitFrom(_from, _dstChainId, _toAddress, _tokenIds[i]);
         }
 
-        bytes memory payload = abi.encode(_toAddress, _tokenIds, metaData);
+        if(metaData.length > 0) {
+            _ptSendWithMeta(_from, _dstChainId, _toAddress, _tokenIds, _refundAddress, _zroPaymentAddress, _adapterParams);
+        } else {
+            _ptSend(_from, _dstChainId, _toAddress, _tokenIds, _refundAddress, _zroPaymentAddress, _adapterParams);
+        }
+    }
 
-        _checkGasLimit(_dstChainId, FUNCTION_TYPE_SEND, _adapterParams, dstChainIdToTransferGas[_dstChainId] * _tokenIds.length);
+    function _ptSendWithMeta(address _from, uint16 _dstChainId, bytes memory _toAddress, uint[] memory _tokenIds, address payable _refundAddress, address _zroPaymentAddress, bytes memory _adapterParams) internal {
+        bytes memory payload = abi.encode(PT_SEND_WITH_META, _toAddress, _tokenIds, metaData);
+        _checkGasLimit(_dstChainId, PT_SEND_WITH_META, _adapterParams, dstChainIdToTransferGas[_dstChainId] * _tokenIds.length);
         _lzSend(_dstChainId, payload, _refundAddress, _zroPaymentAddress, _adapterParams, msg.value);
-        emit SendToChain(_dstChainId, _from, _toAddress, _tokenIds, metaData);
+        emit SendToChainWithMeta(_dstChainId, _from, _toAddress, _tokenIds, metaData);
+    }
+
+    function _ptSend(address _from, uint16 _dstChainId, bytes memory _toAddress, uint[] memory _tokenIds, address payable _refundAddress, address _zroPaymentAddress, bytes memory _adapterParams) internal {
+        bytes memory payload = abi.encode(PT_SEND, _toAddress, _tokenIds);
+        _checkGasLimit(_dstChainId, PT_SEND, _adapterParams, dstChainIdToTransferGas[_dstChainId] * _tokenIds.length);
+        _lzSend(_dstChainId, payload, _refundAddress, _zroPaymentAddress, _adapterParams, msg.value);
+        emit SendToChain(_dstChainId, _from, _toAddress, _tokenIds);
     }
 
     function _nonblockingLzReceive(
@@ -70,14 +92,40 @@ abstract contract ONFT721Core is NonblockingLzApp, ERC165, IONFT721Core {
         uint64, /*_nonce*/
         bytes memory _payload
     ) internal virtual override {
-        // decode and load the toAddress
-        (bytes memory toAddressBytes, uint[] memory tokenIds, bytes memory metaDataBytes) = abi.decode(_payload, (bytes, uint[], bytes));
+        uint16 packetType;
+        assembly {
+            packetType := mload(add(_payload, 32))
+        }
 
-        address toAddress;
+        if (packetType == PT_SEND) {
+            _ptReceive(_srcChainId, _srcAddress, _payload);
+        } else if (packetType == PT_SEND_WITH_META){
+            _ptReceiveWithMeta(_srcChainId, _srcAddress, _payload);
+        }
+    }
+
+    function _ptReceive(uint16 _srcChainId, bytes memory _srcAddress, bytes memory _payload) internal {
+        (, bytes memory toAddressBytes, uint[] memory tokenIds) = abi.decode(_payload, (uint16, bytes, uint[]));
+        address toAddress = getAddressFromBytes(toAddressBytes);
+        handleCreditTill(_srcChainId, toAddress, tokenIds, _payload);
+        emit ReceiveFromChain(_srcChainId, _srcAddress, toAddress, tokenIds);
+    }
+
+    function _ptReceiveWithMeta(uint16 _srcChainId, bytes memory _srcAddress, bytes memory _payload) internal {
+        (, bytes memory toAddressBytes, uint[] memory tokenIds, bytes memory metaDataBytes) = abi.decode(_payload, (uint16, bytes, uint[], bytes));
+        address toAddress = getAddressFromBytes(toAddressBytes);
+        handleCreditTill(_srcChainId, toAddress, tokenIds, _payload);
+        emit ReceiveFromChainWithMeta(_srcChainId, _srcAddress, toAddress, tokenIds, metaDataBytes);
+    }
+
+    function getAddressFromBytes(bytes memory toAddressBytes) internal returns (address toAddress) {
         assembly {
             toAddress := mload(add(toAddressBytes, 20))
         }
+        return toAddress;
+    }
 
+    function handleCreditTill(uint16 _srcChainId, address toAddress, uint[] memory tokenIds, bytes memory _payload) internal {
         uint nextIndex = _creditTill(_srcChainId, toAddress, 0, tokenIds);
         if (nextIndex < tokenIds.length) {
             // not enough gas to complete transfers, store to be cleared in another tx
@@ -85,16 +133,19 @@ abstract contract ONFT721Core is NonblockingLzApp, ERC165, IONFT721Core {
             storedCredits[hashedPayload] = StoredCredit(_srcChainId, toAddress, nextIndex, true);
             emit CreditStored(hashedPayload, _payload);
         }
-
-        emit ReceiveFromChain(_srcChainId, _srcAddress, toAddress, tokenIds, metaDataBytes);
     }
 
     // Public function for anyone to clear and deliver the remaining batch sent tokenIds
-    function clearCredits(bytes memory _payload) external {
+    function clearCredits(uint16 _packetType, bytes memory _payload) external {
         bytes32 hashedPayload = keccak256(_payload);
         require(storedCredits[hashedPayload].creditsRemain, "ONFT721: no credits stored");
 
-        (, uint[] memory tokenIds,) = abi.decode(_payload, (bytes, uint[], bytes));
+        uint[] memory tokenIds;
+        if(_packetType == PT_SEND) {
+            (,,tokenIds) = abi.decode(_payload, (uint16, bytes, uint[]));
+        } else if(_packetType == PT_SEND_WITH_META) {
+            (,,tokenIds,) = abi.decode(_payload, (uint16, bytes, uint[], bytes));
+        }
 
         uint nextIndex = _creditTill(storedCredits[hashedPayload].srcChainId, storedCredits[hashedPayload].toAddress, storedCredits[hashedPayload].index, tokenIds);
         require(nextIndex > storedCredits[hashedPayload].index, "ONFT721: not enough gas to process credit transfer");
@@ -127,7 +178,6 @@ abstract contract ONFT721Core is NonblockingLzApp, ERC165, IONFT721Core {
     }
 
     function setMetaData(bytes memory _metaData) external onlyOwner {
-        //TODO any requirements on setting?
         metaData = _metaData;
     }
 

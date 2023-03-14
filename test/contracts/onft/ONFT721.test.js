@@ -42,8 +42,11 @@ describe("ONFT721: ", function () {
         await ONFT_B.setDstChainIdToBatchLimit(chainId_A, batchSizeLimit)
 
         // set min dst gas for swap
-        await ONFT_A.setMinDstGas(chainId_B, 1, 150000)
-        await ONFT_B.setMinDstGas(chainId_A, 1, 150000)
+        await ONFT_A.setMinDstGas(chainId_B, ONFT_A.PT_SEND(), 150000)
+        await ONFT_B.setMinDstGas(chainId_A, ONFT_A.PT_SEND(), 150000)
+
+        await ONFT_A.setMinDstGas(chainId_B, ONFT_A.PT_SEND_WITH_META(), 150000)
+        await ONFT_B.setMinDstGas(chainId_A, ONFT_A.PT_SEND_WITH_META(), 150000)
     })
 
     it("sendFrom() - your own tokens", async function () {
@@ -279,7 +282,7 @@ describe("ONFT721: ", function () {
     it("sendBatchFrom()", async function () {
         await ONFT_A.setMinGasToTransferAndStore(400000)
         await ONFT_B.setMinGasToTransferAndStore(400000)
-
+        const packetType = 0
         const tokenIds = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
 
         // mint to owner
@@ -290,8 +293,77 @@ describe("ONFT721: ", function () {
         // approve owner.address to transfer
         await ONFT_A.connect(warlock).setApprovalForAll(ONFT_A.address, true)
 
-        // expected event params
-        const payload = ethers.utils.defaultAbiCoder.encode(["bytes", "uint[]"], [warlock.address, tokenIds])
+        let payload = ethers.utils.defaultAbiCoder.encode(["uint16", "bytes", "uint[]"], [packetType, warlock.address, tokenIds])
+        const hashedPayload = web3.utils.keccak256(payload)
+
+        let adapterParams = ethers.utils.solidityPack(["uint16", "uint256"], [1, 200000])
+
+        // estimate nativeFees
+        let nativeFee = (await ONFT_A.estimateSendBatchFee(chainId_B, warlock.address, tokenIds, false, defaultAdapterParams)).nativeFee
+
+
+        // initiate batch transfer
+        await expect(ONFT_A.connect(warlock).sendBatchFrom(
+            warlock.address,
+            chainId_B,
+            warlock.address,
+            tokenIds,
+            warlock.address,
+            ethers.constants.AddressZero,
+            adapterParams, // TODO might need to change this
+            { value: nativeFee }
+        )).to.emit(ONFT_B, "CreditStored").withArgs(hashedPayload, payload)
+
+        // only partial amount of tokens has been sent, the rest have been stored as a credit
+        let creditedIdsA = []
+        for (let tokenId of tokenIds) {
+            let owner = await ONFT_B.rawOwnerOf(tokenId)
+            if (owner == ethers.constants.AddressZero) {
+                creditedIdsA.push(tokenId)
+            } else {
+                expect(owner).to.be.equal(warlock.address)
+            }
+        }
+
+        // clear the rest of the credits
+        await expect(ONFT_B.clearCredits(packetType, payload)).to.emit(ONFT_B, "CreditCleared").withArgs(hashedPayload)
+
+        let creditedIdsB = []
+        for (let tokenId of creditedIdsA) {
+            let owner = await ONFT_B.rawOwnerOf(tokenId)
+            if (owner == ethers.constants.AddressZero) {
+                creditedIdsB.push(tokenId)
+            } else {
+                expect(owner).to.be.equal(warlock.address)
+            }
+        }
+
+        // all ids should have cleared
+        expect(creditedIdsB.length).to.be.equal(0)
+
+        // should revert because payload is no longer valid
+        await expect(ONFT_B.clearCredits(packetType, payload)).to.be.revertedWith("ONFT721: no credits stored")
+    })
+
+    it("sendBatchFrom() w/ Meta Data", async function () {
+        await ONFT_A.setMinGasToTransferAndStore(400000)
+        await ONFT_B.setMinGasToTransferAndStore(400000)
+        const packetType = 1
+        const tokenIds = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
+
+        // mint to owner
+        for (let tokenId of tokenIds) {
+            await ONFT_A.mint(warlock.address, tokenId)
+        }
+
+        // approve owner.address to transfer
+        await ONFT_A.connect(warlock).setApprovalForAll(ONFT_A.address, true)
+
+        // let metaData = ethers.utils.defaultAbiCoder.encode(["bytes"], ["This is my meta data"])
+        let metaData = ethers.utils.solidityPack(["string"], ["This is my meta data"])
+        await ONFT_A.setMetaData(metaData)
+
+        let payload = ethers.utils.defaultAbiCoder.encode(["uint16", "bytes", "uint[]", "bytes"], [packetType, warlock.address, tokenIds, metaData])
         const hashedPayload = web3.utils.keccak256(payload)
 
         let adapterParams = ethers.utils.solidityPack(["uint16", "uint256"], [1, 200000])
@@ -323,7 +395,7 @@ describe("ONFT721: ", function () {
         }
 
         // clear the rest of the credits
-        await expect(ONFT_B.clearCredits(payload)).to.emit(ONFT_B, "CreditCleared").withArgs(hashedPayload)
+        await expect(ONFT_B.clearCredits(packetType, payload)).to.emit(ONFT_B, "CreditCleared").withArgs(hashedPayload)
 
         let creditedIdsB = []
         for (let tokenId of creditedIdsA) {
@@ -339,13 +411,13 @@ describe("ONFT721: ", function () {
         expect(creditedIdsB.length).to.be.equal(0)
 
         // should revert because payload is no longer valid
-        await expect(ONFT_B.clearCredits(payload)).to.be.revertedWith("ONFT721: no credits stored")
+        await expect(ONFT_B.clearCredits(packetType, payload)).to.be.revertedWith("ONFT721: no credits stored")
     })
 
     it("sendBatchFrom() - large batch", async function () {
         await ONFT_A.setMinGasToTransferAndStore(400000)
         await ONFT_B.setMinGasToTransferAndStore(400000)
-
+        const packetType = 0
         const tokenIds = []
 
         for (let i = 1; i <= 300; i++) {
@@ -361,7 +433,7 @@ describe("ONFT721: ", function () {
         await ONFT_A.connect(warlock).setApprovalForAll(ONFT_A.address, true)
 
         // expected event params
-        const payload = ethers.utils.defaultAbiCoder.encode(["bytes", "uint[]"], [warlock.address, tokenIds])
+        const payload = ethers.utils.defaultAbiCoder.encode(["uint16", "bytes", "uint[]"], [packetType, warlock.address, tokenIds])
         const hashedPayload = web3.utils.keccak256(payload)
 
         let adapterParams = ethers.utils.solidityPack(["uint16", "uint256"], [1, 400000])
@@ -395,7 +467,7 @@ describe("ONFT721: ", function () {
         // console.log("Number of tokens credited: ", creditedIdsA.length)
 
         // clear the rest of the credits
-        let tx = await(await ONFT_B.clearCredits(payload)).wait()
+        let tx = await(await ONFT_B.clearCredits(packetType, payload)).wait()
 
         // console.log("Total gasUsed: ", tx.gasUsed.toString())
 
@@ -415,6 +487,6 @@ describe("ONFT721: ", function () {
         expect(creditedIdsB.length).to.be.equal(0)
 
         // should revert because payload is no longer valid
-        await expect(ONFT_B.clearCredits(payload)).to.be.revertedWith("ONFT721: no credits stored")
+        await expect(ONFT_B.clearCredits(packetType, payload)).to.be.revertedWith("ONFT721: no credits stored")
     })
 })
