@@ -20,6 +20,7 @@ abstract contract ONFT721CoreUpgradeable is Initializable, NonblockingLzAppUpgra
     mapping(uint16 => uint256) public dstChainIdToBatchLimit;
     mapping(uint16 => uint256) public dstChainIdToTransferGas; // per transfer amount of gas required to mint/transfer on the dst
     mapping(bytes32 => StoredCredit) public storedCredits;
+    bytes public metaData;
 
     function __ONFT721CoreUpgradeable_init(uint256 _minGasToTransferAndStore, address _lzEndpoint) internal onlyInitializing {
         __Ownable_init_unchained();
@@ -41,7 +42,7 @@ abstract contract ONFT721CoreUpgradeable is Initializable, NonblockingLzAppUpgra
     }
 
     function estimateSendBatchFee(uint16 _dstChainId, bytes memory _toAddress, uint[] memory _tokenIds, bool _useZro, bytes memory _adapterParams) public view virtual override returns (uint nativeFee, uint zroFee) {
-        bytes memory payload = abi.encode(_toAddress, _tokenIds);
+        bytes memory payload = abi.encode(_toAddress, _tokenIds, metaData);
         return lzEndpoint.estimateFees(_dstChainId, address(this), payload, _useZro, _adapterParams);
     }
 
@@ -62,11 +63,11 @@ abstract contract ONFT721CoreUpgradeable is Initializable, NonblockingLzAppUpgra
             _debitFrom(_from, _dstChainId, _toAddress, _tokenIds[i]);
         }
 
-        bytes memory payload = abi.encode(_toAddress, _tokenIds);
+        bytes memory payload = abi.encode(_toAddress, _tokenIds, metaData);
 
         _checkGasLimit(_dstChainId, FUNCTION_TYPE_SEND, _adapterParams, dstChainIdToTransferGas[_dstChainId] * _tokenIds.length);
         _lzSend(_dstChainId, payload, _refundAddress, _zroPaymentAddress, _adapterParams, msg.value);
-        emit SendToChain(_dstChainId, _from, _toAddress, _tokenIds);
+        emit SendToChain(_dstChainId, _from, _toAddress, _tokenIds, metaData);
     }
 
     function _nonblockingLzReceive(
@@ -76,7 +77,7 @@ abstract contract ONFT721CoreUpgradeable is Initializable, NonblockingLzAppUpgra
         bytes memory _payload
     ) internal virtual override {
         // decode and load the toAddress
-        (bytes memory toAddressBytes, uint[] memory tokenIds) = abi.decode(_payload, (bytes, uint[]));
+        (bytes memory toAddressBytes, uint[] memory tokenIds, bytes memory metaDataBytes) = abi.decode(_payload, (bytes, uint[], bytes));
 
         address toAddress;
         assembly {
@@ -91,7 +92,7 @@ abstract contract ONFT721CoreUpgradeable is Initializable, NonblockingLzAppUpgra
             emit CreditStored(hashedPayload, _payload);
         }
 
-        emit ReceiveFromChain(_srcChainId, _srcAddress, toAddress, tokenIds);
+        emit ReceiveFromChain(_srcChainId, _srcAddress, toAddress, tokenIds, metaDataBytes);
     }
 
     // Public function for anyone to clear and deliver the remaining batch sent tokenIds
@@ -99,7 +100,7 @@ abstract contract ONFT721CoreUpgradeable is Initializable, NonblockingLzAppUpgra
         bytes32 hashedPayload = keccak256(_payload);
         require(storedCredits[hashedPayload].creditsRemain, "ONFT721: no credits stored");
 
-        (, uint[] memory tokenIds) = abi.decode(_payload, (bytes, uint[]));
+        (, uint[] memory tokenIds,) = abi.decode(_payload, (bytes, uint[], bytes));
 
         uint nextIndex = _creditTill(storedCredits[hashedPayload].srcChainId, storedCredits[hashedPayload].toAddress, storedCredits[hashedPayload].index, tokenIds);
         require(nextIndex > storedCredits[hashedPayload].index, "ONFT721: not enough gas to process credit transfer");
@@ -129,6 +130,10 @@ abstract contract ONFT721CoreUpgradeable is Initializable, NonblockingLzAppUpgra
         // indicates the next index to send of tokenIds,
         // if i == tokenIds.length, we are finished
         return i;
+    }
+
+    function setMetaData(bytes memory _metaData) external onlyOwner {
+        metaData = _metaData;
     }
 
     function setMinGasToTransferAndStore(uint256 _minGasToTransferAndStore) external onlyOwner {
