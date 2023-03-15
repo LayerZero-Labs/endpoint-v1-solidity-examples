@@ -127,7 +127,6 @@ abstract contract ONFT721Core is NonblockingLzApp, ERC165, IONFT721Core {
     }
 
     function setMetaData(bytes memory _metaData) external onlyOwner {
-        //TODO any requirements on setting?
         metaData = _metaData;
     }
 
