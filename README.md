@@ -15,7 +15,7 @@ npx hardhat test
 ```
 
 * The code in the `/contracts` folder demonstrates LayerZero behaviours.
-* `NonblockingLzApp` is a great contract to extend. Take a look at how `OmniCounter` overrides `_nonblockingLzReceive` and `_LzReceive` to easily handle messaging. There are also example for `OFT` and `ONFT` which illustrate erc20 and erc721 cross chain functionality.
+* `NonblockingLzApp` is a great contract to extend. Take a look at how `OmniCounter` overrides `_nonblockingLzReceive` and `_LzReceive` to easily handle messaging. There are also examples for `OFT` and `ONFT` which illustrate erc20 and erc721 cross chain functionality.
 * Always audit your own code and test extensively on `testnet` before going to mainnet 🙏
 
 > The examples below use two chains, however you could substitute any LayerZero supported chain! 
@@ -31,12 +31,12 @@ The `OmnichainFungibleToken` has two varieties of deployments:
 In the example deployment below we use `BasedOFT` and the `base` chain is ```goerli```.
 This setting is configured in ```constants/oftBaseChain.json```.
 The `OmnichainFungibleToken` deployed on other chains will use this configuration to set their `base` chain.
-Using the Ethereum network ```(testnet: goerli)``` as a `base` (really its like the source of truth) is a security decision.
+Using the Ethereum network ```(testnet: goerli)``` as a `base` (really it's like the source of truth) is a security decision.
 In the event a chain goes rogue, Ethereum will be the final source of truth for OFT tokens.
 
 ## About OFTV2
 ```shell
-NOTE: the OFTV2 uses uint64 to encode value transfer for compatability of aptos and solana. 
+NOTE: the OFTV2 uses uint64 to encode value transfer for compatibility of aptos and solana. 
 
 The deployer is expected to set a lower decimal points like 6 or 8. 
 
