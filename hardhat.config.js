@@ -60,6 +60,15 @@ module.exports = {
         }
       },
       {
+        version: "0.7.6",
+        settings: {
+          optimizer: {
+            enabled: true,
+            runs: 200
+          }
+        }
+      },
+      {
         version: "0.8.12",
         settings: {
           optimizer: {
@@ -157,7 +166,7 @@ module.exports = {
       accounts: accounts(),
     },
     'fantom-testnet': {
-      url: `https://rpc.testnet.fantom.network/`,
+      url: `https://rpc.ankr.com/fantom_testnet`,
       chainId: 4002,
       accounts: accounts(),
     }
