@@ -2,21 +2,21 @@
 
 pragma solidity ^0.8.2;
 
-import "@openzeppelin/contracts/token/ERC721/ERC721.sol";
-import "@openzeppelin/contracts-upgradeable/token/ERC721/ERC721Upgradeable.sol";
-import "@openzeppelin/contracts-upgradeable/utils/introspection/IERC165Upgradeable.sol";
-import "./ONFT721CoreUpgradeable.sol";
 import "./IONFT721Upgradeable.sol";
+import "./ONFT721CoreUpgradeable.sol";
+import "@openzeppelin/contracts-upgradeable/token/ERC721/ERC721Upgradeable.sol";
 
 // NOTE: this ONFT contract has no public minting logic.
 // must implement your own minting logic in child classes
 contract ONFT721Upgradeable is Initializable, ONFT721CoreUpgradeable, ERC721Upgradeable, IONFT721Upgradeable {
-    function __ONFT721Upgradeable_init(string memory _name, string memory _symbol, address _lzEndpoint) internal onlyInitializing {
+    function __ONFT721Upgradeable_init(string memory _name, string memory _symbol, uint256 _minGasToTransfer, address _lzEndpoint) internal onlyInitializing {
         __ERC721_init_unchained(_name, _symbol);
-        __ONFT721CoreUpgradeable_init_unchained(_lzEndpoint);
+        __Ownable_init_unchained();
+        __LzAppUpgradeable_init_unchained(_lzEndpoint);
+        __ONFT721CoreUpgradeable_init_unchained(_minGasToTransfer);
     }
 
-    function __ONFT721Upgradeable_init_unchained(string memory _name, string memory _symbol, address _lzEndpoint) internal onlyInitializing {}
+    function __ONFT721Upgradeable_init_unchained() internal onlyInitializing {}
 
     function supportsInterface(bytes4 interfaceId) public view virtual override(ONFT721CoreUpgradeable, ERC721Upgradeable, IERC165Upgradeable) returns (bool) {
         return interfaceId == type(IONFT721Upgradeable).interfaceId || super.supportsInterface(interfaceId);
