@@ -3,7 +3,7 @@
 pragma solidity ^0.8.2;
 
 import "hardhat-deploy/solc_0.8/proxy/Proxied.sol";
-import "../token/onft/1155/ONFT1155Upgradable.sol";
+import "../token/onft/ERC1155/ONFT1155Upgradable.sol";
 
 contract ExampleONFT1155Upgradeable is Initializable, ONFT1155Upgradeable, Proxied {
     function initialize(string memory _uri, address _lzEndpoint, uint _amount) public initializer {
