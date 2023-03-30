@@ -22,18 +22,6 @@ npx hardhat test
 
 # OmnichainFungibleToken (OFT)
 
-The `OmnichainFungibleToken` has two varieties of deployments:
- 1. `BasedOFT.sol` - The token supply is minted (on deployment) on the `base` chain. Other chains deploy with 0 supply initially. 
- 2. `OFT.sol` - At deploy time, any quantity of tokens can be minted, regardless of chain.    
-
- For the `BasedOFT`, the initial supply will be minted entirely on the `Base Chain` on deployment. All tokens transferred out of the `base` chain will be locked in the contract (and minted on destination), and tokens transferred out of `other` chains will be burned on that chain. Tokens returning to the `base` chain will be `unlocked` and transferred to the destination address. This results in the `Base chain` being like the home base, hence the name.
-
-In the example deployment below we use `BasedOFT` and the `base` chain is ```goerli```.
-This setting is configured in ```constants/oftBaseChain.json```.
-The `OmnichainFungibleToken` deployed on other chains will use this configuration to set their `base` chain.
-Using the Ethereum network ```(testnet: goerli)``` as a `base` (really its like the source of truth) is a security decision.
-In the event a chain goes rogue, Ethereum will be the final source of truth for OFT tokens.
-
 ## About OFTV2
 ```shell
 NOTE: the OFTV2 uses uint64 to encode value transfer for compatability of aptos and solana. 
@@ -47,23 +35,23 @@ If the decimal point is 18, then uint64 can only represent approximately 18 toke
 1. Add a .env file (to the root project directory) with your MNEMONIC="" and fund your wallet in order to deploy!
 2. Follow any of the tutorials below
 
-## BasedOFT.sol - an omnichain ERC20
+## OFTV2.sol - an omnichain ERC20
 
 > WARNING: **You must perform the setTrustedRemote() (step 2).**
 
-1. Deploy two contracts:  ```goerli``` is the `base` chain. Fuji is the oft for the other chain.
+1. Deploy two contracts:
 ```angular2html
-npx hardhat --network goerli deploy --tags ExampleBasedOFT
-npx hardhat --network fuji deploy --tags ExampleOFT
+npx hardhat --network goerli deploy --tags ExampleOFTV2
+npx hardhat --network fuji deploy --tags ExampleOFTV2
 ```
 2. Set the "trusted remotes" (ie: your contracts) so each of them can receive messages from one another, and `only` one another.
 ```angular2html
-npx hardhat --network goerli setTrustedRemote --target-network fuji --local-contract ExampleBasedOFT --remote-contract ExampleOFT
-npx hardhat --network fuji setTrustedRemote --target-network goerli --local-contract ExampleOFT --remote-contract ExampleBasedOFT
+npx hardhat --network goerli setTrustedRemote --target-network fuji --contract ExampleOFTV2
+npx hardhat --network fuji setTrustedRemote --target-network goerli --contract ExampleOFTV2
 ```
 3. Send tokens from goerli to fuji
 ```angular2html
-npx hardhat --network goerli oftSend --target-network fuji --qty 42 --local-contract ExampleBasedOFT --remote-contract ExampleOFT
+npx hardhat --network goerli oftv2Send --target-network fuji --qty 42 --contract ExampleOFTV2
 ```
  Pro-tip: Check the ERC20 transactions tab of the destination chain block explorer and await your tokens!
 
