@@ -134,6 +134,11 @@ module.exports = {
       chainId: 250,
       accounts: accounts(),
     },
+    metis: {
+      url: `https://andromeda.metis.io/?owner=1088`,
+      chainId: 1088,
+      accounts: accounts(),
+    },
 
     goerli: {
       url: "https://goerli.infura.io/v3/9aa3d95b3bc440fa88ea12eaa4456161", // public infura endpoint
