@@ -1,12 +1,21 @@
 // SPDX-License-Identifier: MIT
 
-pragma solidity ^0.8.0;
+pragma solidity ^0.8.4;
 
-import "./IONFT721Core.sol";
-import "../../lzApp/NonblockingLzApp.sol";
+import "@openzeppelin/contracts/utils/introspection/IERC165.sol";
 import "@openzeppelin/contracts/utils/introspection/ERC165.sol";
+import "erc721a/contracts/ERC721A.sol";
+import "erc721a/contracts/IERC721A.sol";
+import "../IONFT721.sol";
+import "../../../lzApp/NonblockingLzApp.sol";
 
-abstract contract ONFT721Core is NonblockingLzApp, ERC165, IONFT721Core {
+// DISCLAIMER: This contract can only be deployed on one chain when deployed and calling
+// setTrustedRemotes with remote contracts. This is due to the sequential way 721A mints tokenIds.
+// This contract must be the first minter of each token id!
+
+// NOTE: this ONFT contract has no public minting logic.
+// must implement your own minting logic in child classes
+contract ONFT721A is NonblockingLzApp, ERC721A, ERC721A__IERC721Receiver, ERC165, IONFT721Core {
     uint16 public constant FUNCTION_TYPE_SEND = 1;
 
     struct StoredCredit {
@@ -21,12 +30,12 @@ abstract contract ONFT721Core is NonblockingLzApp, ERC165, IONFT721Core {
     mapping(uint16 => uint256) public dstChainIdToTransferGas; // per transfer amount of gas required to mint/transfer on the dst
     mapping(bytes32 => StoredCredit) public storedCredits;
 
-    constructor(uint256 _minGasToTransferAndStore, address _lzEndpoint) NonblockingLzApp(_lzEndpoint) {
+    constructor(string memory _name, string memory _symbol, uint256 _minGasToTransferAndStore, address _lzEndpoint) ERC721A(_name, _symbol) NonblockingLzApp(_lzEndpoint) {
         require(_minGasToTransferAndStore > 0, "ONFT721: minGasToTransferAndStore must be > 0");
         minGasToTransferAndStore = _minGasToTransferAndStore;
     }
 
-    function supportsInterface(bytes4 interfaceId) public view virtual override(ERC165, IERC165) returns (bool) {
+    function supportsInterface(bytes4 interfaceId) public view virtual override(ERC721A, ERC165, IERC165) returns (bool) {
         return interfaceId == type(IONFT721Core).interfaceId || super.supportsInterface(interfaceId);
     }
 
@@ -142,13 +151,27 @@ abstract contract ONFT721Core is NonblockingLzApp, ERC165, IONFT721Core {
         dstChainIdToBatchLimit[_dstChainId] = _dstChainIdToBatchLimit;
     }
 
-    function _debitFrom(address _from, uint16 _dstChainId, bytes memory _toAddress, uint _tokenId) internal virtual;
+    function _debitFrom(address _from, uint16, bytes memory, uint _tokenId) internal virtual {
+        safeTransferFrom(_from, address(this), _tokenId);
+    }
 
-    function _creditTo(uint16 _srcChainId, address _toAddress, uint _tokenId) internal virtual;
+    function _creditTo(uint16, address _toAddress, uint _tokenId) internal virtual {
+        require(!_exists(_tokenId) || (_exists(_tokenId) && ERC721A.ownerOf(_tokenId) == address(this)));
+
+        if (!_exists(_tokenId)) {
+            _safeMint(_toAddress, _tokenId);
+        } else {
+            safeTransferFrom(address(this), _toAddress, _tokenId);
+        }
+    }
 
     function _toSingletonArray(uint element) internal pure returns (uint[] memory) {
         uint[] memory array = new uint[](1);
         array[0] = element;
         return array;
+    }
+
+    function onERC721Received(address, address, uint, bytes memory) public virtual override returns (bytes4) {
+        return ERC721A__IERC721Receiver.onERC721Received.selector;
     }
 }
