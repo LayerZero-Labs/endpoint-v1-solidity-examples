@@ -73,22 +73,27 @@ Check `constants/onftArgs.json` for the specific test configuration used in this
 npx hardhat --network bsc-testnet setTrustedRemote --target-network fuji --contract ExampleUniversalONFT721
 npx hardhat --network fuji setTrustedRemote --target-network bsc-testnet --contract ExampleUniversalONFT721
 ```
-3. Mint an NFT on each chain!
+3. Set the min gas required on the destination
+```angular2html
+npx hardhat --network bsc-testnet setMinDstGas --target-network fuji --contract ExampleUniversalONFT721 --packet-type 1 --min-gas 100000
+npx hardhat --network fuji setMinDstGas --target-network bsc-testnet --contract ExampleUniversalONFT721 --packet-type 1 --min-gas 100000
+```
+4. Mint an NFT on each chain!
 ```angular2html
 npx hardhat --network bsc-testnet onftMint --contract ExampleUniversalONFT721
 npx hardhat --network fuji onftMint --contract ExampleUniversalONFT721
 ```
-4. [Optional] Show the token owner(s)
+5. [Optional] Show the token owner(s)
 ```angular2html
 npx hardhat --network bsc-testnet ownerOf --token-id 1 --contract ExampleUniversalONFT721
 npx hardhat --network fuji ownerOf --token-id 11 --contract ExampleUniversalONFT721
 ```
-5. Send ONFT across chains
+6. Send ONFT across chains
 ```angular2html
 npx hardhat --network bsc-testnet onftSend --target-network fuji --token-id 1 --contract ExampleUniversalONFT721
 npx hardhat --network fuji onftSend --target-network bsc-testnet --token-id 11 --contract ExampleUniversalONFT721 
 ```
-6. Verify your token no longer exists in your wallet on the source chain & wait for it to reach the destination side.
+7. Verify your token no longer exists in your wallet on the source chain & wait for it to reach the destination side.
 ```angular2html
 npx hardhat --network bsc-testnet ownerOf --token-id 1 --contract ExampleUniversalONFT721
 npx hardhat --network fuji ownerOf --token-id 1 --contract ExampleUniversalONFT721

@@ -140,9 +140,14 @@ task("ownerOf", "ownerOf(tokenId) to get the owner of a token", require("./owner
 task("onftSend", "send an ONFT nftId from one chain to another", require("./onftSend"))
     .addParam("tokenId", "the tokenId of ONFT")
     .addParam("targetNetwork", "the chainId to transfer to")
-    .addOptionalParam("localContract", "Name of local contract if the names are different")
-    .addOptionalParam("remoteContract", "Name of remote contract if the names are different")
-    .addOptionalParam("contract", "If both contracts are the same name")
+    .addParam("contract", "ONFT contract name")
+
+//
+task("setMinDstGas", "set min gas required on the destination gas", require("./setMinDstGas"))
+    .addParam("packetType", "message Packet type")
+    .addParam("targetNetwork", "the chainId to transfer to")
+    .addParam("contract", "contract name")
+    .addParam("minGas", "min gas")
 
 //
 task("incrementCounter", "increment the destination OmniCounter", require("./incrementCounter"))
