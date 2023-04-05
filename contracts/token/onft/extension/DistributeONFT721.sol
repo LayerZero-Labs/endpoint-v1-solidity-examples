@@ -52,8 +52,8 @@ contract DistributeONFT721 is ONFT721 {
     uint16 public constant NUM_TOKENS_PER_INDEX = 250;
     uint16 public constant MAX_TOKENS_PER_INDEX = 256;
 
-    uint public distributeBaseDstGas = 200000;
-    uint public distributeGasPerIdx = 50000;
+    uint public distributeBaseDstGas = 40000;
+    uint public distributeGasPerIdx = 5000;
 
     event Distribute(uint16 indexed _srcChainId, TokenDistribute[] tokenDistribute);
     event ReceiveDistribute(uint16 indexed _srcChainId, bytes indexed _srcAddress, TokenDistribute[] tokenDistribute);
