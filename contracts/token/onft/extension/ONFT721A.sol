@@ -9,12 +9,13 @@ import "erc721a/contracts/IERC721A.sol";
 import "../IONFT721.sol";
 import "../../../lzApp/NonblockingLzApp.sol";
 
-// DISCLAIMER: This contract can only be deployed on one chain when deployed and calling
-// setTrustedRemotes with remote contracts. This is due to the sequential way 721A mints tokenIds.
-// This contract must be the first minter of each token id!
+// DISCLAIMER:
+// This contract can only be deployed on one chain and must be the first minter of each token id!
+// This is because ERC721A does not have the ability to mint a specific token id.
+// Other chains must have ONFT721 deployed.
 
 // NOTE: this ONFT contract has no public minting logic.
-// must implement your own minting logic in child classes
+// must implement your own minting logic in child contract
 contract ONFT721A is NonblockingLzApp, ERC721A, ERC721A__IERC721Receiver, ERC165, IONFT721Core {
     uint16 public constant FUNCTION_TYPE_SEND = 1;
 
@@ -31,7 +32,7 @@ contract ONFT721A is NonblockingLzApp, ERC721A, ERC721A__IERC721Receiver, ERC165
     mapping(bytes32 => StoredCredit) public storedCredits;
 
     constructor(string memory _name, string memory _symbol, uint256 _minGasToTransferAndStore, address _lzEndpoint) ERC721A(_name, _symbol) NonblockingLzApp(_lzEndpoint) {
-        require(_minGasToTransferAndStore > 0, "ONFT721: minGasToTransferAndStore must be > 0");
+        require(_minGasToTransferAndStore > 0, "minGasToTransferAndStore must be > 0");
         minGasToTransferAndStore = _minGasToTransferAndStore;
     }
 
@@ -58,11 +59,12 @@ contract ONFT721A is NonblockingLzApp, ERC721A, ERC721A__IERC721Receiver, ERC165
 
     function _send(address _from, uint16 _dstChainId, bytes memory _toAddress, uint[] memory _tokenIds, address payable _refundAddress, address _zroPaymentAddress, bytes memory _adapterParams) internal virtual {
         // allow 1 by default
-        require(_tokenIds.length > 0, "LzApp: tokenIds[] is empty");
-        require(_tokenIds.length == 1 || _tokenIds.length <= dstChainIdToBatchLimit[_dstChainId], "ONFT721: batch size exceeds dst batch limit");
+        require(_tokenIds.length > 0, "tokenIds[] is empty");
+        require(_tokenIds.length == 1 || _tokenIds.length <= dstChainIdToBatchLimit[_dstChainId], "batch size exceeds dst batch limit");
 
-        for (uint i = 0; i < _tokenIds.length; i++) {
+        for (uint i = 0; i < _tokenIds.length;) {
             _debitFrom(_from, _dstChainId, _toAddress, _tokenIds[i]);
+            unchecked{++i;}
         }
 
         bytes memory payload = abi.encode(_toAddress, _tokenIds);
@@ -100,12 +102,12 @@ contract ONFT721A is NonblockingLzApp, ERC721A, ERC721A__IERC721Receiver, ERC165
     // Public function for anyone to clear and deliver the remaining batch sent tokenIds
     function clearCredits(bytes memory _payload) external virtual {
         bytes32 hashedPayload = keccak256(_payload);
-        require(storedCredits[hashedPayload].creditsRemain, "ONFT721: no credits stored");
+        require(storedCredits[hashedPayload].creditsRemain, "no credits stored");
 
         (, uint[] memory tokenIds) = abi.decode(_payload, (bytes, uint[]));
 
         uint nextIndex = _creditTill(storedCredits[hashedPayload].srcChainId, storedCredits[hashedPayload].toAddress, storedCredits[hashedPayload].index, tokenIds);
-        require(nextIndex > storedCredits[hashedPayload].index, "ONFT721: not enough gas to process credit transfer");
+        require(nextIndex > storedCredits[hashedPayload].index, "not enough gas to process credit transfer");
 
         if (nextIndex == tokenIds.length) {
             // cleared the credits, delete the element
@@ -135,19 +137,19 @@ contract ONFT721A is NonblockingLzApp, ERC721A, ERC721A__IERC721Receiver, ERC165
     }
 
     function setMinGasToTransferAndStore(uint256 _minGasToTransferAndStore) external onlyOwner {
-        require(_minGasToTransferAndStore > 0, "ONFT721: minGasToTransferAndStore must be > 0");
+        require(_minGasToTransferAndStore > 0, "minGasToTransferAndStore must be > 0");
         minGasToTransferAndStore = _minGasToTransferAndStore;
     }
 
     // ensures enough gas in adapter params to handle batch transfer gas amounts on the dst
     function setDstChainIdToTransferGas(uint16 _dstChainId, uint256 _dstChainIdToTransferGas) external onlyOwner {
-        require(_dstChainIdToTransferGas > 0, "ONFT721: dstChainIdToTransferGas must be > 0");
+        require(_dstChainIdToTransferGas > 0, "dstChainIdToTransferGas must be > 0");
         dstChainIdToTransferGas[_dstChainId] = _dstChainIdToTransferGas;
     }
 
     // limit on src the amount of tokens to batch send
     function setDstChainIdToBatchLimit(uint16 _dstChainId, uint256 _dstChainIdToBatchLimit) external onlyOwner {
-        require(_dstChainIdToBatchLimit > 0, "ONFT721: dstChainIdToBatchLimit must be > 0");
+        require(_dstChainIdToBatchLimit > 0, "dstChainIdToBatchLimit must be > 0");
         dstChainIdToBatchLimit[_dstChainId] = _dstChainIdToBatchLimit;
     }
 

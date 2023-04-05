@@ -48,10 +48,17 @@ Now Chain A owns tokenIds: 3,4,5,6,7,8 and Chain B owns tokenIds: 1,2,9,10,11,12
 contract DistributeONFT721 is ONFT721 {
 
     uint16 public constant FUNCTION_TYPE_DISTRIBUTE = 2;
-    uint16 public constant NUM_TOKENS_PER = 250;
+    // Each uint in the array uses 250 bits of its allotted 256 bits to represent token ids.
+    uint16 public constant NUM_TOKENS_PER_INDEX = 250;
+    uint16 public constant MAX_TOKENS_PER_INDEX = 256;
+
+    uint public distributeBaseDstGas = 200000;
+    uint public distributeGasPerIdx = 50000;
 
     event Distribute(uint16 indexed _srcChainId, TokenDistribute[] tokenDistribute);
     event ReceiveDistribute(uint16 indexed _srcChainId, bytes indexed _srcAddress, TokenDistribute[] tokenDistribute);
+    event SetDistributeBaseDstGas(uint _distributeBaseDstGas);
+    event SetDistributeGasPerIdx(uint _distributeGasPerIdx);
 
     struct TokenDistribute {
         uint index;
@@ -66,7 +73,6 @@ contract DistributeONFT721 is ONFT721 {
     /// @param _layerZeroEndpoint handles message transmission across chains
     /// @param _indexArray to set to all ones representing token ids available to mint
     constructor(string memory _name, string memory _symbol, uint256 _minGasToTransfer, address _layerZeroEndpoint, uint[] memory _indexArray, uint[] memory _valueArray) ONFT721(_name, _symbol, _minGasToTransfer, _layerZeroEndpoint){
-        //TODO add validation only using 250 bits of allotted 256
         uint _indexArrayLength = _indexArray.length;
         for(uint i; i < _indexArrayLength;) {
             tokenIds[_indexArray[i]] = _valueArray[i];
@@ -145,11 +151,12 @@ contract DistributeONFT721 is ONFT721 {
     // override _send in ONFT721Core to pass in FUNCTION_TYPE into payload
     function _send(address _from, uint16 _dstChainId, bytes memory _toAddress, uint[] memory _tokenIds, address payable _refundAddress, address _zroPaymentAddress, bytes memory _adapterParams) internal virtual override(ONFT721Core) {
         // allow 1 by default
-        require(_tokenIds.length > 0, "LzApp: tokenIds[] is empty");
-        require(_tokenIds.length == 1 || _tokenIds.length <= dstChainIdToBatchLimit[_dstChainId], "ONFT721: batch size exceeds dst batch limit");
+        require(_tokenIds.length > 0, "tokenIds[] is empty");
+        require(_tokenIds.length == 1 || _tokenIds.length <= dstChainIdToBatchLimit[_dstChainId], "batch size exceeds dst batch limit");
 
-        for (uint i = 0; i < _tokenIds.length; i++) {
+        for (uint i = 0; i < _tokenIds.length;) {
             _debitFrom(_from, _dstChainId, _toAddress, _tokenIds[i]);
+            unchecked{++i;}
         }
 
         bytes memory payload = abi.encode(FUNCTION_TYPE_SEND, _toAddress, _tokenIds);
@@ -172,22 +179,22 @@ contract DistributeONFT721 is ONFT721 {
 
         if(functionType == FUNCTION_TYPE_SEND) {
             // decode and load the toAddress
-            (,bytes memory toAddressBytes, uint[] memory tokenIds) = abi.decode(_payload, (uint16, bytes, uint[]));
+            (,bytes memory _toAddressBytes, uint[] memory _receivedTokenIds) = abi.decode(_payload, (uint16, bytes, uint[]));
 
             address toAddress;
             assembly {
-                toAddress := mload(add(toAddressBytes, 20))
+                toAddress := mload(add(_toAddressBytes, 20))
             }
 
-            uint nextIndex = _creditTill(_srcChainId, toAddress, 0, tokenIds);
-            if (nextIndex < tokenIds.length) {
+            uint nextIndex = _creditTill(_srcChainId, toAddress, 0, _receivedTokenIds);
+            if (nextIndex < _receivedTokenIds.length) {
                 // not enough gas to complete transfers, store to be cleared in another tx
                 bytes32 hashedPayload = keccak256(_payload);
                 storedCredits[hashedPayload] = StoredCredit(_srcChainId, toAddress, nextIndex, true);
                 emit CreditStored(hashedPayload, _payload);
             }
 
-            emit ReceiveFromChain(_srcChainId, _srcAddress, toAddress, tokenIds);
+            emit ReceiveFromChain(_srcChainId, _srcAddress, toAddress, _receivedTokenIds);
         } else if(functionType == FUNCTION_TYPE_DISTRIBUTE) {
             (, TokenDistribute[] memory tokenDistribute) = abi.decode(_payload, (uint16, TokenDistribute[]));
             uint tokenDistributeLength = tokenDistribute.length;
@@ -203,14 +210,14 @@ contract DistributeONFT721 is ONFT721 {
     // Public function for anyone to clear and deliver the remaining batch sent tokenIds
     function clearCredits(bytes memory _payload) external virtual override {
         bytes32 hashedPayload = keccak256(_payload);
-        require(storedCredits[hashedPayload].creditsRemain, "ONFT721: no credits stored");
+        require(storedCredits[hashedPayload].creditsRemain, "no credits stored");
 
-        (,, uint[] memory tokenIds) = abi.decode(_payload, (uint16, bytes, uint[]));
+        (,, uint[] memory _tokenIds) = abi.decode(_payload, (uint16, bytes, uint[]));
 
-        uint nextIndex = _creditTill(storedCredits[hashedPayload].srcChainId, storedCredits[hashedPayload].toAddress, storedCredits[hashedPayload].index, tokenIds);
-        require(nextIndex > storedCredits[hashedPayload].index, "ONFT721: not enough gas to process credit transfer");
+        uint nextIndex = _creditTill(storedCredits[hashedPayload].srcChainId, storedCredits[hashedPayload].toAddress, storedCredits[hashedPayload].index, _tokenIds);
+        require(nextIndex > storedCredits[hashedPayload].index, "not enough gas to process credit transfer");
 
-        if (nextIndex == tokenIds.length) {
+        if (nextIndex == _tokenIds.length) {
             // cleared the credits, delete the element
             delete storedCredits[hashedPayload];
             emit CreditCleared(hashedPayload);
@@ -240,11 +247,7 @@ contract DistributeONFT721 is ONFT721 {
     }
 
     function _estimatePayloadFee(uint16 _dstChainId, bytes memory _payload, uint _amount, bool _useZro) internal view returns (uint nativeFee, uint zroFee) {
-        require(_amount > 0, "Amount must be greater than 0");
-        uint16 version = 1;
-        uint destinationGas = 200000 + ((_amount - 1) * 50000);
-        bytes memory _adapterParams = abi.encodePacked(version, destinationGas);
-        return lzEndpoint.estimateFees(_dstChainId, address(this), _payload, _useZro, _adapterParams);
+        return lzEndpoint.estimateFees(_dstChainId, address(this), _payload, _useZro, _getMultiAdaptParams(_amount));
     }
 
     function _countTokenDistributeSize(uint _amount) internal view returns (uint) {
@@ -259,10 +262,10 @@ contract DistributeONFT721 is ONFT721 {
         return 0;
     }
 
-    function _getMultiAdaptParams(uint _amount) internal pure returns (bytes memory) {
+    function _getMultiAdaptParams(uint _amount) internal view returns (bytes memory) {
         require(_amount > 0, "Amount must be greater than 0");
         uint16 version = 1;
-        uint destinationGas = 200000 + ((_amount - 1) * 50000);
+        uint destinationGas = distributeBaseDstGas + ((_amount - 1) * distributeGasPerIdx);
         return abi.encodePacked(version, destinationGas);
     }
 
@@ -277,9 +280,19 @@ contract DistributeONFT721 is ONFT721 {
             uint position = BitLib.mostSignificantBitPosition(currentTokenId);
             uint temp = 1 << position;
             tokenIds[i] = tokenIds[i] ^ temp;
-            tokenId = (255 - position) + (i * NUM_TOKENS_PER) + 1;
+            tokenId = (MAX_TOKENS_PER_INDEX - position) + (i * NUM_TOKENS_PER_INDEX);
             break;
         }
         return tokenId;
+    }
+
+    function setDistributeBaseDstGas(uint _distributeBaseDstGas) external onlyOwner {
+        distributeBaseDstGas = _distributeBaseDstGas;
+        emit SetDistributeBaseDstGas(distributeBaseDstGas);
+    }
+
+    function setDistributeGasPerIdx(uint _distributeGasPerIdx) external onlyOwner {
+        distributeGasPerIdx = _distributeGasPerIdx;
+        emit SetDistributeGasPerIdx(distributeGasPerIdx);
     }
 }
