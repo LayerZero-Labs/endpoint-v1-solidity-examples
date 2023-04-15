@@ -339,7 +339,7 @@ describe("ONFT721: ", function () {
         expect(creditedIdsB.length).to.be.equal(0)
 
         // should revert because payload is no longer valid
-        await expect(ONFT_B.clearCredits(payload)).to.be.revertedWith("ONFT721: no credits stored")
+        await expect(ONFT_B.clearCredits(payload)).to.be.revertedWith("no credits stored")
     })
 
     it("sendBatchFrom() - large batch", async function () {
@@ -415,6 +415,6 @@ describe("ONFT721: ", function () {
         expect(creditedIdsB.length).to.be.equal(0)
 
         // should revert because payload is no longer valid
-        await expect(ONFT_B.clearCredits(payload)).to.be.revertedWith("ONFT721: no credits stored")
+        await expect(ONFT_B.clearCredits(payload)).to.be.revertedWith("no credits stored")
     })
 })

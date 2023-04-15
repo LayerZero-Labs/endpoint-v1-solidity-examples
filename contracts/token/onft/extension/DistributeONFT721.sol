@@ -74,6 +74,7 @@ contract DistributeONFT721 is ONFT721 {
     /// @param _indexArray to set to all ones representing token ids available to mint
     constructor(string memory _name, string memory _symbol, uint256 _minGasToTransfer, address _layerZeroEndpoint, uint[] memory _indexArray, uint[] memory _valueArray) ONFT721(_name, _symbol, _minGasToTransfer, _layerZeroEndpoint){
         uint _indexArrayLength = _indexArray.length;
+        require(_indexArrayLength == _valueArray.length, "_indexArray and _valueArray must be same length");
         for(uint i; i < _indexArrayLength;) {
             tokenIds[_indexArray[i]] = _valueArray[i];
             unchecked{++i;}

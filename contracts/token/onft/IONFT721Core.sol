@@ -14,6 +14,9 @@ interface IONFT721Core is IERC165 {
      */
     event SendToChain(uint16 indexed _dstChainId, address indexed _from, bytes indexed _toAddress, uint[] _tokenIds);
     event ReceiveFromChain(uint16 indexed _srcChainId, bytes indexed _srcAddress, address indexed _toAddress, uint[] _tokenIds);
+    event SetMinGasToTransferAndStore(uint256 _minGasToTransferAndStore);
+    event SetDstChainIdToTransferGas(uint16 _dstChainId, uint256 _dstChainIdToTransferGas);
+    event SetDstChainIdToBatchLimit(uint16 _dstChainId, uint256 _dstChainIdToBatchLimit);
 
     /**
      * @dev Emitted when `_payload` was received from lz, but not enough gas to deliver all tokenIds
