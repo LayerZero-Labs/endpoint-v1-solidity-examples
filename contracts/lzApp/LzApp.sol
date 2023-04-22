@@ -99,9 +99,9 @@ abstract contract LzApp is Ownable, ILayerZeroReceiver, ILayerZeroUserApplicatio
 
     // _path = abi.encodePacked(remoteAddress, localAddress)
     // this function set the trusted path for the cross-chain communication
-    function setTrustedRemote(uint16 _srcChainId, bytes calldata _path) external onlyOwner {
-        trustedRemoteLookup[_srcChainId] = _path;
-        emit SetTrustedRemote(_srcChainId, _path);
+    function setTrustedRemote(uint16 _remoteChainId, bytes calldata _path) external onlyOwner {
+        trustedRemoteLookup[_remoteChainId] = _path;
+        emit SetTrustedRemote(_remoteChainId, _path);
     }
 
     function setTrustedRemoteAddress(uint16 _remoteChainId, bytes calldata _remoteAddress) external onlyOwner {
