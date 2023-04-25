@@ -121,7 +121,6 @@ abstract contract OFTCoreV2 is NonblockingLzApp {
 
         (amount,) = _removeDust(_amount);
         amount = _debitFrom(_from, _dstChainId, _toAddress, amount);
-        require(amount > 0, "OFTCore: amount too small");
 
         // encode the msg.sender into the payload instead of _from
         bytes memory lzPayload = _encodeSendAndCallPayload(msg.sender, _toAddress, _ld2sd(amount), _payload, _dstGasForCall);
