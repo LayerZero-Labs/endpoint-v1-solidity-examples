@@ -36,18 +36,18 @@ contract NativeOFTV2 is OFTV2, ReentrancyGuard {
         return amount;
     }
 
-    // function deposit() public payable {
-    //     _mint(msg.sender, msg.value);
-    //     emit Deposit(msg.sender, msg.value);
-    // }
+    function deposit() public payable {
+        _mint(msg.sender, msg.value);
+        emit Deposit(msg.sender, msg.value);
+    }
 
-    // function withdraw(uint _amount) public nonReentrant {
-    //     require(balanceOf(msg.sender) >= _amount, "NativeOFT: Insufficient balance.");
-    //     _burn(msg.sender, _amount);
-    //     (bool success, ) = msg.sender.call{value: _amount}("");
-    //     require(success, "NativeOFT: failed to unwrap");
-    //     emit Withdrawal(msg.sender, _amount);
-    // }
+    function withdraw(uint _amount) public nonReentrant {
+        require(balanceOf(msg.sender) >= _amount, "NativeOFTV2: Insufficient balance.");
+        _burn(msg.sender, _amount);
+        (bool success, ) = msg.sender.call{value: _amount}("");
+        require(success, "NativeOFTV2: failed to unwrap");
+        emit Withdrawal(msg.sender, _amount);
+    }
 
     function _debitFromNative(address _from, uint16, bytes32, uint _amount) internal returns (uint messageFee) {
         messageFee = msg.sender == _from ? _debitMsgSender(_amount) : _debitMsgFrom(_from, _amount);
@@ -107,8 +107,8 @@ contract NativeOFTV2 is OFTV2, ReentrancyGuard {
     //     return _amount;
     // }
 
-    // receive() external payable {
-    //     deposit();
-    // }
+    receive() external payable {
+        deposit();
+    }
 
 }
