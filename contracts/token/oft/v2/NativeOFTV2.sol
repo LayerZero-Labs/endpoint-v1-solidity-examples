@@ -16,18 +16,24 @@ contract NativeOFTV2 is OFTV2, ReentrancyGuard {
         _send(_from, _dstChainId, _toAddress, _amount, _callParams.refundAddress, _callParams.zroPaymentAddress, _callParams.adapterParams);
     }
 
-    // function _send(address _from, uint16 _dstChainId, bytes memory _toAddress, uint _amount, address payable _refundAddress, address _zroPaymentAddress, bytes memory _adapterParams) internal virtual override(OFTCore) {
-    //     uint messageFee = _debitFromNative(_from, _dstChainId, _toAddress, _amount);
-    //     bytes memory lzPayload = abi.encode(PT_SEND, _toAddress, _amount);
+     function _send(address _from, uint16 _dstChainId, bytes32 _toAddress, uint _amount, address payable _refundAddress, address _zroPaymentAddress, bytes memory _adapterParams) internal virtual override returns (uint) {
+        // _amount still may have dust, if the token has transfer fee then give the dust back to the sender
+        (uint amount, uint dust) = _removeDust(_amount);
+         if (dust > 0) _transfer(msg.sender, address(this), dust);
+        
+        uint messageFee = _debitFromNative(_from, _dstChainId, _toAddress, amount);
+        bytes memory lzPayload = _encodeSendPayload(_toAddress, _ld2sd(amount));
 
-    //     if (useCustomAdapterParams) {
-    //         _checkGasLimit(_dstChainId, PT_SEND, _adapterParams, NO_EXTRA_GAS);
-    //     } else {
-    //         require(_adapterParams.length == 0, "NativeOFT: _adapterParams must be empty.");
-    //     }
+        if (useCustomAdapterParams) {
+            _checkGasLimit(_dstChainId, PT_SEND, _adapterParams, NO_EXTRA_GAS);
+        } else {
+            require(_adapterParams.length == 0, "NativeOFTV2: _adapterParams must be empty.");
+        }
 
-    //     _lzSend(_dstChainId, lzPayload, _refundAddress, _zroPaymentAddress, _adapterParams, messageFee);
-    // }
+        _lzSend(_dstChainId, lzPayload, _refundAddress, _zroPaymentAddress, _adapterParams, messageFee);
+
+        return amount;
+    }
 
     // function deposit() public payable {
     //     _mint(msg.sender, msg.value);
@@ -42,7 +48,7 @@ contract NativeOFTV2 is OFTV2, ReentrancyGuard {
     //     emit Withdrawal(msg.sender, _amount);
     // }
 
-    function _debitFromNative(address _from, uint16, bytes memory, uint _amount) internal returns (uint messageFee) {
+    function _debitFromNative(address _from, uint16, bytes32, uint _amount) internal returns (uint messageFee) {
         messageFee = msg.sender == _from ? _debitMsgSender(_amount) : _debitMsgFrom(_from, _amount);
     }
 
