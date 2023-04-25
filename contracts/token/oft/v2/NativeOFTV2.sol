@@ -10,7 +10,7 @@ contract NativeOFTV2 is OFTV2, ReentrancyGuard {
     event Deposit(address indexed _dst, uint _amount);
     event Withdrawal(address indexed _src, uint _amount);
 
-    // constructor(string memory _name, string memory _symbol, address _lzEndpoint) OFT(_name, _symbol, _lzEndpoint) {}
+    constructor(string memory _name, string memory _symbol, uint8 _sharedDecimals, address _lzEndpoint) OFTV2(_name, _symbol, _sharedDecimals, _lzEndpoint) {}
 
     // function sendFrom(address _from, uint16 _dstChainId, bytes calldata _toAddress, uint _amount, address payable _refundAddress, address _zroPaymentAddress, bytes calldata _adapterParams) public payable virtual override(OFTCore, IOFTCore) {
     //     _send(_from, _dstChainId, _toAddress, _amount, _refundAddress, _zroPaymentAddress, _adapterParams);
