@@ -110,6 +110,7 @@ contract DistributeONFT721 is ONFT721 {
     }
 
     function getDistributeTokens(uint _amount) external view returns (TokenDistribute[] memory) {
+        require(_amount > 0, "_amount must be > 0");
         uint tokenDistributeSize = _countTokenDistributeSize(_amount);
 
         require(tokenDistributeSize != 0, "Not enough tokens to distribute");
