@@ -42,56 +42,56 @@ contract NativeOFTV2 is OFTV2, ReentrancyGuard {
     //     emit Withdrawal(msg.sender, _amount);
     // }
 
-    // function _debitFromNative(address _from, uint16, bytes memory, uint _amount) internal returns (uint messageFee) {
-    //     messageFee = msg.sender == _from ? _debitMsgSender(_amount) : _debitMsgFrom(_from, _amount);
-    // }
+    function _debitFromNative(address _from, uint16, bytes memory, uint _amount) internal returns (uint messageFee) {
+        messageFee = msg.sender == _from ? _debitMsgSender(_amount) : _debitMsgFrom(_from, _amount);
+    }
 
-    // function _debitMsgSender(uint _amount) internal returns (uint messageFee) {
-    //     uint msgSenderBalance = balanceOf(msg.sender);
+    function _debitMsgSender(uint _amount) internal returns (uint messageFee) {
+        uint msgSenderBalance = balanceOf(msg.sender);
 
-    //     if (msgSenderBalance < _amount) {
-    //         require(msgSenderBalance + msg.value >= _amount, "NativeOFT: Insufficient msg.value");
+        if (msgSenderBalance < _amount) {
+            require(msgSenderBalance + msg.value >= _amount, "NativeOFTV2: Insufficient msg.value");
 
-    //         // user can cover difference with additional msg.value ie. wrapping
-    //         uint mintAmount = _amount - msgSenderBalance;
-    //         _mint(address(msg.sender), mintAmount);
+            // user can cover difference with additional msg.value ie. wrapping
+            uint mintAmount = _amount - msgSenderBalance;
+            _mint(address(msg.sender), mintAmount);
 
-    //         // update the messageFee to take out mintAmount
-    //         messageFee = msg.value - mintAmount;
-    //     } else {
-    //         messageFee = msg.value;
-    //     }
+            // update the messageFee to take out mintAmount
+            messageFee = msg.value - mintAmount;
+        } else {
+            messageFee = msg.value;
+        }
 
-    //     _transfer(msg.sender, address(this), _amount);
-    //     return messageFee;
-    // }
+        _transfer(msg.sender, address(this), _amount);
+        return messageFee;
+    }
 
-    // function _debitMsgFrom(address _from, uint _amount) internal returns (uint messageFee) {
-    //     uint msgFromBalance = balanceOf(_from);
+    function _debitMsgFrom(address _from, uint _amount) internal returns (uint messageFee) {
+        uint msgFromBalance = balanceOf(_from);
 
-    //     if (msgFromBalance < _amount) {
-    //         require(msgFromBalance + msg.value >= _amount, "NativeOFT: Insufficient msg.value");
+        if (msgFromBalance < _amount) {
+            require(msgFromBalance + msg.value >= _amount, "NativeOFTV2: Insufficient msg.value");
 
-    //         // user can cover difference with additional msg.value ie. wrapping
-    //         uint mintAmount = _amount - msgFromBalance;
-    //         _mint(address(msg.sender), mintAmount);
+            // user can cover difference with additional msg.value ie. wrapping
+            uint mintAmount = _amount - msgFromBalance;
+            _mint(address(msg.sender), mintAmount);
 
-    //         // transfer the differential amount to the contract
-    //         _transfer(msg.sender, address(this), mintAmount);
+            // transfer the differential amount to the contract
+            _transfer(msg.sender, address(this), mintAmount);
 
-    //         // overwrite the _amount to take the rest of the balance from the _from address
-    //         _amount = msgFromBalance;
+            // overwrite the _amount to take the rest of the balance from the _from address
+            _amount = msgFromBalance;
 
-    //         // update the messageFee to take out mintAmount
-    //         messageFee = msg.value - mintAmount;
-    //     } else {
-    //         messageFee = msg.value;
-    //     }
+            // update the messageFee to take out mintAmount
+            messageFee = msg.value - mintAmount;
+        } else {
+            messageFee = msg.value;
+        }
 
-    //     _spendAllowance(_from, msg.sender, _amount);
-    //     _transfer(_from, address(this), _amount);
-    //     return messageFee;
-    // }
+        _spendAllowance(_from, msg.sender, _amount);
+        _transfer(_from, address(this), _amount);
+        return messageFee;
+    }
 
     // function _creditTo(uint16, address _toAddress, uint _amount) internal override(OFT) returns(uint) {
     //     _burn(address(this), _amount);
