@@ -52,8 +52,8 @@ contract DistributeONFT721 is ONFT721 {
     uint16 public constant NUM_TOKENS_PER_INDEX = 250;
     uint16 public constant MAX_TOKENS_PER_INDEX = 256;
 
-    uint public distributeBaseDstGas = 40000;
-    uint public distributeGasPerIdx = 5000;
+    uint public distributeBaseDstGas = 50000;
+    uint public distributeGasPerIdx = 25000;
 
     event Distribute(uint16 indexed _srcChainId, TokenDistribute[] tokenDistribute);
     event ReceiveDistribute(uint16 indexed _srcChainId, bytes indexed _srcAddress, TokenDistribute[] tokenDistribute);
@@ -119,6 +119,7 @@ contract DistributeONFT721 is ONFT721 {
         uint tokenIdsLength = tokenIds.length;
 
         TokenDistribute[] memory tokenDistributeFixed = new TokenDistribute[](tokenDistributeSize);
+        uint index;
         for(uint i; i < tokenIdsLength;) {
             uint currentTokenId = tokenIds[i];
             if(currentTokenId == 0) {
@@ -136,8 +137,8 @@ contract DistributeONFT721 is ONFT721 {
                 amountNeeded -= 1;
                 if(currentTokenId == 0) break;
             }
-            tokenDistributeFixed[i] = TokenDistribute(i, sendValue);
-            unchecked{++i;}
+            tokenDistributeFixed[index] = TokenDistribute(i, sendValue);
+            unchecked{++i;++index;}
         }
 
         return tokenDistributeFixed;
@@ -252,12 +253,15 @@ contract DistributeONFT721 is ONFT721 {
     }
 
     function _countTokenDistributeSize(uint _amount) internal view returns (uint) {
-        uint count;
+        uint totalCount;
+        uint size;
         uint tokenIdsLength = tokenIds.length;
         for(uint i; i < tokenIdsLength;) {
             uint currentTokenId = tokenIds[i];
-            count += BitLib.countSetBits(currentTokenId);
-            if(count >= _amount) return i + 1;
+            uint count = BitLib.countSetBits(currentTokenId);
+            if(count > 0) size += 1;
+            totalCount += count;
+            if(totalCount >= _amount) return size;
             unchecked{++i;}
         }
         return 0;
