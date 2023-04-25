@@ -141,11 +141,6 @@ abstract contract OFTCoreV2 is NonblockingLzApp {
             creditedPackets[_srcChainId][_srcAddress][_nonce] = true;
         }
 
-        if (!_isContract(to)) {
-            emit NonContractAddress(to);
-            return;
-        }
-
         // workaround for stack too deep
         uint16 srcChainId = _srcChainId;
         bytes memory srcAddress = _srcAddress;
