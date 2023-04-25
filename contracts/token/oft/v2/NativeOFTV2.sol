@@ -12,9 +12,9 @@ contract NativeOFTV2 is OFTV2, ReentrancyGuard {
 
     constructor(string memory _name, string memory _symbol, uint8 _sharedDecimals, address _lzEndpoint) OFTV2(_name, _symbol, _sharedDecimals, _lzEndpoint) {}
 
-    // function sendFrom(address _from, uint16 _dstChainId, bytes calldata _toAddress, uint _amount, address payable _refundAddress, address _zroPaymentAddress, bytes calldata _adapterParams) public payable virtual override(OFTCore, IOFTCore) {
-    //     _send(_from, _dstChainId, _toAddress, _amount, _refundAddress, _zroPaymentAddress, _adapterParams);
-    // }
+    function sendFrom(address _from, uint16 _dstChainId, bytes32 _toAddress, uint _amount, LzCallParams calldata _callParams) public payable virtual override {
+        _send(_from, _dstChainId, _toAddress, _amount, _callParams.refundAddress, _callParams.zroPaymentAddress, _callParams.adapterParams);
+    }
 
     // function _send(address _from, uint16 _dstChainId, bytes memory _toAddress, uint _amount, address payable _refundAddress, address _zroPaymentAddress, bytes memory _adapterParams) internal virtual override(OFTCore) {
     //     uint messageFee = _debitFromNative(_from, _dstChainId, _toAddress, _amount);
