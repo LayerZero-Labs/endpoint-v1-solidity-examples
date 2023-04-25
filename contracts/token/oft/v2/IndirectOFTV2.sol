@@ -47,7 +47,7 @@ contract IndirectOFTV2 is BaseOFTV2 {
     function _debitFrom(address _from, uint16, bytes32, uint _amount) internal virtual override returns (uint) {
         require(_from == _msgSender(), "ProxyOFT: owner is not send caller");
 
-        innerToken.burn(_from, _amount);
+        mintBurn.burn(_from, _amount);
 
         return _amount;
     }
@@ -59,7 +59,7 @@ contract IndirectOFTV2 is BaseOFTV2 {
             return _amount;
         }
 
-        innerToken.mint(_toAddress, _amount);
+        mintBurn.mint(_toAddress, _amount);
 
         return _amount;
     }
