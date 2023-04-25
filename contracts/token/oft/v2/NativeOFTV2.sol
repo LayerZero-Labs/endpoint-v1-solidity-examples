@@ -17,9 +17,10 @@ contract NativeOFTV2 is OFTV2, ReentrancyGuard {
     }
 
      function _send(address _from, uint16 _dstChainId, bytes32 _toAddress, uint _amount, address payable _refundAddress, address _zroPaymentAddress, bytes memory _adapterParams) internal virtual override returns (uint) {
-        // _amount still may have dust, if the token has transfer fee then give the dust back to the sender
+        // remove dust from _amount and send it back to the debitor
         (uint amount, uint dust) = _removeDust(_amount);
-         if (dust > 0) _transfer(msg.sender, address(this), dust);
+        address debitor = msg.sender == _from ? msg.sender : _from;
+         if (dust > 0) _transfer(debitor, address(this), dust);
         
         uint messageFee = _debitFromNative(_from, _dstChainId, _toAddress, amount);
         bytes memory lzPayload = _encodeSendPayload(_toAddress, _ld2sd(amount));
