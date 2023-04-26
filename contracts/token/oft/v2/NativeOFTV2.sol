@@ -17,13 +17,8 @@ contract NativeOFTV2 is OFTV2, ReentrancyGuard {
     }
 
      function _send(address _from, uint16 _dstChainId, bytes32 _toAddress, uint _amount, address payable _refundAddress, address _zroPaymentAddress, bytes memory _adapterParams) internal virtual override returns (uint) {
-        // remove dust from _amount and send it back to the debitor
-        (uint amount, uint dust) = _removeDust(_amount);
-        address debitor = msg.sender == _from ? msg.sender : _from;
-         if (dust > 0) _transfer(debitor, address(this), dust);
-        
-        uint messageFee = _debitFromNative(_from, _dstChainId, _toAddress, amount);
-        bytes memory lzPayload = _encodeSendPayload(_toAddress, _ld2sd(amount));
+        uint messageFee = _debitFromNative(_from, _dstChainId, _toAddress, _amount);
+        bytes memory lzPayload = _encodeSendPayload(_toAddress, _ld2sd(_amount));
 
         if (useCustomAdapterParams) {
             _checkGasLimit(_dstChainId, PT_SEND, _adapterParams, NO_EXTRA_GAS);
@@ -33,7 +28,7 @@ contract NativeOFTV2 is OFTV2, ReentrancyGuard {
 
         _lzSend(_dstChainId, lzPayload, _refundAddress, _zroPaymentAddress, _adapterParams, messageFee);
 
-        return amount;
+        return _amount;
     }
 
     function deposit() public payable {
