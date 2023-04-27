@@ -3,71 +3,66 @@ const { ethers } = require("hardhat")
 const Web3 = require("web3")
 const web3 = new Web3()
 
-describe("ONFT721: ", function () {
+describe("ONFT721A: ", function () {
     const chainId_A = 1
     const chainId_B = 2
     const name = "OmnichainNonFungibleToken"
-    const symbol = "ONFT"
-    const minGasToStore = 150000
+    const symbol = "ONFT721A"
+    const defaultAdapterParams = ethers.utils.solidityPack(["uint16", "uint256"], [1, 250000])
     const batchSizeLimit = 300
-    const defaultAdapterParams = ethers.utils.solidityPack(["uint16", "uint256"], [1, 200000])
 
-    let owner, warlock, lzEndpointMockA, lzEndpointMockB, LZEndpointMock, ONFT, ONFT_A, ONFT_B
+    let owner, warlock, lzEndpointMockA, lzEndpointMockB, LZEndpointMock, ONFT721A, ONFT721, onft721a_A, onft721_B
 
     before(async function () {
         owner = (await ethers.getSigners())[0]
         warlock = (await ethers.getSigners())[1]
         LZEndpointMock = await ethers.getContractFactory("LZEndpointMock")
-        ONFT = await ethers.getContractFactory("ONFT721Mock")
+        ONFT721A = await ethers.getContractFactory("ONFT721AMock")
+        ONFT721 = await ethers.getContractFactory("ONFT721Mock")
     })
 
     beforeEach(async function () {
         lzEndpointMockA = await LZEndpointMock.deploy(chainId_A)
         lzEndpointMockB = await LZEndpointMock.deploy(chainId_B)
 
-        // generate a proxy to allow it to go ONFT
-        ONFT_A = await ONFT.deploy(name, symbol, minGasToStore, lzEndpointMockA.address)
-        ONFT_B = await ONFT.deploy(name, symbol, minGasToStore, lzEndpointMockB.address)
+        onft721a_A = await ONFT721A.deploy(name, symbol, 150000, lzEndpointMockA.address)
+        onft721_B = await ONFT721.deploy(name, symbol, 150000, lzEndpointMockB.address)
 
         // wire the lz endpoints to guide msgs back and forth
-        lzEndpointMockA.setDestLzEndpoint(ONFT_B.address, lzEndpointMockB.address)
-        lzEndpointMockB.setDestLzEndpoint(ONFT_A.address, lzEndpointMockA.address)
+        lzEndpointMockA.setDestLzEndpoint(onft721_B.address, lzEndpointMockB.address)
+        lzEndpointMockB.setDestLzEndpoint(onft721a_A.address, lzEndpointMockA.address)
 
         // set each contracts source address so it can send to each other
-        await ONFT_A.setTrustedRemote(chainId_B, ethers.utils.solidityPack(["address", "address"], [ONFT_B.address, ONFT_A.address]))
-        await ONFT_B.setTrustedRemote(chainId_A, ethers.utils.solidityPack(["address", "address"], [ONFT_A.address, ONFT_B.address]))
+        await onft721a_A.setTrustedRemoteAddress(chainId_B, onft721_B.address)
+        await onft721_B.setTrustedRemoteAddress(chainId_A, onft721a_A.address)
 
-        // set batch size limit
-        await ONFT_A.setDstChainIdToBatchLimit(chainId_B, batchSizeLimit)
-        await ONFT_B.setDstChainIdToBatchLimit(chainId_A, batchSizeLimit)
-
-        // set min dst gas for swap
-        await ONFT_A.setMinDstGas(chainId_B, 1, 150000)
-        await ONFT_B.setMinDstGas(chainId_A, 1, 150000)
+        await onft721a_A.setMinDstGas(chainId_B, 1, 150000)
+        await onft721_B.setMinDstGas(chainId_A, 1, 150000)
     })
 
     it("sendFrom() - your own tokens", async function () {
-        const tokenId = 123
-        await ONFT_A.mint(owner.address, tokenId)
+        let tokenId = 1;
+        await onft721a_A.mint(2)
 
         // verify the owner of the token is on the source chain
-        expect(await ONFT_A.ownerOf(tokenId)).to.be.equal(owner.address)
+        expect(await onft721a_A.ownerOf(0)).to.be.equal(owner.address)
+        expect(await onft721a_A.ownerOf(1)).to.be.equal(owner.address)
 
         // token doesn't exist on other chain
-        await expect(ONFT_B.ownerOf(tokenId)).to.be.revertedWith("ERC721: invalid token ID")
+        await expect(onft721_B.ownerOf(tokenId)).to.be.revertedWith("ERC721: invalid token ID")
 
         // can transfer token on srcChain as regular erC721
-        await ONFT_A.transferFrom(owner.address, warlock.address, tokenId)
-        expect(await ONFT_A.ownerOf(tokenId)).to.be.equal(warlock.address)
+        await onft721a_A.transferFrom(owner.address, warlock.address, tokenId)
+        expect(await onft721a_A.ownerOf(tokenId)).to.be.equal(warlock.address)
 
-        // approve the proxy to swap your token
-        await ONFT_A.connect(warlock).approve(ONFT_A.address, tokenId)
+        // approve the contract to swap your token
+        await onft721a_A.connect(warlock).approve(onft721a_A.address, tokenId)
 
         // estimate nativeFees
-        let nativeFee = (await ONFT_A.estimateSendFee(chainId_B, warlock.address, tokenId, false, defaultAdapterParams)).nativeFee
+        let nativeFee = (await onft721a_A.estimateSendFee(chainId_B, owner.address, tokenId, false, defaultAdapterParams)).nativeFee
 
         // swaps token to other chain
-        await ONFT_A.connect(warlock).sendFrom(
+        await onft721a_A.connect(warlock).sendFrom(
             warlock.address,
             chainId_B,
             warlock.address,
@@ -79,19 +74,17 @@ describe("ONFT721: ", function () {
         )
 
         // token is burnt
-        expect(await ONFT_A.ownerOf(tokenId)).to.be.equal(ONFT_A.address)
+        expect(await onft721a_A.ownerOf(0)).to.be.equal(owner.address)
+        expect(await onft721a_A.ownerOf(tokenId)).to.be.equal(onft721a_A.address)
 
         // token received on the dst chain
-        expect(await ONFT_B.ownerOf(tokenId)).to.be.equal(warlock.address)
-
-        // estimate nativeFees
-        nativeFee = (await ONFT_B.estimateSendFee(chainId_A, warlock.address, tokenId, false, defaultAdapterParams)).nativeFee
+        expect(await onft721_B.ownerOf(tokenId)).to.be.equal(warlock.address)
 
         // can send to other onft contract eg. not the original nft contract chain
-        await ONFT_B.connect(warlock).sendFrom(
+        await onft721_B.connect(warlock).sendFrom(
             warlock.address,
             chainId_A,
-            warlock.address,
+            owner.address,
             tokenId,
             warlock.address,
             ethers.constants.AddressZero,
@@ -100,67 +93,62 @@ describe("ONFT721: ", function () {
         )
 
         // token is burned on the sending chain
-        expect(await ONFT_B.ownerOf(tokenId)).to.be.equal(ONFT_B.address)
+        expect(await onft721a_A.ownerOf(tokenId)).to.be.equal(owner.address)
+        expect(await onft721_B.ownerOf(tokenId)).to.be.equal(onft721_B.address)
     })
 
-    it("sendFrom() - reverts if not owner on non proxy chain", async function () {
-        const tokenId = 123
-        await ONFT_A.mint(owner.address, tokenId)
+    it("sendFrom() - reverts if not owner", async function () {
+        const tokenId = 0
+        await onft721a_A.mint(1)
 
-        // approve the proxy to swap your token
-        await ONFT_A.approve(ONFT_A.address, tokenId)
+        // approve the contract to swap your token
+        await onft721a_A.approve(onft721a_A.address, tokenId)
 
         // estimate nativeFees
-        let nativeFee = (await ONFT_A.estimateSendFee(chainId_B, owner.address, tokenId, false, defaultAdapterParams)).nativeFee
+        let nativeFee = (await onft721_B.estimateSendFee(chainId_B, owner.address, tokenId, false, defaultAdapterParams)).nativeFee
 
         // swaps token to other chain
-        await ONFT_A.sendFrom(owner.address, chainId_B, owner.address, tokenId, owner.address, ethers.constants.AddressZero, defaultAdapterParams, {
-            value: nativeFee,
-        })
+        await onft721a_A.sendFrom(owner.address, chainId_B, owner.address, tokenId, owner.address, ethers.constants.AddressZero, defaultAdapterParams, { value: nativeFee })
 
         // token received on the dst chain
-        expect(await ONFT_B.ownerOf(tokenId)).to.be.equal(owner.address)
+        expect(await onft721_B.ownerOf(tokenId)).to.be.equal(owner.address)
 
         // reverts because other address does not own it
         await expect(
-            ONFT_B.connect(warlock).sendFrom(
+            onft721_B.connect(warlock).sendFrom(
                 warlock.address,
                 chainId_A,
                 warlock.address,
                 tokenId,
                 warlock.address,
                 ethers.constants.AddressZero,
-                defaultAdapterParams
+                defaultAdapterParams,
+                { value: nativeFee }
             )
         ).to.be.revertedWith("ONFT721: send caller is not owner nor approved")
     })
 
     it("sendFrom() - on behalf of other user", async function () {
-        const tokenId = 123
-        await ONFT_A.mint(owner.address, tokenId)
+        const tokenId = 0
+        await onft721a_A.mint(1)
 
-        // approve the proxy to swap your token
-        await ONFT_A.approve(ONFT_A.address, tokenId)
+        // approve the contract to swap your token
+        await onft721a_A.approve(onft721a_A.address, tokenId)
 
         // estimate nativeFees
-        let nativeFee = (await ONFT_A.estimateSendFee(chainId_B, owner.address, tokenId, false, defaultAdapterParams)).nativeFee
+        let nativeFee = (await onft721_B.estimateSendFee(chainId_B, owner.address, tokenId, false, defaultAdapterParams)).nativeFee
 
         // swaps token to other chain
-        await ONFT_A.sendFrom(owner.address, chainId_B, owner.address, tokenId, owner.address, ethers.constants.AddressZero, defaultAdapterParams, {
-            value: nativeFee,
-        })
+        await onft721a_A.sendFrom(owner.address, chainId_B, owner.address, tokenId, owner.address, ethers.constants.AddressZero, defaultAdapterParams, { value: nativeFee })
 
         // token received on the dst chain
-        expect(await ONFT_B.ownerOf(tokenId)).to.be.equal(owner.address)
+        expect(await onft721_B.ownerOf(tokenId)).to.be.equal(owner.address)
 
         // approve the other user to send the token
-        await ONFT_B.approve(warlock.address, tokenId)
-
-        // estimate nativeFees
-        nativeFee = (await ONFT_B.estimateSendFee(chainId_A, warlock.address, tokenId, false, defaultAdapterParams)).nativeFee
+        await onft721_B.approve(warlock.address, tokenId)
 
         // sends across
-        await ONFT_B.connect(warlock).sendFrom(
+        await onft721_B.connect(warlock).sendFrom(
             owner.address,
             chainId_A,
             warlock.address,
@@ -172,123 +160,122 @@ describe("ONFT721: ", function () {
         )
 
         // token received on the dst chain
-        expect(await ONFT_A.ownerOf(tokenId)).to.be.equal(warlock.address)
+        expect(await onft721a_A.ownerOf(tokenId)).to.be.equal(warlock.address)
     })
 
     it("sendFrom() - reverts if contract is approved, but not the sending user", async function () {
-        const tokenId = 123
-        await ONFT_A.mint(owner.address, tokenId)
-
-        // approve the proxy to swap your token
-        await ONFT_A.approve(ONFT_A.address, tokenId)
-
-        // estimate nativeFees
-        let nativeFee = (await ONFT_A.estimateSendFee(chainId_B, owner.address, tokenId, false, defaultAdapterParams)).nativeFee
-
-        // swaps token to other chain
-        await ONFT_A.sendFrom(owner.address, chainId_B, owner.address, tokenId, owner.address, ethers.constants.AddressZero, defaultAdapterParams, {
-            value: nativeFee,
-        })
-
-        // token received on the dst chain
-        expect(await ONFT_B.ownerOf(tokenId)).to.be.equal(owner.address)
+        const tokenId = 0
+        await onft721a_A.mint(1)
 
         // approve the contract to swap your token
-        await ONFT_B.approve(ONFT_B.address, tokenId)
+        await onft721a_A.approve(onft721a_A.address, tokenId)
+
+        // estimate nativeFees
+        let nativeFee = (await onft721_B.estimateSendFee(chainId_B, owner.address, tokenId, false, defaultAdapterParams)).nativeFee
+
+        // swaps token to other chain
+        await onft721a_A.sendFrom(owner.address, chainId_B, owner.address, tokenId, owner.address, ethers.constants.AddressZero, defaultAdapterParams, { value: nativeFee })
+
+        // token received on the dst chain
+        expect(await onft721_B.ownerOf(tokenId)).to.be.equal(owner.address)
+
+        // approve the contract to swap your token
+        await onft721_B.approve(onft721_B.address, tokenId)
 
         // reverts because contract is approved, not the user
         await expect(
-            ONFT_B.connect(warlock).sendFrom(
+            onft721_B.connect(warlock).sendFrom(
                 owner.address,
                 chainId_A,
                 warlock.address,
                 tokenId,
                 warlock.address,
                 ethers.constants.AddressZero,
-                defaultAdapterParams
+                defaultAdapterParams,
+                { value: nativeFee }
             )
         ).to.be.revertedWith("ONFT721: send caller is not owner nor approved")
     })
 
-    it("sendFrom() - reverts if not approved on non proxy chain", async function () {
-        const tokenId = 123
-        await ONFT_A.mint(owner.address, tokenId)
+    it("sendFrom() - reverts if not approved", async function () {
+        const tokenId = 0
+        await onft721a_A.mint(1)
 
-        // approve the proxy to swap your token
-        await ONFT_A.approve(ONFT_A.address, tokenId)
+        // approve the contract to swap your token
+        await onft721a_A.approve(onft721a_A.address, tokenId)
 
         // estimate nativeFees
-        let nativeFee = (await ONFT_A.estimateSendFee(chainId_B, owner.address, tokenId, false, defaultAdapterParams)).nativeFee
+        let nativeFee = (await onft721_B.estimateSendFee(chainId_B, owner.address, tokenId, false, defaultAdapterParams)).nativeFee
 
         // swaps token to other chain
-        await ONFT_A.sendFrom(owner.address, chainId_B, owner.address, tokenId, owner.address, ethers.constants.AddressZero, defaultAdapterParams, {
-            value: nativeFee,
-        })
+        await onft721a_A.sendFrom(owner.address, chainId_B, owner.address, tokenId, owner.address, ethers.constants.AddressZero, defaultAdapterParams, { value: nativeFee })
 
         // token received on the dst chain
-        expect(await ONFT_B.ownerOf(tokenId)).to.be.equal(owner.address)
+        expect(await onft721_B.ownerOf(tokenId)).to.be.equal(owner.address)
 
         // reverts because user is not approved
         await expect(
-            ONFT_B.connect(warlock).sendFrom(
+            onft721_B.connect(warlock).sendFrom(
                 owner.address,
                 chainId_A,
                 warlock.address,
                 tokenId,
                 warlock.address,
                 ethers.constants.AddressZero,
-                defaultAdapterParams
+                defaultAdapterParams,
+                { value: nativeFee }
             )
         ).to.be.revertedWith("ONFT721: send caller is not owner nor approved")
     })
 
     it("sendFrom() - reverts if sender does not own token", async function () {
-        const tokenIdA = 123
-        const tokenIdB = 456
-        // mint to both owners
-        await ONFT_A.mint(owner.address, tokenIdA)
-        await ONFT_A.mint(warlock.address, tokenIdB)
+        const tokenIdA = 0
+        await onft721a_A.mint(1)
 
         // approve owner.address to transfer, but not the other
-        await ONFT_A.setApprovalForAll(ONFT_A.address, true)
+        await onft721a_A.setApprovalForAll(onft721a_A.address, true)
+
+        // estimate nativeFees
+        let nativeFee = (await onft721a_A.estimateSendFee(chainId_B, owner.address, tokenIdA, false, defaultAdapterParams)).nativeFee
 
         await expect(
-            ONFT_A.connect(warlock).sendFrom(
+            onft721a_A.connect(warlock).sendFrom(
                 warlock.address,
                 chainId_B,
                 warlock.address,
                 tokenIdA,
                 warlock.address,
                 ethers.constants.AddressZero,
-                defaultAdapterParams
+                defaultAdapterParams,
+                { value: nativeFee }
             )
-        ).to.be.revertedWith("ONFT721: send caller is not owner nor approved")
+        ).to.be.revertedWith("TransferFromIncorrectOwner()")
+
         await expect(
-            ONFT_A.connect(warlock).sendFrom(
+            onft721a_A.connect(warlock).sendFrom(
                 warlock.address,
                 chainId_B,
                 owner.address,
                 tokenIdA,
                 owner.address,
                 ethers.constants.AddressZero,
-                defaultAdapterParams
+                defaultAdapterParams,
+                { value: nativeFee }
             )
-        ).to.be.revertedWith("ONFT721: send caller is not owner nor approved")
+        ).to.be.revertedWith("TransferFromIncorrectOwner()")
     })
 
     it("sendBatchFrom()", async function () {
-        await ONFT_A.setMinGasToTransferAndStore(400000)
-        await ONFT_B.setMinGasToTransferAndStore(400000)
-
-        const tokenIds = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
-
+        await onft721a_A.setMinGasToTransferAndStore(400000)
+        await onft721_B.setMinGasToTransferAndStore(400000)
+        await onft721a_A.setDstChainIdToBatchLimit(chainId_B, batchSizeLimit)
+        await onft721_B.setDstChainIdToBatchLimit(chainId_A, batchSizeLimit)
+        const tokenIds = [0,1,2,3,4,5,6,7,8,9]
         // mint to owner
-        for (let tokenId of tokenIds) {
-            await ONFT_A.mint(warlock.address, tokenId)
-        }
+        await onft721a_A.connect(warlock).mint(10)
 
         // approve owner.address to transfer
-        await ONFT_A.connect(warlock).setApprovalForAll(ONFT_A.address, true)
+        await onft721a_A.connect(warlock).setApprovalForAll(onft721a_A.address, true)
 
         // expected event params
         const payload = ethers.utils.defaultAbiCoder.encode(["bytes", "uint[]"], [warlock.address, tokenIds])
@@ -297,10 +284,10 @@ describe("ONFT721: ", function () {
         let adapterParams = ethers.utils.solidityPack(["uint16", "uint256"], [1, 200000])
 
         // estimate nativeFees
-        let nativeFee = (await ONFT_A.estimateSendBatchFee(chainId_B, warlock.address, tokenIds, false, defaultAdapterParams)).nativeFee
+        let nativeFee = (await onft721a_A.estimateSendBatchFee(chainId_B, warlock.address, tokenIds, false, defaultAdapterParams)).nativeFee
 
         // initiate batch transfer
-        await expect(ONFT_A.connect(warlock).sendBatchFrom(
+        await expect(onft721a_A.connect(warlock).sendBatchFrom(
             warlock.address,
             chainId_B,
             warlock.address,
@@ -309,12 +296,12 @@ describe("ONFT721: ", function () {
             ethers.constants.AddressZero,
             adapterParams, // TODO might need to change this
             { value: nativeFee }
-        )).to.emit(ONFT_B, "CreditStored").withArgs(hashedPayload, payload)
+        )).to.emit(onft721_B, "CreditStored").withArgs(hashedPayload, payload)
 
         // only partial amount of tokens has been sent, the rest have been stored as a credit
         let creditedIdsA = []
         for (let tokenId of tokenIds) {
-            let owner = await ONFT_B.rawOwnerOf(tokenId)
+            let owner = await onft721_B.rawOwnerOf(tokenId)
             if (owner == ethers.constants.AddressZero) {
                 creditedIdsA.push(tokenId)
             } else {
@@ -323,11 +310,11 @@ describe("ONFT721: ", function () {
         }
 
         // clear the rest of the credits
-        await expect(ONFT_B.clearCredits(payload)).to.emit(ONFT_B, "CreditCleared").withArgs(hashedPayload)
+        await expect(onft721_B.clearCredits(payload)).to.emit(onft721_B, "CreditCleared").withArgs(hashedPayload)
 
         let creditedIdsB = []
         for (let tokenId of creditedIdsA) {
-            let owner = await ONFT_B.rawOwnerOf(tokenId)
+            let owner = await onft721_B.rawOwnerOf(tokenId)
             if (owner == ethers.constants.AddressZero) {
                 creditedIdsB.push(tokenId)
             } else {
@@ -339,26 +326,28 @@ describe("ONFT721: ", function () {
         expect(creditedIdsB.length).to.be.equal(0)
 
         // should revert because payload is no longer valid
-        await expect(ONFT_B.clearCredits(payload)).to.be.revertedWith("no credits stored")
+        await expect(onft721_B.clearCredits(payload)).to.be.revertedWith("no credits stored")
     })
 
     it("sendBatchFrom() - large batch", async function () {
-        await ONFT_A.setMinGasToTransferAndStore(400000)
-        await ONFT_B.setMinGasToTransferAndStore(400000)
+        await onft721a_A.setMinGasToTransferAndStore(400000)
+        await onft721_B.setMinGasToTransferAndStore(400000)
+        await onft721a_A.setDstChainIdToBatchLimit(chainId_B, batchSizeLimit)
+        await onft721_B.setDstChainIdToBatchLimit(chainId_A, batchSizeLimit)
 
         const tokenIds = []
 
-        for (let i = 1; i <= 300; i++) {
+        for (let i = 0; i < 300; i++) {
             tokenIds.push(i)
         }
 
         // mint to owner
         for (let tokenId of tokenIds) {
-            await ONFT_A.mint(warlock.address, tokenId)
+            await onft721a_A.connect(warlock).mint(1)
         }
 
         // approve owner.address to transfer
-        await ONFT_A.connect(warlock).setApprovalForAll(ONFT_A.address, true)
+        await onft721a_A.connect(warlock).setApprovalForAll(onft721a_A.address, true)
 
         // expected event params
         const payload = ethers.utils.defaultAbiCoder.encode(["bytes", "uint[]"], [warlock.address, tokenIds])
@@ -367,10 +356,10 @@ describe("ONFT721: ", function () {
         let adapterParams = ethers.utils.solidityPack(["uint16", "uint256"], [1, 400000])
 
         // estimate nativeFees
-        let nativeFee = (await ONFT_A.estimateSendBatchFee(chainId_B, warlock.address, tokenIds, false, adapterParams)).nativeFee
+        let nativeFee = (await onft721a_A.estimateSendBatchFee(chainId_B, warlock.address, tokenIds, false, adapterParams)).nativeFee
 
         // initiate batch transfer
-        await expect(ONFT_A.connect(warlock).sendBatchFrom(
+        await expect(onft721a_A.connect(warlock).sendBatchFrom(
             warlock.address,
             chainId_B,
             warlock.address,
@@ -379,12 +368,12 @@ describe("ONFT721: ", function () {
             ethers.constants.AddressZero,
             adapterParams, // TODO might need to change this
             { value: nativeFee }
-        )).to.emit(ONFT_B, "CreditStored").withArgs(hashedPayload, payload)
+        )).to.emit(onft721_B, "CreditStored").withArgs(hashedPayload, payload)
 
         // only partial amount of tokens has been sent, the rest have been stored as a credit
         let creditedIdsA = []
         for (let tokenId of tokenIds) {
-            let owner = await ONFT_B.rawOwnerOf(tokenId)
+            let owner = await onft721_B.rawOwnerOf(tokenId)
             if (owner == ethers.constants.AddressZero) {
                 creditedIdsA.push(tokenId)
             } else {
@@ -395,13 +384,13 @@ describe("ONFT721: ", function () {
         // console.log("Number of tokens credited: ", creditedIdsA.length)
 
         // clear the rest of the credits
-        let tx = await(await ONFT_B.clearCredits(payload)).wait()
+        let tx = await(await onft721_B.clearCredits(payload)).wait()
 
         // console.log("Total gasUsed: ", tx.gasUsed.toString())
 
         let creditedIdsB = []
         for (let tokenId of creditedIdsA) {
-            let owner = await ONFT_B.rawOwnerOf(tokenId)
+            let owner = await onft721_B.rawOwnerOf(tokenId)
             if (owner == ethers.constants.AddressZero) {
                 creditedIdsB.push(tokenId)
             } else {
@@ -415,6 +404,6 @@ describe("ONFT721: ", function () {
         expect(creditedIdsB.length).to.be.equal(0)
 
         // should revert because payload is no longer valid
-        await expect(ONFT_B.clearCredits(payload)).to.be.revertedWith("no credits stored")
+        await expect(onft721_B.clearCredits(payload)).to.be.revertedWith("no credits stored")
     })
 })
