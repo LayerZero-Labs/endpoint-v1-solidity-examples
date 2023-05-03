@@ -7,12 +7,12 @@ import "@openzeppelin/contracts-upgradeable/utils/introspection/IERC165Upgradeab
 import "@openzeppelin/contracts-upgradeable/token/ERC20/ERC20Upgradeable.sol";
 import "./BaseOFTV2Upgradable.sol";
 
-contract OFTV2Upgradable is Initializable, OFTCoreV2Upgradable, ERC20Upgradeable {
+contract OFTV2Upgradable is Initializable, BaseOFTV2Upgradable, ERC20Upgradeable {
     uint internal ld2sdRate;
 
     function __OFTV2Upgradable_init(string memory _name, string memory _symbol, uint8 _sharedDecimals, address _lzEndpoint) internal onlyInitializing {
         __ERC20_init_unchained(_name, _symbol);
-        __OFTCoreV2Upgradable_init(_sharedDecimals, _lzEndpoint);
+        __BaseOFTV2Upgradable_init(_sharedDecimals, _lzEndpoint);
         uint8 _decimals = decimals();
         require(_sharedDecimals <= _decimals, "OFT: sharedDecimals must be <= decimals");
         ld2sdRate = 10 ** (_decimals - _sharedDecimals);
@@ -21,11 +21,11 @@ contract OFTV2Upgradable is Initializable, OFTCoreV2Upgradable, ERC20Upgradeable
     /************************************************************************
      * public functions
      ************************************************************************/
-    function circulatingSupply() public view returns (uint) {
+    function circulatingSupply() public view override returns (uint) {
         return totalSupply();
     }
 
-    function token() public view returns (address) {
+    function token() public view override returns (address) {
         return address(this);
     }
 
