@@ -141,6 +141,16 @@ npx hardhat checkWireUpAll --e testnet --contract ExampleUniversalONFT721
 npx hardhat checkWireUpAll --e testnet --contract OmniCounter
 ```
 
+# Verify the source code of the previously deployed contracts:
+Just use the verifyContract task with the contract and network names specified. 
+```angular2html
+npx hardhat verifyContract --contract <contract name> --network <chain name>
+```
+For example, in order to verify the previously deployed ExampleOFTV2 contract source code on goerli scan use the following:
+```angular2html
+npx hardhat verifyContract --contract ExampleOFTV2 --network goerli
+```
+
 ### See some examples in `/contracts`  🙌
 
 Many of the example contracts make use of LayerZeroEndpointMock.sol which is a nice way to test LayerZero locally!
