@@ -12,6 +12,12 @@ module.exports = async function (taskArgs, hre) {
     const lzEndpointAddress = LZ_ENDPOINTS[hre.network.name]
     const endpoint = await hre.ethers.getContractAt(ABI, lzEndpointAddress)
 
+    // concat remote and local address
+    let remoteAndLocal = hre.ethers.utils.solidityPack(
+        ['address','address'],
+        [taskArgs.srcAddress, taskArgs.desAddress]
+    )
+
     const step = taskArgs.step
     for (let from = blockStart; from <= blockEnd; from += step + 1) {
         const to = Math.min(from + step, blockEnd)
@@ -28,8 +34,8 @@ module.exports = async function (taskArgs, hre) {
                 "reason": `${e?.args[5].toString()}`
             }
 
-            console.log(storedPayload)
-            if(taskArgs.nonce !== undefined && storedPayload.nonce === taskArgs.nonce) {
+            if(e.args[1] === remoteAndLocal) console.log(storedPayload)
+            if(e.args[1] === remoteAndLocal && taskArgs.nonce !== undefined && storedPayload.nonce === taskArgs.nonce) {
                 console.log(`Attempting to clear nonce: ${e.args[3].toString()}`)
                 let tx = await (await endpoint.retryPayload(e.args[0], e.args[1], e?.args[4],{gasLimit: 200000})).wait();
                 console.log("txHash:" + tx.transactionHash);
@@ -39,8 +45,8 @@ module.exports = async function (taskArgs, hre) {
 }
 
 
-// npx hardhat --network bsc-testnet getStoredPayloadEvent --tx-start TX_HASH_SRC
-// npx hardhat --network bsc-testnet getStoredPayloadEvent --tx-start 0xf74b8a299ff58651d8f4e2411f5459b7f703b2582404a34a657e247a8463cb84
+// npx hardhat --network bsc-testnet getStoredPayloadEvent --tx-start TX_HASH_SRC --src-address TBD --des-address TBD
+// npx hardhat --network bsc-testnet getStoredPayloadEvent --tx-start 0xf74b8a299ff58651d8f4e2411f5459b7f703b2582404a34a657e247a8463cb84 --src-address 0xff7e5f0faf0cba105cdb875833b801355fa58aa0 --des-address 0x2ef82e5c7afb10f70a704efebc15036d0e5864b1
 
-// to clear nonce 2
-// npx hardhat --network bsc-testnet getStoredPayloadEvent --tx-start 0xf74b8a299ff58651d8f4e2411f5459b7f703b2582404a34a657e247a8463cb84 --nonce 2
+// to clear nonce
+// npx hardhat --network bsc-testnet getStoredPayloadEvent --tx-start 0xf74b8a299ff58651d8f4e2411f5459b7f703b2582404a34a657e247a8463cb84 --src-address 0xff7e5f0faf0cba105cdb875833b801355fa58aa0 --des-address 0x2ef82e5c7afb10f70a704efebc15036d0e5864b1 --nonce 8
