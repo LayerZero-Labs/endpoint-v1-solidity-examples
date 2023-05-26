@@ -6,7 +6,7 @@ import "@openzeppelin/contracts/access/Ownable.sol";
 import "../../../../precrime/PreCrimeView.sol";
 import "./IOFTV2View.sol";
 
-/// @title  A pre-crime contract for tokens with one ProxyOFTV2 and multiple OFTV2 contracts
+/// @title A pre-crime contract for tokens with one ProxyOFTV2 and multiple OFTV2 contracts
 /// @notice Ensures that the total supply on all chains will remain the same when tokens are transferred between chains
 /// @dev This contract must only be used for tokens with fixed total supply
 contract ProxyOFTV2PreCrimeView is PreCrimeView, Ownable {
@@ -25,7 +25,7 @@ contract ProxyOFTV2PreCrimeView is PreCrimeView, Ownable {
         oftView = IOFTV2View(_oftView);
         setMaxBatchSize(_maxSize);
     }
-   
+
     function setRemotePrecrimeAddresses(uint16[] memory _remoteChainIds, bytes32[] memory _remotePrecrimeAddresses) public onlyOwner {
         require(_remoteChainIds.length == _remotePrecrimeAddresses.length, "ProxyOFTV2PreCrimeView: invalid size");
         remoteChainIds = _remoteChainIds;
@@ -41,42 +41,41 @@ contract ProxyOFTV2PreCrimeView is PreCrimeView, Ownable {
 
         for (uint i = 0; i < _packets.length; i++) {
             Packet memory packet = _packets[i];
-			totalSupply = oftView.lzReceive(packet.srcChainId, packet.srcAddress, packet.payload, totalSupply);
+            totalSupply = oftView.lzReceive(packet.srcChainId, packet.srcAddress, packet.payload, totalSupply);
         }
 
-		return (CODE_SUCCESS, abi.encode(SimulationResult({chainTotalSupply: totalSupply, isProxy: oftView.isProxy()})));
-	}
+        return (CODE_SUCCESS, abi.encode(SimulationResult({chainTotalSupply: totalSupply, isProxy: oftView.isProxy()})));
+    }
 
-	function _precrime(bytes[] memory _simulation) internal pure override returns (uint16 code, bytes memory reason) {
+    function _precrime(bytes[] memory _simulation) internal pure override returns (uint16 code, bytes memory reason) {
         uint totalLocked = 0;
-		uint totalMinted = 0;
-		
+        uint totalMinted = 0;
+
         for (uint i = 0; i < _simulation.length; i++) {
             SimulationResult memory result = abi.decode(_simulation[i], (SimulationResult));
             if (result.isProxy) {
                 if (totalLocked > 0) {
-			        return (CODE_PRECRIME_FAILURE, "more than one proxy simulation");
-		        }
+                    return (CODE_PRECRIME_FAILURE, "more than one proxy simulation");
+                }
                 totalLocked = result.chainTotalSupply;
+            } else {
+                totalMinted += result.chainTotalSupply;
             }
-			else {
-				totalMinted += result.chainTotalSupply;
-			}
-		}
+        }
 
-		if (totalMinted != totalLocked) {
-			return (CODE_PRECRIME_FAILURE, "total minted != total locked");
-		}
+        if (totalMinted != totalLocked) {
+            return (CODE_PRECRIME_FAILURE, "total minted != total locked");
+        }
 
-        return (CODE_SUCCESS, "");		
-	}	
+        return (CODE_SUCCESS, "");
+    }
 
     /// @dev always returns all remote chain ids and precrime addresses
     function _remotePrecrimeAddress(Packet[] calldata) internal view override returns (uint16[] memory chainIds, bytes32[] memory precrimeAddresses) {
         return (remoteChainIds, remotePrecrimeAddresses);
     }
 
-	function _getInboundNonce(Packet memory _packet) internal view override returns (uint64) {
+    function _getInboundNonce(Packet memory _packet) internal view override returns (uint64) {
         return oftView.getInboundNonce(_packet.srcChainId, _packet.srcAddress);
     }
 
