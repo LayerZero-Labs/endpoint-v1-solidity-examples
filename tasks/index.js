@@ -163,3 +163,35 @@ task("deployWireCheck", "", require("./deployWireCheck"))
 
 task("verifyContract", "", require("./verifyContract.js"))
     .addParam("contract", "contract name")
+
+//
+task("getStoredPayloadEvent", "Detect and clear stored payload", require('./getStoredPayloadEvent'))
+    .addParam("txStart", "provide a transaction hash in the block you want to start in")
+    .addParam("srcAddress", "")
+    .addParam("desAddress", "")
+    .addOptionalParam("txEnd", "provide a tx hash in the block you want to end at")
+    .addOptionalParam("step", "provide a tx hash in the block you want to end at", 1000, types.int)
+    .addOptionalParam("nonce", "nonce to clear")
+
+//
+task("getMessageFailedEvent", "Detect and clear failed message", require('./getMessageFailedEvent'))
+    .addParam("txStart", "provide a transaction hash in the block you want to start in")
+    .addParam("dstUa", "address of dst UA")
+    .addOptionalParam("txEnd", "provide a tx hash in the block you want to end at")
+    .addOptionalParam("step", "provide a tx hash in the block you want to end at", 1000, types.int)
+    .addOptionalParam("nonce", "nonce to clear")
+
+//
+task("isFailedMessage", "check if failed message", require("./isFailedMessage"))
+    .addParam("srcChainId", "")
+    .addParam("srcAddress", "")
+    .addParam("desAddress", "")
+    .addParam("nonce", "")
+
+//
+task("isStoredPayload", "check if stored payload", require("./isStoredPayload"))
+    .addParam("srcChainId", "")
+    .addParam("srcAddress", "")
+    .addParam("desAddress", "")
+    .addOptionalParam("payload", "")
+    .addOptionalParam("clear", "", false, types.boolean)
