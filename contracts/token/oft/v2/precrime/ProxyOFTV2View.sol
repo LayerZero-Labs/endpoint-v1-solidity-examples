@@ -20,7 +20,7 @@ contract ProxyOFTV2View is OFTV2View {
         return true;
     }
 
-    function getTotalSupply() external view override returns (uint) {
+    function getCurrentState() external view override returns (uint) {
         return ProxyOFTV2(address(oft)).outboundAmount();
     }
 }

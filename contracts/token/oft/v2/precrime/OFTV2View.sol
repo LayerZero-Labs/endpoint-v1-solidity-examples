@@ -36,8 +36,7 @@ contract OFTV2View is IOFTV2View {
         return amountSD * ld2sdRate;
     }
 
-    function getInboundNonce(uint16 _srcChainId, bytes32 _scrAddress) external view virtual returns (uint64) {
-        require(_isPacketFromTrustedRemote(_srcChainId, _scrAddress), "OFTV2View: not trusted remote");
+    function getInboundNonce(uint16 _srcChainId) external view virtual returns (uint64) {
         bytes memory path = oft.trustedRemoteLookup(_srcChainId);
         return endpoint.getInboundNonce(_srcChainId, path);
     }
@@ -46,7 +45,7 @@ contract OFTV2View is IOFTV2View {
         return false;
     }
 
-    function getTotalSupply() external view virtual returns (uint) {
+    function getCurrentState() external view virtual returns (uint) {
         return IERC20(address(oft)).totalSupply();
     }
 

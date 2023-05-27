@@ -63,8 +63,10 @@ contract ProxyOFTV2PreCrimeView is PreCrimeView, Ownable {
             }
         }
 
-        if (totalMinted != totalLocked) {
-            return (CODE_PRECRIME_FAILURE, "total minted != total locked");
+        // It is possible to encounter a race condition when getting state of totalLocked. 
+        // Other users could have sent more tokens out.
+        if (totalLocked >= totalMinted) {
+            return (CODE_PRECRIME_FAILURE, "total locked must be greater or equal to total minted");
         }
 
         return (CODE_SUCCESS, "");
@@ -76,7 +78,7 @@ contract ProxyOFTV2PreCrimeView is PreCrimeView, Ownable {
     }
 
     function _getInboundNonce(Packet memory _packet) internal view override returns (uint64) {
-        return oftView.getInboundNonce(_packet.srcChainId, _packet.srcAddress);
+        return oftView.getInboundNonce(_packet.srcChainId);
     }
 
     function _maxBatchSize() internal view virtual override returns (uint64) {
