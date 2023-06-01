@@ -1,8 +1,8 @@
 const { expect } = require("chai")
 const { ethers } = require("hardhat")
-const { utils, constants } = require("ethers")
+const { utils } = require("ethers")
 
-describe.only("ProxyOFTV2PreCrimeView", function () {
+describe("ProxyOFTV2PreCrimeView", function () {
     let precrimeA, proxyOftA, proxyOftViewA, proxyOftBytes32AddressA, token, endpointA
     let precrimeB, oftB, oftViewB, oftBytes32AddressB, endpointB
     let precrimeC, oftC, oftViewC, oftBytes32AddressC, endpointC

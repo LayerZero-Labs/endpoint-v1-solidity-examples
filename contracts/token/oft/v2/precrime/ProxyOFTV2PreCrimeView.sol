@@ -1,9 +1,10 @@
 // SPDX-License-Identifier: MIT
 
-pragma solidity ^0.8.0;
+pragma solidity ^0.7.6;
+pragma abicoder v2;
 
-import "@openzeppelin/contracts/access/Ownable.sol";
-import "../../../../precrime/PreCrimeView.sol";
+import "@openzeppelin-3/contracts/access/Ownable.sol";
+import "@layerzerolabs/lz-evm-sdk-v1-0.7/contracts/precrime/PreCrimeView.sol";
 import "./IOFTV2View.sol";
 
 /// @title A pre-crime contract for tokens with one ProxyOFTV2 and multiple OFTV2 contracts
@@ -37,7 +38,7 @@ contract ProxyOFTV2PreCrimeView is PreCrimeView, Ownable {
     }
 
     function _simulate(Packet[] calldata _packets) internal view override returns (uint16, bytes memory) {
-        uint totalSupply = oftView.getTotalSupply();
+        uint totalSupply = oftView.getCurrentState();
 
         for (uint i = 0; i < _packets.length; i++) {
             Packet memory packet = _packets[i];
@@ -65,8 +66,8 @@ contract ProxyOFTV2PreCrimeView is PreCrimeView, Ownable {
 
         // It is possible to encounter a race condition when getting state of totalLocked. 
         // Other users could have sent more tokens out.
-        if (totalLocked >= totalMinted) {
-            return (CODE_PRECRIME_FAILURE, "total locked must be greater or equal to total minted");
+        if (totalLocked != totalMinted) {
+            return (CODE_PRECRIME_FAILURE, "total minted != total locked");
         }
 
         return (CODE_SUCCESS, "");
