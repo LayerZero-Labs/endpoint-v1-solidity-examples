@@ -24,18 +24,16 @@ contract NativeOFTV2 is OFTV2, ReentrancyGuard {
     }
 
     function deposit() public payable {
-        (uint msgValue,) = _removeDust(msg.value);
-        _mint(msg.sender, msgValue);
-        emit Deposit(msg.sender, msgValue);
+        _mint(msg.sender, msg.value);
+        emit Deposit(msg.sender, msg.value);
     }
 
-    function withdraw(uint _amount) public nonReentrant {
-        (uint amount,) = _removeDust(_amount);
-        require(balanceOf(msg.sender) >= amount, "NativeOFTV2: Insufficient balance.");
-        _burn(msg.sender, amount);
-        (bool success, ) = msg.sender.call{value: amount}("");
+    function withdraw(uint _amount) external nonReentrant {
+        require(balanceOf(msg.sender) >= _amount, "NativeOFTV2: Insufficient balance.");
+        _burn(msg.sender, _amount);
+        (bool success, ) = msg.sender.call{value: _amount}("");
         require(success, "NativeOFTV2: failed to unwrap");
-        emit Withdrawal(msg.sender, amount);
+        emit Withdrawal(msg.sender, _amount);
     }
 
     function _send(address _from, uint16 _dstChainId, bytes32 _toAddress, uint _amount, address payable _refundAddress, address _zroPaymentAddress, bytes memory _adapterParams) internal virtual override returns (uint amount) {
