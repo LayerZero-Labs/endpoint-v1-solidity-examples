@@ -51,12 +51,15 @@ contract OFTV2View is IOFTV2View {
 
     function _isPacketFromTrustedRemote(uint16 _srcChainId, bytes32 _srcAddress) internal view returns (bool) {
         bytes memory path = oft.trustedRemoteLookup(_srcChainId);
-        if (path.length > 20) {
-            // path format: remote + local
-            path = path.slice(0, path.length - 20);
-        }
+        uint pathLength = path.length;
+        
+        // EVM - EVM path length 40 (address + address)
+        // EVM - non-EVM path length 52 (bytes32 + address)
+        require(pathLength == 40 || pathLength == 52, "OFTV2View: invalid path length");
 
-        require(path.length <= 32, "OFTV2View: invalid remote address length");
+        // path format: remote + local
+        path = path.slice(0, pathLength - 20);
+
         uint remoteAddressLength = path.length;
         uint mask = (2**(remoteAddressLength * 8)) - 1;
         bytes32 remoteUaAddress;

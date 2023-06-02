@@ -180,10 +180,25 @@ describe("ProxyOFTV2PreCrimeView", function () {
             }
         })
 
-        it("passes precrime check", async function () {
+        it("passes precrime check when total minted == total locked", async function () {
             let simulationResults = [
                 utils.defaultAbiCoder.encode(["uint256", "bool"], [utils.parseEther("10"), true]),
                 utils.defaultAbiCoder.encode(["uint256", "bool"], [utils.parseEther("8"), false]),
+                utils.defaultAbiCoder.encode(["uint256", "bool"], [utils.parseEther("2"), false]),
+            ]
+
+            simulationResults[0] = utils.defaultAbiCoder.encode(["uint16", "bytes"], [chainIdA, simulationResults[0]])
+            simulationResults[1] = utils.defaultAbiCoder.encode(["uint16", "bytes"], [chainIdB, simulationResults[1]])
+            simulationResults[2] = utils.defaultAbiCoder.encode(["uint16", "bytes"], [chainIdC, simulationResults[2]])
+
+            const [code] = await precrimeA.precrime([packet], simulationResults)
+            expect(code).to.eq(CODE_SUCCESS)
+        })
+
+        it("passes precrime check when total minted < total locked", async function () {
+            let simulationResults = [
+                utils.defaultAbiCoder.encode(["uint256", "bool"], [utils.parseEther("10"), true]),
+                utils.defaultAbiCoder.encode(["uint256", "bool"], [utils.parseEther("7"), false]),
                 utils.defaultAbiCoder.encode(["uint256", "bool"], [utils.parseEther("2"), false]),
             ]
 
@@ -211,7 +226,7 @@ describe("ProxyOFTV2PreCrimeView", function () {
             expect(utils.toUtf8String(reason)).to.eq("more than one proxy simulation")
         })
 
-        it("fails precrime check when total minted != total locked", async function () {
+        it("fails precrime check when total minted > total locked", async function () {
             let simulationResults = [
                 utils.defaultAbiCoder.encode(["uint256", "bool"], [utils.parseEther("10"), true]),
                 utils.defaultAbiCoder.encode(["uint256", "bool"], [utils.parseEther("5"), false]),
@@ -224,7 +239,7 @@ describe("ProxyOFTV2PreCrimeView", function () {
 
             const [code, reason] = await precrimeC.precrime([packet], simulationResults)
             expect(code).to.eq(CODE_PRECRIME_FAILURE)
-            expect(utils.toUtf8String(reason)).to.eq("total minted != total locked")
+            expect(utils.toUtf8String(reason)).to.eq("total minted > total locked")
         })
     })
 })

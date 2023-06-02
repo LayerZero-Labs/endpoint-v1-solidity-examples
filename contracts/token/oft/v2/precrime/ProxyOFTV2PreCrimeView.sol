@@ -64,10 +64,8 @@ contract ProxyOFTV2PreCrimeView is PreCrimeView, Ownable {
             }
         }
 
-        // It is possible to encounter a race condition when getting state of totalLocked. 
-        // Other users could have sent more tokens out.
-        if (totalLocked != totalMinted) {
-            return (CODE_PRECRIME_FAILURE, "total minted != total locked");
+        if (totalMinted > totalLocked) {
+            return (CODE_PRECRIME_FAILURE, "total minted > total locked");
         }
 
         return (CODE_SUCCESS, "");
