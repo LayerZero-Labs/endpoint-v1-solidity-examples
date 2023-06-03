@@ -5,8 +5,9 @@ pragma solidity ^0.8.0;
 import "./IONFT721Core.sol";
 import "../../lzApp/NonblockingLzApp.sol";
 import "@openzeppelin/contracts/utils/introspection/ERC165.sol";
+import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
 
-abstract contract ONFT721Core is NonblockingLzApp, ERC165, IONFT721Core {
+abstract contract ONFT721Core is NonblockingLzApp, ERC165, ReentrancyGuard, IONFT721Core {
     uint16 public constant FUNCTION_TYPE_SEND = 1;
 
     struct StoredCredit {
@@ -89,7 +90,7 @@ abstract contract ONFT721Core is NonblockingLzApp, ERC165, IONFT721Core {
     }
 
     // Public function for anyone to clear and deliver the remaining batch sent tokenIds
-    function clearCredits(bytes memory _payload) external virtual {
+    function clearCredits(bytes memory _payload) external virtual nonReentrant {
         bytes32 hashedPayload = keccak256(_payload);
         require(storedCredits[hashedPayload].creditsRemain, "no credits stored");
 
