@@ -7,3 +7,6 @@
 [submodule "lib/pigeon"]
 	path = lib/pigeon
 	url = https://github.com/manifoldfinance/pigeon
+[submodule "lib/openzeppelin-contracts"]
+	path = lib/openzeppelin-contracts
+	url = https://github.com/OpenZeppelin/openzeppelin-contracts
