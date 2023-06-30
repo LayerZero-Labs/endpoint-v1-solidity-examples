@@ -1,15 +1,8 @@
-@ensdomains/=node_modules/@ensdomains/
-@layerzerolabs/=node_modules/@layerzerolabs/
-@openzeppelin-3/=node_modules/@openzeppelin-3/
 @openzeppelin-upgradeable/=lib/openzeppelin-contracts-upgradeable/contracts/
 @openzeppelin/=lib/openzeppelin-contracts/
-@uniswap/=node_modules/@uniswap/
+@uniswap/v2-periphery/=lib/v2-periphery/
 ds-test/=lib/solmate/lib/ds-test/src/
-erc721a/=node_modules/erc721a/
-eth-gas-reporter/=node_modules/eth-gas-reporter/
 forge-std/=lib/forge-std/src/
-hardhat-deploy/=node_modules/hardhat-deploy/
-hardhat/=node_modules/hardhat/
 solmate/=lib/solmate/src/
 pigeon/=lib/pigeon/src/
 solady/=lib/pigeon/lib/solady/src/
