@@ -19,3 +19,6 @@
 [submodule "lib/hardhat-deploy"]
 	path = lib/hardhat-deploy
 	url = https://github.com/wighawag/hardhat-deploy
+[submodule "lib/ERC721A"]
+	path = lib/ERC721A
+	url = https://github.com/chiru-labs/ERC721A
