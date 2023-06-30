@@ -1,0 +1,12 @@
+@ensdomains/=node_modules/@ensdomains/
+@layerzerolabs/=node_modules/@layerzerolabs/
+@openzeppelin-3/=node_modules/@openzeppelin-3/
+@openzeppelin/=node_modules/@openzeppelin/
+@uniswap/=node_modules/@uniswap/
+ds-test/=lib/solmate/lib/ds-test/src/
+erc721a/=node_modules/erc721a/
+eth-gas-reporter/=node_modules/eth-gas-reporter/
+forge-std/=lib/forge-std/src/
+hardhat-deploy/=node_modules/hardhat-deploy/
+hardhat/=node_modules/hardhat/
+solmate/=lib/solmate/src/
