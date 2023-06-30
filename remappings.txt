@@ -1,7 +1,8 @@
 @ensdomains/=node_modules/@ensdomains/
 @layerzerolabs/=node_modules/@layerzerolabs/
 @openzeppelin-3/=node_modules/@openzeppelin-3/
-@openzeppelin/=node_modules/@openzeppelin/
+@openzeppelin-upgradeable/=lib/openzeppelin-contracts-upgradeable/contracts/
+@openzeppelin/=lib/openzeppelin-contracts/
 @uniswap/=node_modules/@uniswap/
 ds-test/=lib/solmate/lib/ds-test/src/
 erc721a/=node_modules/erc721a/

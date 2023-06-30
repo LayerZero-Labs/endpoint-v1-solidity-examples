@@ -3,7 +3,7 @@
 pragma solidity ^0.8.2;
 
 import "./IOFTCoreUpgradeable.sol";
-import "@openzeppelin/contracts-upgradeable/utils/introspection/ERC165Upgradeable.sol";
+import "@openzeppelin-upgradeable/utils/introspection/ERC165Upgradeable.sol";
 import "../../lzApp/NonblockingLzAppUpgradeable.sol";
 
 abstract contract OFTCoreUpgradeable is Initializable, NonblockingLzAppUpgradeable, ERC165Upgradeable, IOFTCoreUpgradeable {

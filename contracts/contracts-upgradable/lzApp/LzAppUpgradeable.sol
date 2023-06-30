@@ -2,7 +2,7 @@
 
 pragma solidity ^0.8.2;
 
-import "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
+import "@openzeppelin-upgradeable/access/OwnableUpgradeable.sol";
 import "../interfaces/ILayerZeroReceiverUpgradeable.sol";
 import "../interfaces/ILayerZeroUserApplicationConfigUpgradeable.sol";
 import "../interfaces/ILayerZeroEndpointUpgradeable.sol";

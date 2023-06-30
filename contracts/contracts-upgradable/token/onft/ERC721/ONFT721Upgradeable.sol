@@ -4,7 +4,7 @@ pragma solidity ^0.8.2;
 
 import "./IONFT721Upgradeable.sol";
 import "./ONFT721CoreUpgradeable.sol";
-import "@openzeppelin/contracts-upgradeable/token/ERC721/ERC721Upgradeable.sol";
+import "@openzeppelin-upgradeable/token/ERC721/ERC721Upgradeable.sol";
 
 // NOTE: this ONFT contract has no public minting logic.
 // must implement your own minting logic in child classes

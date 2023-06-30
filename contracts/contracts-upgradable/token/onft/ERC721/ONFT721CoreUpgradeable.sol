@@ -4,7 +4,7 @@ pragma solidity ^0.8.2;
 
 import "./IONFT721CoreUpgradeable.sol";
 import "../../../lzApp/NonblockingLzAppUpgradeable.sol";
-import "@openzeppelin/contracts-upgradeable/utils/introspection/ERC165Upgradeable.sol";
+import "@openzeppelin-upgradeable/utils/introspection/ERC165Upgradeable.sol";
 
 abstract contract ONFT721CoreUpgradeable is Initializable, NonblockingLzAppUpgradeable, ERC165Upgradeable, IONFT721CoreUpgradeable {
     uint16 public constant FUNCTION_TYPE_SEND = 1;

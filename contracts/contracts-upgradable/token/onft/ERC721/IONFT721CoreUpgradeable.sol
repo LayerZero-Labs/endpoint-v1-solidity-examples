@@ -2,7 +2,7 @@
 
 pragma solidity ^0.8.2;
 
-import "@openzeppelin/contracts-upgradeable/utils/introspection/ERC165Upgradeable.sol";
+import "@openzeppelin-upgradeable/utils/introspection/ERC165Upgradeable.sol";
 
 /**
  * @dev Interface of the ONFT Core Upgradeable standard
