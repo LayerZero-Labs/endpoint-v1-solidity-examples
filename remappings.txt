@@ -1,3 +1,4 @@
+hardhat-deploy/=lib/hardhat-deploy/
 @openzeppelin-upgradeable/=lib/openzeppelin-contracts-upgradeable/contracts/
 @openzeppelin/=lib/openzeppelin-contracts/
 @uniswap/v2-periphery/=lib/v2-periphery/
