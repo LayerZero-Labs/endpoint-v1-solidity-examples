@@ -4,3 +4,6 @@
 [submodule "lib/solmate"]
 	path = lib/solmate
 	url = https://github.com/transmissions11/solmate
+[submodule "lib/pigeon"]
+	path = lib/pigeon
+	url = https://github.com/manifoldfinance/pigeon
