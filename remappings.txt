@@ -10,3 +10,5 @@ forge-std/=lib/forge-std/src/
 hardhat-deploy/=node_modules/hardhat-deploy/
 hardhat/=node_modules/hardhat/
 solmate/=lib/solmate/src/
+pigeon/=lib/pigeon/src/
+solady/=lib/pigeon/lib/solady/src/

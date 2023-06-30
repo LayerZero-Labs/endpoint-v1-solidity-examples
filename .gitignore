@@ -1,4 +1,6 @@
 .env
+out/
+cache_forge/
 
 # Logs
 logs

@@ -1,0 +1,36 @@
+name: Foundry Tests
+
+on:
+  push:
+    branches: [main]
+
+env:
+  ETH_MAINNET_RPC_URL: ${{ secrets.ETH_MAINNET_RPC_URL }}
+  POLYGON_MAINNET_RPC_URL: ${{ secrets.POLYGON_MAINNET_RPC_URL }}
+  ARBITRUM_MAINNET_RPC_URL: ${{ secrets.ARBITRUM_MAINNET_RPC_URL }}
+
+jobs:
+  tests:
+    name: Forge Tests
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+        with:
+          submodules: recursive
+
+      - name: Install Foundry
+        uses: foundry-rs/foundry-toolchain@v1
+        with:
+          version: nightly
+
+      - name: Run Forge build
+        run: |
+          forge --version
+          forge build --sizes
+        id: build
+
+      - name: Run Forge tests
+        run: |
+          forge test --etherscan-api-key $ETHERSCAN_API_KEY -vvv
+        id: test
