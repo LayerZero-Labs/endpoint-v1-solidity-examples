@@ -9,7 +9,7 @@ import "@openzeppelin/contracts/utils/introspection/ERC165.sol";
 
 abstract contract BaseOFTWithFee is OFTCoreV2, Fee, ERC165, IOFTWithFee {
 
-    constructor(uint8 _sharedDecimals, address _lzEndpoint) OFTCoreV2(_sharedDecimals, _lzEndpoint) {
+    constructor(uint8 _sharedDecimals, address _lzEndpoint) OFTCoreV2(_sharedDecimals, msg.sender, _lzEndpoint) {
     }
 
     /************************************************************************

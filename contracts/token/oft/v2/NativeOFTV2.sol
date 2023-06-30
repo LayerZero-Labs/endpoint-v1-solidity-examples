@@ -10,7 +10,7 @@ contract NativeOFTV2 is OFTV2, ReentrancyGuard {
     event Deposit(address indexed _dst, uint _amount);
     event Withdrawal(address indexed _src, uint _amount);
 
-    constructor(string memory _name, string memory _symbol, uint8 _sharedDecimals, address _lzEndpoint) OFTV2(_name, _symbol, _sharedDecimals, _lzEndpoint) {}
+    constructor(string memory _name, string memory _symbol, uint8 _sharedDecimals, address _lzEndpoint) OFTV2(_name, _symbol, 18, _sharedDecimals, msg.sender, _lzEndpoint) {}
 
     /************************************************************************
     * public functions
@@ -29,7 +29,7 @@ contract NativeOFTV2 is OFTV2, ReentrancyGuard {
     }
 
     function withdraw(uint _amount) external nonReentrant {
-        require(balanceOf(msg.sender) >= _amount, "NativeOFTV2: Insufficient balance.");
+        require(balanceOf[msg.sender] >= _amount, "NativeOFTV2: Insufficient balance.");
         _burn(msg.sender, _amount);
         (bool success, ) = msg.sender.call{value: _amount}("");
         require(success, "NativeOFTV2: failed to unwrap");
@@ -68,7 +68,7 @@ contract NativeOFTV2 is OFTV2, ReentrancyGuard {
     }
 
     function _debitMsgSender(uint _amount) internal returns (uint messageFee) {
-        uint msgSenderBalance = balanceOf(msg.sender);
+        uint msgSenderBalance = balanceOf[msg.sender];
 
         if (msgSenderBalance < _amount) {
             require(msgSenderBalance + msg.value >= _amount, "NativeOFTV2: Insufficient msg.value");
@@ -88,7 +88,7 @@ contract NativeOFTV2 is OFTV2, ReentrancyGuard {
     }
 
     function _debitMsgFrom(address _from, uint _amount) internal returns (uint messageFee) {
-        uint msgFromBalance = balanceOf(_from);
+        uint msgFromBalance = balanceOf[_from];
 
         if (msgFromBalance < _amount) {
             require(msgFromBalance + msg.value >= _amount, "NativeOFTV2: Insufficient msg.value");

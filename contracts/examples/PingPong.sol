@@ -22,7 +22,7 @@ contract PingPong is NonblockingLzApp, Pausable {
     event Ping(uint pings);
 
     // constructor requires the LayerZero endpoint for this chain
-    constructor(address _endpoint) NonblockingLzApp(_endpoint) {}
+    constructor(address _endpoint) NonblockingLzApp(msg.sender, _endpoint) {}
 
     // disable ping-ponging
     function enable(bool en) external {

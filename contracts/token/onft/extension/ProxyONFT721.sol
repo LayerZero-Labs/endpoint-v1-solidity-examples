@@ -22,7 +22,7 @@ contract ProxyONFT721 is ONFT721Core, IERC721Receiver {
     }
 
     function _debitFrom(address _from, uint16, bytes memory, uint _tokenId) internal virtual override {
-        require(_from == _msgSender(), "ProxyONFT721: owner is not send caller");
+        require(_from == msg.sender, "ProxyONFT721: owner is not send caller");
         token.safeTransferFrom(_from, address(this), _tokenId);
     }
 

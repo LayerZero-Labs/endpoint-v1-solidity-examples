@@ -22,7 +22,7 @@ abstract contract ONFT721Core is NonblockingLzApp, ERC165, ReentrancyGuard, IONF
     mapping(uint16 => uint256) public dstChainIdToTransferGas; // per transfer amount of gas required to mint/transfer on the dst
     mapping(bytes32 => StoredCredit) public storedCredits;
 
-    constructor(uint256 _minGasToTransferAndStore, address _lzEndpoint) NonblockingLzApp(_lzEndpoint) {
+    constructor(uint256 _minGasToTransferAndStore, address _lzEndpoint) NonblockingLzApp(msg.sender, _lzEndpoint) {
         require(_minGasToTransferAndStore > 0, "minGasToTransferAndStore must be > 0");
         minGasToTransferAndStore = _minGasToTransferAndStore;
     }
@@ -126,21 +126,21 @@ abstract contract ONFT721Core is NonblockingLzApp, ERC165, ReentrancyGuard, IONF
         return i;
     }
 
-    function setMinGasToTransferAndStore(uint256 _minGasToTransferAndStore) external onlyOwner {
+    function setMinGasToTransferAndStore(uint256 _minGasToTransferAndStore) external onlyAdmin {
         require(_minGasToTransferAndStore > 0, "minGasToTransferAndStore must be > 0");
         minGasToTransferAndStore = _minGasToTransferAndStore;
         emit SetMinGasToTransferAndStore(_minGasToTransferAndStore);
     }
 
     // ensures enough gas in adapter params to handle batch transfer gas amounts on the dst
-    function setDstChainIdToTransferGas(uint16 _dstChainId, uint256 _dstChainIdToTransferGas) external onlyOwner {
+    function setDstChainIdToTransferGas(uint16 _dstChainId, uint256 _dstChainIdToTransferGas) external onlyAdmin {
         require(_dstChainIdToTransferGas > 0, "dstChainIdToTransferGas must be > 0");
         dstChainIdToTransferGas[_dstChainId] = _dstChainIdToTransferGas;
         emit SetDstChainIdToTransferGas(_dstChainId, _dstChainIdToTransferGas);
     }
 
     // limit on src the amount of tokens to batch send
-    function setDstChainIdToBatchLimit(uint16 _dstChainId, uint256 _dstChainIdToBatchLimit) external onlyOwner {
+    function setDstChainIdToBatchLimit(uint16 _dstChainId, uint256 _dstChainIdToBatchLimit) external onlyAdmin {
         require(_dstChainIdToBatchLimit > 0, "dstChainIdToBatchLimit must be > 0");
         dstChainIdToBatchLimit[_dstChainId] = _dstChainIdToBatchLimit;
         emit SetDstChainIdToBatchLimit(_dstChainId, _dstChainIdToBatchLimit);

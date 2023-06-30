@@ -41,7 +41,7 @@ abstract contract OFTCoreV2 is NonblockingLzApp {
     event NonContractAddress(address _address);
 
     // _sharedDecimals should be the minimum decimals on all chains
-    constructor(uint8 _sharedDecimals, address _lzEndpoint) NonblockingLzApp(_lzEndpoint) {
+    constructor(uint8 _sharedDecimals, address authority, address _lzEndpoint) NonblockingLzApp(authority, _lzEndpoint) {
         sharedDecimals = _sharedDecimals;
     }
 
@@ -49,7 +49,7 @@ abstract contract OFTCoreV2 is NonblockingLzApp {
     * public functions
     ************************************************************************/
     function callOnOFTReceived(uint16 _srcChainId, bytes calldata _srcAddress, uint64 _nonce, bytes32 _from, address _to, uint _amount, bytes calldata _payload, uint _gasForCall) public virtual {
-        require(_msgSender() == address(this), "OFTCore: caller must be OFTCore");
+        require(msg.sender == address(this), "OFTCore: caller must be OFTCore");
 
         // send
         _amount = _transferFrom(address(this), _to, _amount);
@@ -59,7 +59,7 @@ abstract contract OFTCoreV2 is NonblockingLzApp {
         IOFTReceiverV2(_to).onOFTReceived{gas: _gasForCall}(_srcChainId, _srcAddress, _nonce, _from, _amount, _payload);
     }
 
-    function setUseCustomAdapterParams(bool _useCustomAdapterParams) public virtual onlyOwner {
+    function setUseCustomAdapterParams(bool _useCustomAdapterParams) public virtual onlyAdmin {
         useCustomAdapterParams = _useCustomAdapterParams;
         emit SetUseCustomAdapterParams(_useCustomAdapterParams);
     }

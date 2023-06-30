@@ -10,7 +10,7 @@ contract OmniCounter is NonblockingLzApp {
     bytes public constant PAYLOAD = "\x01\x02\x03\x04";
     uint public counter;
 
-    constructor(address _lzEndpoint) NonblockingLzApp(_lzEndpoint) {}
+    constructor(address _lzEndpoint) NonblockingLzApp(msg.sender, _lzEndpoint) {}
 
     function _nonblockingLzReceive(uint16, bytes memory, uint64, bytes memory) internal override {
         counter += 1;
@@ -24,7 +24,7 @@ contract OmniCounter is NonblockingLzApp {
         _lzSend(_dstChainId, PAYLOAD, payable(msg.sender), address(0x0), bytes(""), msg.value);
     }
 
-    function setOracle(uint16 dstChainId, address oracle) external onlyOwner {
+    function setOracle(uint16 dstChainId, address oracle) external onlyAdmin {
         uint TYPE_ORACLE = 6;
         // set the Oracle
         lzEndpoint.setConfig(lzEndpoint.getSendVersion(address(this)), dstChainId, TYPE_ORACLE, abi.encode(oracle));

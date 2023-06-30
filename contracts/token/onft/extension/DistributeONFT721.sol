@@ -100,7 +100,7 @@ contract DistributeONFT721 is ONFT721 {
 
     //---------------------------External Functions----------------------------------------
 
-    function distributeTokens(uint16 _dstChainId, TokenDistribute[] memory _tokenDistribute, address payable _refundAddress, address _zroPaymentAddress) external payable onlyOwner {
+    function distributeTokens(uint16 _dstChainId, TokenDistribute[] memory _tokenDistribute, address payable _refundAddress, address _zroPaymentAddress) external payable onlyAdmin {
         require(_verifyAmounts(_tokenDistribute), "Invalid input");
         _flipBits(_tokenDistribute);
         bytes memory payload = abi.encode(FUNCTION_TYPE_DISTRIBUTE, _tokenDistribute);
@@ -292,12 +292,12 @@ contract DistributeONFT721 is ONFT721 {
         return tokenId;
     }
 
-    function setDistributeBaseDstGas(uint _distributeBaseDstGas) external onlyOwner {
+    function setDistributeBaseDstGas(uint _distributeBaseDstGas) external onlyAdmin {
         distributeBaseDstGas = _distributeBaseDstGas;
         emit SetDistributeBaseDstGas(distributeBaseDstGas);
     }
 
-    function setDistributeGasPerIdx(uint _distributeGasPerIdx) external onlyOwner {
+    function setDistributeGasPerIdx(uint _distributeGasPerIdx) external onlyAdmin {
         distributeGasPerIdx = _distributeGasPerIdx;
         emit SetDistributeGasPerIdx(distributeGasPerIdx);
     }

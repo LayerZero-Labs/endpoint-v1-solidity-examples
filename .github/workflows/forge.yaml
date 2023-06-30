@@ -24,13 +24,7 @@ jobs:
         with:
           version: nightly
 
-      - name: Run Forge build
-        run: |
-          forge --version
-          forge build --sizes
-        id: build
-
       - name: Run Forge tests
         run: |
-          forge test --etherscan-api-key $ETHERSCAN_API_KEY -vvv
+          forge test -vvv
         id: test

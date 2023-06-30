@@ -14,7 +14,7 @@ abstract contract ONFT1155Core is NonblockingLzApp, ERC165, IONFT1155Core {
 
     event SetUseCustomAdapterParams(bool _useCustomAdapterParams);
 
-    constructor(address _lzEndpoint) NonblockingLzApp(_lzEndpoint) {}
+    constructor(address _lzEndpoint) NonblockingLzApp(msg.sender, _lzEndpoint) {}
 
     function supportsInterface(bytes4 interfaceId) public view virtual override(ERC165, IERC165) returns (bool) {
         return interfaceId == type(IONFT1155Core).interfaceId || super.supportsInterface(interfaceId);
@@ -81,7 +81,7 @@ abstract contract ONFT1155Core is NonblockingLzApp, ERC165, IONFT1155Core {
         }
     }
 
-    function setUseCustomAdapterParams(bool _useCustomAdapterParams) external onlyOwner {
+    function setUseCustomAdapterParams(bool _useCustomAdapterParams) external onlyAdmin {
         useCustomAdapterParams = _useCustomAdapterParams;
         emit SetUseCustomAdapterParams(_useCustomAdapterParams);
     }
