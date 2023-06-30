@@ -7,3 +7,4 @@ forge-std/=lib/forge-std/src/
 solmate/=lib/solmate/src/
 pigeon/=lib/pigeon/src/
 solady/=lib/pigeon/lib/solady/src/
+erc721a/=lib/ERC721A/
