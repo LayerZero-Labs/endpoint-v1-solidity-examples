@@ -25,7 +25,7 @@ contract ProxyOFT is OFTCore {
     }
 
     function _debitFrom(address _from, uint16, bytes memory, uint _amount) internal virtual override returns(uint) {
-        require(_from == _msgSender(), "ProxyOFT: owner is not send caller");
+        require(_from == msg.sender, "ProxyOFT: owner is not send caller");
         uint before = innerToken.balanceOf(address(this));
         innerToken.safeTransferFrom(_from, address(this), _amount);
         return innerToken.balanceOf(address(this)) - before;

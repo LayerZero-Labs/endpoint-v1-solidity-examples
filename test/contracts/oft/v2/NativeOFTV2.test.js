@@ -26,7 +26,7 @@ describe.only("NativeOFTV2: ", function () {
         // 1. base chain
         // 2. other chain
         nativeOFTV2 = await NativeOFTV2.deploy(name, symbol, sharedDecimals, localEndpoint.address)
-        remoteOFTV2 = await OFTV2.deploy(name, symbol, sharedDecimals, remoteEndpoint.address)
+        remoteOFTV2 = await OFTV2.deploy(name, symbol, 18, sharedDecimals, owner.address, remoteEndpoint.address)
 
         // internal bookkeeping for endpoints (not part of a real deploy, just for this test)
         await localEndpoint.setDestLzEndpoint(remoteOFTV2.address, remoteEndpoint.address)
@@ -234,7 +234,7 @@ describe.only("NativeOFTV2: ", function () {
                 [owner.address, ethers.constants.AddressZero, "0x"],
                 { value: messageFee } // pass a msg.value to pay the LayerZero message fee
             )
-        ).to.be.revertedWith("ERC20: insufficient allowance")
+        ).to.be.reverted
     })
 
     it("sendFrom() - with insufficient value and expect revert", async function () {

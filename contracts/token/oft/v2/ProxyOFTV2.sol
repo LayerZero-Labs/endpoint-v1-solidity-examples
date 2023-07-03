@@ -14,7 +14,7 @@ contract ProxyOFTV2 is BaseOFTV2 {
     // total amount is transferred from this chain to other chains, ensuring the total is less than uint64.max in sd
     uint public outboundAmount;
 
-    constructor(address _token, uint8 _sharedDecimals, address _lzEndpoint) BaseOFTV2(_sharedDecimals, _lzEndpoint) {
+    constructor(address _token, uint8 _sharedDecimals, address _lzEndpoint) BaseOFTV2(_sharedDecimals, msg.sender, _lzEndpoint) {
         innerToken = IERC20(_token);
 
         (bool success, bytes memory data) = _token.staticcall(
@@ -42,7 +42,7 @@ contract ProxyOFTV2 is BaseOFTV2 {
     * internal functions
     ************************************************************************/
     function _debitFrom(address _from, uint16, bytes32, uint _amount) internal virtual override returns (uint) {
-        require(_from == _msgSender(), "ProxyOFT: owner is not send caller");
+        require(_from == msg.sender, "ProxyOFT: owner is not send caller");
 
         _amount = _transferFrom(_from, address(this), _amount);
 

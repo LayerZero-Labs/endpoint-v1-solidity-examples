@@ -13,7 +13,7 @@ contract PausableOFT is OFT, Pausable {
         return super._debitFrom(_from, _dstChainId, _toAddress, _amount);
     }
 
-    function pauseSendTokens(bool pause) external onlyOwner {
+    function pauseSendTokens(bool pause) external onlyAdmin {
         pause ? _pause() : _unpause();
     }
 }

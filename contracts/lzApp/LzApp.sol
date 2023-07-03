@@ -2,7 +2,7 @@
 
 pragma solidity ^0.8.0;
 
-import "@openzeppelin/contracts/access/Ownable.sol";
+import "../auth/Auth.sol";
 import "../interfaces/ILayerZeroReceiver.sol";
 import "../interfaces/ILayerZeroUserApplicationConfig.sol";
 import "../interfaces/ILayerZeroEndpoint.sol";
@@ -11,7 +11,7 @@ import "../util/BytesLib.sol";
 /*
  * a generic LzReceiver implementation
  */
-abstract contract LzApp is Ownable, ILayerZeroReceiver, ILayerZeroUserApplicationConfig {
+abstract contract LzApp is Auth, ILayerZeroReceiver, ILayerZeroUserApplicationConfig {
     using BytesLib for bytes;
 
     // ua can not send payload larger than this by default, but it can be changed by the ua owner
@@ -28,13 +28,13 @@ abstract contract LzApp is Ownable, ILayerZeroReceiver, ILayerZeroUserApplicatio
     event SetTrustedRemoteAddress(uint16 _remoteChainId, bytes _remoteAddress);
     event SetMinDstGas(uint16 _dstChainId, uint16 _type, uint _minDstGas);
 
-    constructor(address _endpoint) {
+    constructor(address authority, address _endpoint) Auth(authority) {
         lzEndpoint = ILayerZeroEndpoint(_endpoint);
     }
 
     function lzReceive(uint16 _srcChainId, bytes calldata _srcAddress, uint64 _nonce, bytes calldata _payload) public virtual override {
         // lzReceive must be called by the endpoint for security
-        require(_msgSender() == address(lzEndpoint), "LzApp: invalid endpoint caller");
+        require(msg.sender == address(lzEndpoint), "LzApp: invalid endpoint caller");
 
         bytes memory trustedRemote = trustedRemoteLookup[_srcChainId];
         // if will still block the message pathway from (srcChainId, srcAddress). should not receive message from untrusted remote.
@@ -81,30 +81,30 @@ abstract contract LzApp is Ownable, ILayerZeroReceiver, ILayerZeroUserApplicatio
     }
 
     // generic config for LayerZero user Application
-    function setConfig(uint16 _version, uint16 _chainId, uint _configType, bytes calldata _config) external override onlyOwner {
+    function setConfig(uint16 _version, uint16 _chainId, uint _configType, bytes calldata _config) external override onlyAdmin {
         lzEndpoint.setConfig(_version, _chainId, _configType, _config);
     }
 
-    function setSendVersion(uint16 _version) external override onlyOwner {
+    function setSendVersion(uint16 _version) external override onlyAdmin {
         lzEndpoint.setSendVersion(_version);
     }
 
-    function setReceiveVersion(uint16 _version) external override onlyOwner {
+    function setReceiveVersion(uint16 _version) external override onlyAdmin {
         lzEndpoint.setReceiveVersion(_version);
     }
 
-    function forceResumeReceive(uint16 _srcChainId, bytes calldata _srcAddress) external override onlyOwner {
+    function forceResumeReceive(uint16 _srcChainId, bytes calldata _srcAddress) external override onlyAdmin {
         lzEndpoint.forceResumeReceive(_srcChainId, _srcAddress);
     }
 
     // _path = abi.encodePacked(remoteAddress, localAddress)
     // this function set the trusted path for the cross-chain communication
-    function setTrustedRemote(uint16 _remoteChainId, bytes calldata _path) external onlyOwner {
+    function setTrustedRemote(uint16 _remoteChainId, bytes calldata _path) external onlyAdmin {
         trustedRemoteLookup[_remoteChainId] = _path;
         emit SetTrustedRemote(_remoteChainId, _path);
     }
 
-    function setTrustedRemoteAddress(uint16 _remoteChainId, bytes calldata _remoteAddress) external onlyOwner {
+    function setTrustedRemoteAddress(uint16 _remoteChainId, bytes calldata _remoteAddress) external onlyAdmin {
         trustedRemoteLookup[_remoteChainId] = abi.encodePacked(_remoteAddress, address(this));
         emit SetTrustedRemoteAddress(_remoteChainId, _remoteAddress);
     }
@@ -115,19 +115,19 @@ abstract contract LzApp is Ownable, ILayerZeroReceiver, ILayerZeroUserApplicatio
         return path.slice(0, path.length - 20); // the last 20 bytes should be address(this)
     }
 
-    function setPrecrime(address _precrime) external onlyOwner {
+    function setPrecrime(address _precrime) external onlyAdmin {
         precrime = _precrime;
         emit SetPrecrime(_precrime);
     }
 
-    function setMinDstGas(uint16 _dstChainId, uint16 _packetType, uint _minGas) external onlyOwner {
+    function setMinDstGas(uint16 _dstChainId, uint16 _packetType, uint _minGas) external onlyAdmin {
         require(_minGas > 0, "LzApp: invalid minGas");
         minDstGasLookup[_dstChainId][_packetType] = _minGas;
         emit SetMinDstGas(_dstChainId, _packetType, _minGas);
     }
 
     // if the size is 0, it means default size limit
-    function setPayloadSizeLimit(uint16 _dstChainId, uint _size) external onlyOwner {
+    function setPayloadSizeLimit(uint16 _dstChainId, uint _size) external onlyAdmin {
         payloadSizeLimitLookup[_dstChainId] = _size;
     }
 
