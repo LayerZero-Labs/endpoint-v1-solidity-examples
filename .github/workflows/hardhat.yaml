@@ -11,19 +11,18 @@ jobs:
   tests:
     name: Test hardhat
     runs-on: ubuntu-latest
-    strategy:
-      matrix:
-        node: [18, 20]
     steps:
-      - uses: actions/checkout@v2
-      - uses: actions/setup-node@v2
+      - uses: actions/checkout@v3
         with:
-          node-version: ${{ matrix.node }}
+          submodules: recursive
+      - uses: actions/setup-node@v3
+        with:
           cache: yarn
       - name: Install
         run: yarn --frozen-lockfile
+      - name: Install Foundry
+        uses: foundry-rs/foundry-toolchain@v1
+        with:
+          version: nightly
       - name: Run tests
-        env:
-          DO_NOT_SET_THIS_ENV_VAR____IS_HARDHAT_CI: true
-          FORCE_COLOR: 3
         run: npx hardhat test
