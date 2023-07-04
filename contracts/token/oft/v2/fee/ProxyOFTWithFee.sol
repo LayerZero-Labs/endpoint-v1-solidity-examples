@@ -3,27 +3,35 @@
 pragma solidity ^0.8.0;
 
 import "./BaseOFTWithFee.sol";
-import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
+import { ERC20 } from "solmate/tokens/ERC20.sol";
+import { SafeTransferLib} from "solmate/utils/SafeTransferLib.sol";
 
 contract ProxyOFTWithFee is BaseOFTWithFee {
-    using SafeERC20 for IERC20;
 
-    IERC20 internal immutable innerToken;
+    // Custom errors saves gas
+    error NoTokenDecimals();
+    error SharedDecimalsTooLarge();
+    error OwnerNotSendCaller();
+    error OutboundAmountOverflow();
+
+    using SafeTransferLib for ERC20;
+
+    ERC20 internal immutable innerToken;
     uint internal immutable ld2sdRate;
 
     // total amount is transferred from this chain to other chains, ensuring the total is less than uint64.max in sd
     uint public outboundAmount;
 
-    constructor(address _token, uint8 _sharedDecimals, address _lzEndpoint) BaseOFTWithFee(_sharedDecimals, _lzEndpoint) {
-        innerToken = IERC20(_token);
+    constructor(address _token, uint8 _sharedDecimals, address authority, address _lzEndpoint) BaseOFTWithFee(_sharedDecimals, authority, _lzEndpoint) {
+        innerToken = ERC20(_token);
 
         (bool success, bytes memory data) = _token.staticcall(
             abi.encodeWithSignature("decimals()")
         );
-        require(success, "ProxyOFTWithFee: failed to get token decimals");
+        if (!success) revert NoTokenDecimals();
         uint8 decimals = abi.decode(data, (uint8));
 
-        require(_sharedDecimals <= decimals, "ProxyOFTWithFee: sharedDecimals must be <= decimals");
+        if (_sharedDecimals > decimals) revert SharedDecimalsTooLarge();
         ld2sdRate = 10 ** (decimals - _sharedDecimals);
     }
 
@@ -42,7 +50,7 @@ contract ProxyOFTWithFee is BaseOFTWithFee {
     * internal functions
     ************************************************************************/
     function _debitFrom(address _from, uint16, bytes32, uint _amount) internal virtual override returns (uint) {
-        require(_from == msg.sender, "ProxyOFTWithFee: owner is not send caller");
+        if (_from != msg.sender) revert OwnerNotSendCaller();
 
         _amount = _transferFrom(_from, address(this), _amount);
 
@@ -53,7 +61,7 @@ contract ProxyOFTWithFee is BaseOFTWithFee {
         // check total outbound amount
         outboundAmount += amount;
         uint cap = _sd2ld(type(uint64).max);
-        require(cap >= outboundAmount, "ProxyOFTWithFee: outboundAmount overflow");
+        if (cap < outboundAmount) revert OutboundAmountOverflow();
 
         return amount;
     }

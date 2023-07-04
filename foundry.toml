@@ -1,6 +1,18 @@
 [profile.default]
+solc_version = '0.8.19'
 src = 'contracts'
 out = 'out'
 libs = [ 'lib']
 test = 'test'
 cache_path  = 'cache_forge'
+optimizer = true
+optimizer_runs = 2000
+via_ir = true
+fuzz_runs = 500
+
+[profile.default.optimizer_details]
+constantOptimizer = true
+yul = true
+
+[profile.default.optimizer_details.yulDetails]
+stackAllocation = true

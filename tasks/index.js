@@ -25,14 +25,6 @@ task(
     .addOptionalParam("contract", "If both contracts are the same name")
 
 //
-task("oftSend", "send tokens to another chain", require("./oftSend"))
-    .addParam("qty", "qty of tokens to send")
-    .addParam("targetNetwork", "the target network to let this instance receive messages from")
-    .addOptionalParam("localContract", "Name of local contract if the names are different")
-    .addOptionalParam("remoteContract", "Name of remote contract if the names are different")
-    .addOptionalParam("contract", "If both contracts are the same name")
-
-//
 task("oftv2Send", "send tokens to another chain", require("./oftv2Send"))
     .addParam("qty", "qty of tokens to send")
     .addParam("targetNetwork", "the target network to let this instance receive messages from")

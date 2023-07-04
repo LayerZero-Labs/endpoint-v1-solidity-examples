@@ -2,16 +2,19 @@
 
 pragma solidity ^0.8.0;
 
-import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
+import { ERC20 } from "solmate/tokens/ERC20.sol";
 import "./BaseOFTWithFee.sol";
 
 contract OFTWithFee is BaseOFTWithFee, ERC20 {
 
+    // Custom errors save gas
+    error InsufficientAllowance();
+    error SharedDecimalsTooLarge();
+
     uint internal immutable ld2sdRate;
 
-    constructor(string memory _name, string memory _symbol, uint8 _sharedDecimals, address _lzEndpoint) ERC20(_name, _symbol) BaseOFTWithFee(_sharedDecimals, _lzEndpoint) {
-        uint8 decimals = decimals();
-        require(_sharedDecimals <= decimals, "OFTWithFee: sharedDecimals must be <= decimals");
+    constructor(string memory _name, string memory _symbol, uint8 decimals, uint8 _sharedDecimals, address authority, address _lzEndpoint) ERC20(_name, _symbol, decimals) BaseOFTWithFee(_sharedDecimals, authority, _lzEndpoint) {
+        if (_sharedDecimals > decimals) revert SharedDecimalsTooLarge();
         ld2sdRate = 10 ** (decimals - _sharedDecimals);
     }
 
@@ -19,7 +22,7 @@ contract OFTWithFee is BaseOFTWithFee, ERC20 {
     * public functions
     ************************************************************************/
     function circulatingSupply() public view virtual override returns (uint) {
-        return totalSupply();
+        return totalSupply;
     }
 
     function token() public view virtual override returns (address) {
@@ -51,5 +54,40 @@ contract OFTWithFee is BaseOFTWithFee, ERC20 {
 
     function _ld2sdRate() internal view virtual override returns (uint) {
         return ld2sdRate;
+    }
+
+    /**
+     * OpenZeppelin ERC20 extensions
+     */
+
+    /**
+     * @dev Updates `owner` s allowance for `spender` based on spent `amount`.
+     *
+     * Does not update the allowance amount in case of infinite allowance.
+     * Revert if not enough allowance is available.
+     */
+    function _spendAllowance(address owner, address spender, uint256 amount) internal virtual {
+        uint256 currentAllowance = allowance[owner][spender];
+        if (currentAllowance != type(uint256).max) {
+            if (currentAllowance < amount) {
+                revert InsufficientAllowance();
+            }
+            unchecked {
+                allowance[owner][spender] = currentAllowance - amount;
+            }
+        }
+    }
+
+    /**
+     * @dev Moves `amount` of tokens from `from` to `to`.
+     *
+     * This internal function is equivalent to {transfer}, and can be used to
+     * e.g. implement automatic token fees, slashing mechanisms, etc.
+     */
+    function _transfer(address from, address to, uint256 amount) internal {
+        balanceOf[from] -= amount;
+        unchecked {
+            balanceOf[to] += amount;
+        }
     }
 }

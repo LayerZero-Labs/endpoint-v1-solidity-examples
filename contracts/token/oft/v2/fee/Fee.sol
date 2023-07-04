@@ -2,9 +2,14 @@
 
 pragma solidity ^0.8.0;
 
-import "@openzeppelin/contracts/access/Ownable.sol";
+import "../../../../auth/Auth.sol";
 
-abstract contract Fee is Ownable {
+abstract contract Fee is Auth {
+
+    // Custom errors save gas
+    error FeeBpTooLarge();
+    error FeeOwnerNotSet();
+
     uint public constant BP_DENOMINATOR = 10000;
 
     mapping(uint16 => FeeConfig) public chainIdToFeeBps;
@@ -20,24 +25,24 @@ abstract contract Fee is Ownable {
     event SetDefaultFeeBp(uint16 feeBp);
     event SetFeeOwner(address feeOwner);
 
-    constructor(){
-        feeOwner = owner();
+    constructor(address authority){
+        feeOwner = authority;
     }
 
-    function setDefaultFeeBp(uint16 _feeBp) public virtual onlyOwner {
-        require(_feeBp <= BP_DENOMINATOR, "Fee: fee bp must be <= BP_DENOMINATOR");
+    function setDefaultFeeBp(uint16 _feeBp) public virtual onlyAdmin {
+        if (_feeBp > BP_DENOMINATOR) revert FeeBpTooLarge();
         defaultFeeBp = _feeBp;
         emit SetDefaultFeeBp(defaultFeeBp);
     }
 
-    function setFeeBp(uint16 _dstChainId, bool _enabled, uint16 _feeBp) public virtual onlyOwner {
-        require(_feeBp <= BP_DENOMINATOR, "Fee: fee bp must be <= BP_DENOMINATOR");
+    function setFeeBp(uint16 _dstChainId, bool _enabled, uint16 _feeBp) public virtual onlyAdmin {
+        if (_feeBp > BP_DENOMINATOR) revert FeeBpTooLarge();
         chainIdToFeeBps[_dstChainId] = FeeConfig(_feeBp, _enabled);
         emit SetFeeBp(_dstChainId, _enabled, _feeBp);
     }
 
-    function setFeeOwner(address _feeOwner) public virtual onlyOwner {
-        require(_feeOwner != address(0x0), "Fee: feeOwner cannot be 0x");
+    function setFeeOwner(address _feeOwner) public virtual onlyAdmin {
+        if (_feeOwner == address(0x0)) revert FeeOwnerNotSet();
         feeOwner = _feeOwner;
         emit SetFeeOwner(_feeOwner);
     }
