@@ -16,12 +16,17 @@ describe("Composable ProxyOFT v2: ", function () {
         const OFT = await ethers.getContractFactory("OFTV2")
         const OFTStakingMock = await ethers.getContractFactory("OFTStakingMockV2")
 
+        owner = (await ethers.getSigners())[0]
+        alice = (await ethers.getSigners())[1]
+        bob = (await ethers.getSigners())[2]
+        carol = (await ethers.getSigners())[3]
+        
         srcEndpoint = await LZEndpointMock.deploy(srcChainId)
         dstEndpoint = await LZEndpointMock.deploy(dstChainId)
         token = await MockToken.deploy("Mock", "MOCK")
 
-        proxyOFT = await ProxyOFT.deploy(token.address, 6, srcEndpoint.address)
-        dstOFT = await OFT.deploy("OFT", "OFT", 6, dstEndpoint.address)
+        proxyOFT = await ProxyOFT.deploy(token.address, 6, owner.address, srcEndpoint.address)
+        dstOFT = await OFT.deploy("OFT", "OFT", 18, 6, owner.address, dstEndpoint.address)
 
         srcStaking = await OFTStakingMock.deploy(proxyOFT.address)
         dstStaking = await OFTStakingMock.deploy(dstOFT.address)
@@ -46,10 +51,7 @@ describe("Composable ProxyOFT v2: ", function () {
         await proxyOFT.setMinDstGas(dstChainId, parseInt(await proxyOFT.PT_SEND()), 225000)
         await proxyOFT.setUseCustomAdapterParams(true)
 
-        owner = (await ethers.getSigners())[0]
-        alice = (await ethers.getSigners())[1]
-        bob = (await ethers.getSigners())[2]
-        carol = (await ethers.getSigners())[3]
+        
     })
 
     it("deposit on dst chain", async function () {

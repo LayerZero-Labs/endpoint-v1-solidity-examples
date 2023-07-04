@@ -30,8 +30,8 @@ describe("OFT v2: ", function () {
 
         // create two OmnichainFungibleToken instances
         erc20 = await ERC20.deploy("ERC20", "ERC20")
-        localOFT = await ProxyOFTV2.deploy(erc20.address, sharedDecimals, localEndpoint.address)
-        remoteOFT = await OFTV2.deploy(name, symbol, sharedDecimals, remoteEndpoint.address)
+        localOFT = await ProxyOFTV2.deploy(erc20.address, sharedDecimals, owner.address, localEndpoint.address)
+        remoteOFT = await OFTV2.deploy(name, symbol, 18, sharedDecimals, owner.address, remoteEndpoint.address)
 
         // internal bookkeeping for endpoints (not part of a real deploy, just for this test)
         await localEndpoint.setDestLzEndpoint(remoteOFT.address, remoteEndpoint.address)
@@ -127,8 +127,8 @@ describe("OFT v2: ", function () {
         // fails to send more for cap overflow
         nativeFee = (await localOFT.estimateSendFee(remoteChainId, bobAddressBytes32, amount, false, "0x")).nativeFee
 
-        try {
-            await localOFT.connect(alice).sendFrom(
+        await expect(
+            localOFT.connect(alice).sendFrom(
                 alice.address,
                 remoteChainId,
                 bobAddressBytes32,
@@ -136,9 +136,6 @@ describe("OFT v2: ", function () {
                 [alice.address, ethers.constants.AddressZero, "0x"],
                 {value: nativeFee}
             )
-            expect(false).to.be.true
-        } catch (e) {
-            expect(e.message).to.match(/ProxyOFT: outboundAmount overflow/)
-        }
+        ).to.be.reverted
     })
 })

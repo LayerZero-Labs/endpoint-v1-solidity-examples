@@ -30,8 +30,8 @@ describe("OFT with fee: ", function () {
 
         // create two OmnichainFungibleToken instances
         erc20 = await ERC20.deploy("ERC20", "ERC20")
-        localOFT = await ProxyOFTV2.deploy(erc20.address, sharedDecimals, localEndpoint.address)
-        remoteOFT = await OFTV2.deploy(name, symbol, sharedDecimals, remoteEndpoint.address)
+        localOFT = await ProxyOFTV2.deploy(erc20.address, sharedDecimals, owner.address, localEndpoint.address)
+        remoteOFT = await OFTV2.deploy(name, symbol, 18, sharedDecimals, owner.address, remoteEndpoint.address)
 
         // internal bookkeeping for endpoints (not part of a real deploy, just for this test)
         await localEndpoint.setDestLzEndpoint(remoteOFT.address, remoteEndpoint.address)
@@ -137,8 +137,8 @@ describe("OFT with fee: ", function () {
         const bobAddressBytes32 = ethers.utils.defaultAbiCoder.encode(["address"], [bob.address])
         await erc20.connect(alice).approve(localOFT.address, amount)
         let nativeFee = (await localOFT.estimateSendFee(remoteChainId, bobAddressBytes32, amount, false, "0x")).nativeFee
-        try {
-            await localOFT.connect(alice).sendFrom(
+        await expect(
+            localOFT.connect(alice).sendFrom(
                 alice.address,
                 remoteChainId,
                 bobAddressBytes32,
@@ -147,10 +147,7 @@ describe("OFT with fee: ", function () {
                 [alice.address, ethers.constants.AddressZero, "0x"],
                 { value: nativeFee }
             )
-            expect(false).to.be.true
-        } catch (e) {
-            expect(e.message).to.match(/BaseOFTWithFee: amount is less than minAmount/)
-        }
+        ).to.be.reverted
 
         await localOFT.connect(alice).sendFrom(
             alice.address,

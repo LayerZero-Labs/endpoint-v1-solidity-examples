@@ -2,7 +2,7 @@ name: Foundry Tests
 
 on:
   push:
-    branches: [main, mevEth]
+    branches: [main]
 
 env:
   ETH_MAINNET_RPC_URL: ${{ secrets.ETH_MAINNET_RPC_URL }}
