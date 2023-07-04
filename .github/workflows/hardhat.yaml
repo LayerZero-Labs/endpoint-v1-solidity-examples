@@ -1,0 +1,29 @@
+name: Hardhat Tests
+
+on: [push]
+
+env:
+  ETH_MAINNET_RPC_URL: ${{ secrets.ETH_MAINNET_RPC_URL }}
+  POLYGON_MAINNET_RPC_URL: ${{ secrets.POLYGON_MAINNET_RPC_URL }}
+  ARBITRUM_MAINNET_RPC_URL: ${{ secrets.ARBITRUM_MAINNET_RPC_URL }}
+
+jobs:
+  tests:
+    name: Test hardhat
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        node: [18, 20]
+    steps:
+      - uses: actions/checkout@v2
+      - uses: actions/setup-node@v2
+        with:
+          node-version: ${{ matrix.node }}
+          cache: yarn
+      - name: Install
+        run: yarn --frozen-lockfile
+      - name: Run tests
+        env:
+          DO_NOT_SET_THIS_ENV_VAR____IS_HARDHAT_CI: true
+          FORCE_COLOR: 3
+        run: npx hardhat test
