@@ -6,10 +6,15 @@
  * @dev Bytes tightly packed arrays utility library for ethereum contracts written in Solidity.
  *      The library lets you concatenate, slice and type cast bytes arrays both in memory and storage.
  */
-pragma solidity >=0.8.0 <0.9.0;
+pragma solidity ^0.8.0;
 
 
 library BytesLib {
+
+    // Custom errors save gas
+    error SliceOverflow();
+    error OutOfBounds();
+
     function concat(
         bytes memory _preBytes,
         bytes memory _postBytes
@@ -234,8 +239,8 @@ library BytesLib {
     pure
     returns (bytes memory)
     {
-        require(_length + 31 >= _length, "slice_overflow");
-        require(_bytes.length >= _start + _length, "slice_outOfBounds");
+        if (_length + 31 < _length) revert SliceOverflow();
+        if (_bytes.length < _start + _length) revert OutOfBounds();
 
         bytes memory tempBytes;
 
@@ -295,7 +300,7 @@ library BytesLib {
     }
 
     function toAddress(bytes memory _bytes, uint256 _start) internal pure returns (address) {
-        require(_bytes.length >= _start + 20, "toAddress_outOfBounds");
+        if (_bytes.length < _start + 20) revert OutOfBounds();
         address tempAddress;
 
         assembly {
@@ -306,7 +311,7 @@ library BytesLib {
     }
 
     function toUint8(bytes memory _bytes, uint256 _start) internal pure returns (uint8) {
-        require(_bytes.length >= _start + 1 , "toUint8_outOfBounds");
+        if (_bytes.length < _start + 1) revert OutOfBounds();
         uint8 tempUint;
 
         assembly {
@@ -317,7 +322,7 @@ library BytesLib {
     }
 
     function toUint16(bytes memory _bytes, uint256 _start) internal pure returns (uint16) {
-        require(_bytes.length >= _start + 2, "toUint16_outOfBounds");
+        if (_bytes.length < _start + 2) revert OutOfBounds();
         uint16 tempUint;
 
         assembly {
@@ -328,7 +333,7 @@ library BytesLib {
     }
 
     function toUint32(bytes memory _bytes, uint256 _start) internal pure returns (uint32) {
-        require(_bytes.length >= _start + 4, "toUint32_outOfBounds");
+        if (_bytes.length < _start + 4) revert OutOfBounds();
         uint32 tempUint;
 
         assembly {
@@ -339,7 +344,7 @@ library BytesLib {
     }
 
     function toUint64(bytes memory _bytes, uint256 _start) internal pure returns (uint64) {
-        require(_bytes.length >= _start + 8, "toUint64_outOfBounds");
+        if (_bytes.length < _start + 8) revert OutOfBounds();
         uint64 tempUint;
 
         assembly {
@@ -350,7 +355,7 @@ library BytesLib {
     }
 
     function toUint96(bytes memory _bytes, uint256 _start) internal pure returns (uint96) {
-        require(_bytes.length >= _start + 12, "toUint96_outOfBounds");
+        if (_bytes.length < _start + 12) revert OutOfBounds();
         uint96 tempUint;
 
         assembly {
@@ -361,7 +366,7 @@ library BytesLib {
     }
 
     function toUint128(bytes memory _bytes, uint256 _start) internal pure returns (uint128) {
-        require(_bytes.length >= _start + 16, "toUint128_outOfBounds");
+        if (_bytes.length < _start + 16) revert OutOfBounds();
         uint128 tempUint;
 
         assembly {
@@ -372,7 +377,7 @@ library BytesLib {
     }
 
     function toUint256(bytes memory _bytes, uint256 _start) internal pure returns (uint256) {
-        require(_bytes.length >= _start + 32, "toUint256_outOfBounds");
+        if (_bytes.length < _start + 32) revert OutOfBounds();
         uint256 tempUint;
 
         assembly {
@@ -383,7 +388,7 @@ library BytesLib {
     }
 
     function toBytes32(bytes memory _bytes, uint256 _start) internal pure returns (bytes32) {
-        require(_bytes.length >= _start + 32, "toBytes32_outOfBounds");
+        if (_bytes.length < _start + 32) revert OutOfBounds();
         bytes32 tempBytes32;
 
         assembly {

@@ -5,12 +5,21 @@ pragma solidity ^0.8.0;
 import "./LzApp.sol";
 import "../util/ExcessivelySafeCall.sol";
 
+error InvalidPayload();
+error AmountTooSmall();
+
 /*
  * the default LayerZero messaging behaviour is blocking, i.e. any failed message will block the channel
  * this abstract class try-catch all fail messages and store locally for future retry. hence, non-blocking
  * NOTE: if the srcAddress is not configured properly, it will still block the message pathway from (srcChainId, srcAddress)
  */
 abstract contract NonblockingLzApp is LzApp {
+
+    // Custom errors save gas
+    error CallerMustBeLzApp();
+    error NoStoredMessage();
+    
+
     using ExcessivelySafeCall for address;
 
     constructor(address authority, address _endpoint) LzApp(authority, _endpoint) {}
@@ -36,7 +45,7 @@ abstract contract NonblockingLzApp is LzApp {
 
     function nonblockingLzReceive(uint16 _srcChainId, bytes calldata _srcAddress, uint64 _nonce, bytes calldata _payload) public virtual {
         // only internal transaction
-        require(msg.sender == address(this), "NonblockingLzApp: caller must be LzApp");
+        if (msg.sender != address(this)) revert CallerMustBeLzApp();
         _nonblockingLzReceive(_srcChainId, _srcAddress, _nonce, _payload);
     }
 
@@ -46,8 +55,8 @@ abstract contract NonblockingLzApp is LzApp {
     function retryMessage(uint16 _srcChainId, bytes calldata _srcAddress, uint64 _nonce, bytes calldata _payload) public payable virtual {
         // assert there is message to retry
         bytes32 payloadHash = failedMessages[_srcChainId][_srcAddress][_nonce];
-        require(payloadHash != bytes32(0), "NonblockingLzApp: no stored message");
-        require(keccak256(_payload) == payloadHash, "NonblockingLzApp: invalid payload");
+        if (payloadHash == bytes32(0)) revert NoStoredMessage();
+        if (keccak256(_payload) != payloadHash) revert InvalidPayload();
         // clear the stored message
         failedMessages[_srcChainId][_srcAddress][_nonce] = bytes32(0);
         // execute the message. revert if it fails again

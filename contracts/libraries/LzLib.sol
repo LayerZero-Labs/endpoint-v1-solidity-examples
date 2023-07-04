@@ -1,9 +1,15 @@
 // SPDX-License-Identifier: BUSL-1.1
 
-pragma solidity >=0.6.0;
-pragma experimental ABIEncoderV2;
+pragma solidity ^0.8.0;
 
 library LzLib {
+    // Custom errors save gas
+    error InvalidAdapterParams();
+    error GasTooLow();
+    error UnsupportedTxType();
+    error AirdropNotSet();
+    error ZeroAirdrop();
+
     // LayerZero communication
     struct CallParams {
         address payable refundAddress;
@@ -35,8 +41,8 @@ library LzLib {
     }
 
     function buildAirdropAdapterParams(uint _uaGas, AirdropParams memory _params) internal pure returns (bytes memory) {
-        require(_params.airdropAmount > 0, "Airdrop amount must be greater than 0");
-        require(_params.airdropAddress != bytes32(0x0), "Airdrop address must be set");
+        if (_params.airdropAmount == 0) revert ZeroAirdrop();
+        if (_params.airdropAddress == bytes32(0x0)) revert AirdropNotSet();
 
         // txType 2
         // bytes  [2       32        32            bytes[]         ]
@@ -45,7 +51,7 @@ library LzLib {
     }
 
     function getGasLimit(bytes memory _adapterParams) internal pure returns (uint gasLimit) {
-        require(_adapterParams.length == 34 || _adapterParams.length > 66, "Invalid adapterParams");
+        if (_adapterParams.length != 34 && _adapterParams.length < 66) revert InvalidAdapterParams();
         assembly {
             gasLimit := mload(add(_adapterParams, 34))
         }
@@ -53,13 +59,13 @@ library LzLib {
 
     // Decode Adapter Params
     function decodeAdapterParams(bytes memory _adapterParams) internal pure returns (uint16 txType, uint uaGas, uint airdropAmount, address payable airdropAddress) {
-        require(_adapterParams.length == 34 || _adapterParams.length > 66, "Invalid adapterParams");
+        if (_adapterParams.length != 34 && _adapterParams.length < 66) revert InvalidAdapterParams();
         assembly {
             txType := mload(add(_adapterParams, 2))
             uaGas := mload(add(_adapterParams, 34))
         }
-        require(txType == 1 || txType == 2, "Unsupported txType");
-        require(uaGas > 0, "Gas too low");
+        if (txType != 1 && txType != 2) revert UnsupportedTxType();
+        if (uaGas == 0) revert GasTooLow();
 
         if (txType == 2) {
             assembly {

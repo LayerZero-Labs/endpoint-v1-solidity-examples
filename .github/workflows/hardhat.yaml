@@ -1,8 +1,6 @@
-name: Foundry Tests
+name: Hardhat Tests
 
-on:
-  push:
-    branches: [main]
+on: [push]
 
 env:
   ETH_MAINNET_RPC_URL: ${{ secrets.ETH_MAINNET_RPC_URL }}
@@ -11,20 +9,20 @@ env:
 
 jobs:
   tests:
-    name: Forge Tests
+    name: Test hardhat
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@v3
+      - uses: actions/checkout@v3
         with:
           submodules: recursive
-
+      - uses: actions/setup-node@v3
+        with:
+          cache: yarn
+      - name: Install
+        run: yarn --frozen-lockfile
       - name: Install Foundry
         uses: foundry-rs/foundry-toolchain@v1
         with:
           version: nightly
-
-      - name: Run Forge tests
-        run: |
-          forge test -vvv
-        id: test
+      - name: Run tests
+        run: npx hardhat test

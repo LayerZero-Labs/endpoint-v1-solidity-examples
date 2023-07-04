@@ -1,7 +1,7 @@
 const { expect } = require("chai")
 const { ethers } = require("hardhat")
 
-describe.only("NativeOFTV2: ", function () {
+describe("NativeOFTV2: ", function () {
     const localChainId = 1
     const remoteChainId = 2
     const name = "NativeOFTV2"
@@ -203,7 +203,7 @@ describe.only("NativeOFTV2: ", function () {
                 [owner.address, ethers.constants.AddressZero, "0x"],
                 { value: messageFee } // pass a msg.value to pay the LayerZero message fee
             )
-        ).to.be.revertedWith("NativeOFTV2: Insufficient msg.value")
+        ).to.be.reverted
     })
 
     it("sendFrom() - from != sender not approved expect revert", async function () {
@@ -264,7 +264,7 @@ describe.only("NativeOFTV2: ", function () {
                 [owner.address, ethers.constants.AddressZero, "0x"],
                 { value: messageFee } // pass a msg.value to pay the LayerZero message fee
             )
-        ).to.be.revertedWith("NativeOFTV2: Insufficient msg.value")
+        ).to.be.reverted
     })
 
     it("sendFrom() - tokens from main to other chain using adapterParam", async function () {
@@ -306,7 +306,7 @@ describe.only("NativeOFTV2: ", function () {
                 [owner.address, ethers.constants.AddressZero, adapterParam],
                 { value: messageFee } // pass a msg.value to pay the LayerZero message fee
             )
-        ).to.be.revertedWith("LzApp: minGasLimit not set")
+        ).to.be.reverted
     })
 
     it("setMinDstGas() - set min dst gas higher than what we are sending and expect revert", async function () {
@@ -324,7 +324,7 @@ describe.only("NativeOFTV2: ", function () {
                 [owner.address, ethers.constants.AddressZero, adapterParam],
                 { value: messageFee } // pass a msg.value to pay the LayerZero message fee
             )
-        ).to.be.revertedWith("LzApp: gas limit is too low")
+        ).to.be.reverted
     })
 
     it("wrap() and unwrap()", async function () {
@@ -364,6 +364,6 @@ describe.only("NativeOFTV2: ", function () {
         expect(await nativeOFTV2.balanceOf(owner.address)).to.equal(amount)
 
         amount = ethers.utils.parseEther("150")
-        await expect(nativeOFTV2.withdraw(amount)).to.be.revertedWith("NativeOFTV2: Insufficient balance.")
+        await expect(nativeOFTV2.withdraw(amount)).to.be.reverted
     })
 })

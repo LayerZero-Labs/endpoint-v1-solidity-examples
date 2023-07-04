@@ -6,7 +6,9 @@ import { ERC20 } from "solmate/tokens/ERC20.sol";
 import "./BaseOFTV2.sol";
 
 contract OFTV2 is BaseOFTV2, ERC20 {
+    // Custom errors save gas
     error InsufficientAllowance();
+    error SharedDecimalsTooLarge();
 
     uint internal immutable ld2sdRate;
 
@@ -21,7 +23,7 @@ contract OFTV2 is BaseOFTV2, ERC20 {
         ERC20(_name, _symbol, decimals) 
         BaseOFTV2(_sharedDecimals, authority, _lzEndpoint) 
     {
-        require(_sharedDecimals <= decimals, "OFT: sharedDecimals must be <= decimals");
+        if (_sharedDecimals > decimals) revert SharedDecimalsTooLarge();
         ld2sdRate = 10 ** (decimals - _sharedDecimals);
     }
 

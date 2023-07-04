@@ -7,6 +7,13 @@ import "./OFTV2.sol";
 
 contract NativeOFTV2 is OFTV2, ReentrancyGuard {
 
+    // Custom errors save gas
+    error InsufficientBalance();
+    error UnwrapFailed();
+    
+    error InsufficientValue();
+    error CreditToFailed();
+
     event Deposit(address indexed _dst, uint _amount);
     event Withdrawal(address indexed _src, uint _amount);
 
@@ -29,10 +36,10 @@ contract NativeOFTV2 is OFTV2, ReentrancyGuard {
     }
 
     function withdraw(uint _amount) external nonReentrant {
-        require(balanceOf[msg.sender] >= _amount, "NativeOFTV2: Insufficient balance.");
+        if (balanceOf[msg.sender] < _amount) revert InsufficientBalance();
         _burn(msg.sender, _amount);
         (bool success, ) = msg.sender.call{value: _amount}("");
-        require(success, "NativeOFTV2: failed to unwrap");
+        if (!success) revert UnwrapFailed();
         emit Withdrawal(msg.sender, _amount);
     }
 
@@ -40,7 +47,7 @@ contract NativeOFTV2 is OFTV2, ReentrancyGuard {
         _checkAdapterParams(_dstChainId, PT_SEND, _adapterParams, NO_EXTRA_GAS);
 
         (amount,) = _removeDust(_amount);
-        require(amount > 0, "NativeOFTV2: amount too small");
+        if (amount == 0) revert AmountTooSmall();
         uint messageFee = _debitFromNative(_from, amount);
 
         bytes memory lzPayload = _encodeSendPayload(_toAddress, _ld2sd(amount));
@@ -53,7 +60,7 @@ contract NativeOFTV2 is OFTV2, ReentrancyGuard {
         _checkAdapterParams(_dstChainId, PT_SEND_AND_CALL, _adapterParams, _dstGasForCall);
 
         (amount,) = _removeDust(_amount);
-        require(amount > 0, "NativeOFTV2: amount too small");
+        if (amount == 0) revert AmountTooSmall();
         uint messageFee = _debitFromNative(_from, amount);
 
         // encode the msg.sender into the payload instead of _from
@@ -71,7 +78,7 @@ contract NativeOFTV2 is OFTV2, ReentrancyGuard {
         uint msgSenderBalance = balanceOf[msg.sender];
 
         if (msgSenderBalance < _amount) {
-            require(msgSenderBalance + msg.value >= _amount, "NativeOFTV2: Insufficient msg.value");
+            if (msgSenderBalance + msg.value < _amount) revert InsufficientValue();
 
             // user can cover difference with additional msg.value ie. wrapping
             uint mintAmount = _amount - msgSenderBalance;
@@ -91,7 +98,7 @@ contract NativeOFTV2 is OFTV2, ReentrancyGuard {
         uint msgFromBalance = balanceOf[_from];
 
         if (msgFromBalance < _amount) {
-            require(msgFromBalance + msg.value >= _amount, "NativeOFTV2: Insufficient msg.value");
+            if (msgFromBalance + msg.value < _amount) revert InsufficientValue();
 
             // user can cover difference with additional msg.value ie. wrapping
             uint mintAmount = _amount - msgFromBalance;
@@ -117,7 +124,7 @@ contract NativeOFTV2 is OFTV2, ReentrancyGuard {
     function _creditTo(uint16, address _toAddress, uint _amount) internal override returns(uint) {
         _burn(address(this), _amount);
         (bool success, ) = _toAddress.call{value: _amount}("");
-        require(success, "NativeOFTV2: failed to _creditTo");
+        if (!success) revert CreditToFailed();
         return _amount;
     }
 

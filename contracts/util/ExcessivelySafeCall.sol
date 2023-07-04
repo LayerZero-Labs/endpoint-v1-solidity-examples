@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT OR Apache-2.0
-pragma solidity >=0.7.6;
+pragma solidity ^0.8.0;
 
 library ExcessivelySafeCall {
     uint256 constant LOW_28_MASK =
@@ -121,7 +121,7 @@ library ExcessivelySafeCall {
     internal
     pure
     {
-        require(_buf.length >= 4);
+        if (_buf.length < 4) revert();
         uint256 _mask = LOW_28_MASK;
         assembly {
         // load the first word of
