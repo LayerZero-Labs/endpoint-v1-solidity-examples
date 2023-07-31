@@ -1,6 +1,6 @@
 {
   "name": "@layerzerolabs/solidity-examples",
-  "version": "0.0.10",
+  "version": "0.0.13",
   "license": "MIT",
   "files": [
     "artifacts/",
@@ -14,7 +14,9 @@
     "lint": "yarn prettier && solhint 'contracts/*.sol' && solhint 'contracts/**/*.sol' && solhint 'contracts/**/**/*.sol' && solhint 'contracts/**/**/**/*.sol'"
   },
   "dependencies": {
+    "@layerzerolabs/lz-evm-sdk-v1-0.7": "^1.5.14",
     "@openzeppelin/contracts": "^4.4.1",
+    "@openzeppelin-3/contracts": "npm:@openzeppelin/contracts@^3.4.2-solc-0.7",
     "@openzeppelin/contracts-upgradeable": "^4.6.0",
     "@openzeppelin/hardhat-upgrades": "^1.18.3",
     "erc721a": "^4.2.3",
