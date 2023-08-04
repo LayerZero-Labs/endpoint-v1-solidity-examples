@@ -704,6 +704,11 @@
     solidity-comments-extractor "^0.0.7"
     string-width "^4.2.3"
 
+"@layerzerolabs/verify-contract@1.0.423":
+  version "1.0.423"
+  resolved "https://registry.yarnpkg.com/@layerzerolabs/verify-contract/-/verify-contract-1.0.423.tgz#480a0b61058bf5bcac501739278997cf42abb42a"
+  integrity sha512-CZFTWisFlv9imBuc0qtu4iVpwbT7WnkRMA4HQmRH7de8Qm/NA7+OEqZEMZK3jARf3NKtOrViWRnQCMfqsLnl6w==
+
 "@metamask/eth-sig-util@^4.0.0":
   version "4.0.1"
   resolved "https://registry.npmjs.org/@metamask/eth-sig-util/-/eth-sig-util-4.0.1.tgz"

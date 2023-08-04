@@ -1,4 +1,5 @@
 const STARGATE = require("../constants/stargate.json")
+const verify = require('@layerzerolabs/verify-contract')
 
 module.exports = async function ({ deployments, getNamedAccounts }) {
     const { deploy } = deployments
@@ -10,6 +11,7 @@ module.exports = async function ({ deployments, getNamedAccounts }) {
     console.log(`[${hre.network.name}] Stargate Router address: ${stargateRouter}`)
     console.log(`[${hre.network.name}] Stargate RouterETH address: ${stargateRouterETH}`)
     console.log(`[${hre.network.name}] Stargate Factory address: ${stargateFactory}`)
+    console.log("deployer: ", deployer)
 
     await deploy("WidgetSwap", {
         from: deployer,
@@ -17,6 +19,8 @@ module.exports = async function ({ deployments, getNamedAccounts }) {
         log: true,
         waitConfirmations: 1,
     })
+
+    await verify(hre.network.name, ["WidgetSwap"])
 }
 
 module.exports.tags = ["WidgetSwap"]

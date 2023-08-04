@@ -143,6 +143,11 @@ module.exports = {
       chainId: 1088,
       accounts: accounts(),
     },
+    'base-mainnet': {
+      url: `https://base.blockpi.network/v1/rpc/public\t`,
+      chainId: 8453,
+      accounts: accounts(),
+    },
 
     goerli: {
       url: "https://goerli.infura.io/v3/9aa3d95b3bc440fa88ea12eaa4456161", // public infura endpoint
