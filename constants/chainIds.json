@@ -35,9 +35,9 @@
   
   "goerli": 10121,
   "bsc-testnet": 10102,
-  "fuji": 10106,
+  "fuji-avalanche": 10106,
   "aptos": 10108,
-  "mumbai": 10109,
+  "mumbai-polygon": 10109,
   "fantom-testnet": 10112,
   "arbitrum-goerli": 10143,
   "optimism-goerli": 10132,
