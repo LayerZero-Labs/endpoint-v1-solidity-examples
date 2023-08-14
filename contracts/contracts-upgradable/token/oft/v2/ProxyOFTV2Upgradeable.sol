@@ -15,6 +15,11 @@ contract ProxyOFTV2Upgradeable is Initializable, BaseOFTV2Upgradeable, Proxied {
     // total amount is transferred from this chain to other chains, ensuring the total is less than uint64.max in sd
     uint public outboundAmount;
 
+    /// @custom:oz-upgrades-unsafe-allow constructor
+    constructor() {
+        _disableInitializers();
+    }
+
     function initialize(address _token, uint8 _sharedDecimals, address _lzEndpoint) public initializer {
         __BaseOFTV2Upgradeable_init(_sharedDecimals, _lzEndpoint);
 

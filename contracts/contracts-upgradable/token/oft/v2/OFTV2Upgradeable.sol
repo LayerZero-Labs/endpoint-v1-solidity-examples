@@ -10,6 +10,11 @@ contract OFTV2Upgradeable is BaseOFTV2Upgradeable, ERC20Upgradeable, Proxied {
 
     uint internal ld2sdRate;
 
+    /// @custom:oz-upgrades-unsafe-allow constructor
+    constructor() {
+        _disableInitializers();
+    }
+
     function initialize(string memory _name, string memory _symbol, uint8 _sharedDecimals, address _lzEndpoint) public virtual initializer {
         __OFTV2Upgradeable_init(_name, _symbol, _sharedDecimals, _lzEndpoint);
     }
