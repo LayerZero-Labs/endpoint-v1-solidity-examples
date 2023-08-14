@@ -4,9 +4,9 @@ pragma solidity ^0.8.0;
 
 import "hardhat-deploy/solc_0.8/proxy/Proxied.sol";
 import "@openzeppelin/contracts-upgradeable/token/ERC20/ERC20Upgradeable.sol";
-import "./BaseOFTV2Upgradeable.sol";
+import "./BaseOFTWithFeeUpgradeable.sol";
 
-contract OFTV2Upgradeable is Initializable, BaseOFTV2Upgradeable, ERC20Upgradeable, Proxied {
+contract OFTWithFeeUpgradeable is Initializable, BaseOFTWithFeeUpgradeable, ERC20Upgradeable, Proxied {
 
     uint internal ld2sdRate;
 
@@ -16,18 +16,18 @@ contract OFTV2Upgradeable is Initializable, BaseOFTV2Upgradeable, ERC20Upgradeab
     }
 
     function initialize(string memory _name, string memory _symbol, uint8 _sharedDecimals, address _lzEndpoint) public virtual initializer {
-        __OFTV2Upgradeable_init(_name, _symbol, _sharedDecimals, _lzEndpoint);
+        __OFTWithFeeUpgradeable_init(_name, _symbol, _sharedDecimals, _lzEndpoint);
     }
 
-    function __OFTV2Upgradeable_init(string memory _name, string memory _symbol, uint8 _sharedDecimals, address _lzEndpoint) internal onlyInitializing {
-        __BaseOFTV2Upgradeable_init(_sharedDecimals, _lzEndpoint);
+    function __OFTWithFeeUpgradeable_init(string memory _name, string memory _symbol, uint8 _sharedDecimals, address _lzEndpoint) internal onlyInitializing {
+        __BaseOFTWithFeeUpgradeable_init(_sharedDecimals, _lzEndpoint);
         __ERC20_init(_name, _symbol);
-        __OFTV2Upgradeable_init_unchained(_sharedDecimals);
+        __OFTWithFeeUpgradeable_init_unchained(_sharedDecimals);
     }
 
-    function __OFTV2Upgradeable_init_unchained(uint8 _sharedDecimals) internal onlyInitializing {
+    function __OFTWithFeeUpgradeable_init_unchained(uint8 _sharedDecimals) internal onlyInitializing {
         uint8 decimals = decimals();
-        require(_sharedDecimals <= decimals, "OFT: sharedDecimals must be <= decimals");
+        require(_sharedDecimals <= decimals, "OFTWithFee: sharedDecimals must be <= decimals");
         ld2sdRate = 10 ** (decimals - _sharedDecimals);
     }
 
@@ -68,11 +68,4 @@ contract OFTV2Upgradeable is Initializable, BaseOFTV2Upgradeable, ERC20Upgradeab
     function _ld2sdRate() internal view virtual override returns (uint) {
         return ld2sdRate;
     }
-
-    /**
-     * @dev This empty reserved space is put in place to allow future versions to add new
-     * variables without shifting down storage in the inheritance chain.
-     * See https://docs.openzeppelin.com/contracts/4.x/upgradeable#storage_gaps
-     */
-    uint[49] private __gap;
 }
