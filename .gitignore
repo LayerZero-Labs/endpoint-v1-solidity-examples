@@ -108,6 +108,6 @@ package-lock.json
 .idea
 cache/
 artifacts/
-deployments/
+#deployments/
 .openzeppelin/
 
