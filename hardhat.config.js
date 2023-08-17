@@ -155,7 +155,7 @@ module.exports = {
       accounts: accounts(),
     },
 
-    'linea-mainnet': {
+    'linea': {
       url: "https://rpc.linea.build",
       chainId: 59144,
       accounts: accounts(),

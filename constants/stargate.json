@@ -65,7 +65,7 @@
     "optimism": "0x16419058f15a86795933f78dC624B384D09E3a4e",
     "fantom": "0x7eA8d498d4db3a8895454F4BF3bD56385ba80968",
     "base-mainnet": "0x6Ba1eb44B96e0F5e22a43611D9F65110a394247D",
-    "kava": "",
-    "linea": ""
+    "kava": "0x6Ba1eb44B96e0F5e22a43611D9F65110a394247D",
+    "linea": "0x6Ba1eb44B96e0F5e22a43611D9F65110a394247D"
   }
 }
