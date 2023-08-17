@@ -149,6 +149,18 @@ module.exports = {
       accounts: accounts(),
     },
 
+    'kava': {
+      url: "https://kava-rpc.gateway.pokt.network\t",
+      chainId: 2222,
+      accounts: accounts(),
+    },
+
+    'linea-mainnet': {
+      url: "https://rpc.linea.build",
+      chainId: 59144,
+      accounts: accounts(),
+    },
+
     goerli: {
       url: "https://goerli.infura.io/v3/9aa3d95b3bc440fa88ea12eaa4456161", // public infura endpoint
       chainId: 5,

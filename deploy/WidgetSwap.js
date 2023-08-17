@@ -19,8 +19,8 @@ module.exports = async function ({ deployments, getNamedAccounts }) {
         log: true,
         waitConfirmations: 1,
     })
-
-    await verify(hre.network.name, ["WidgetSwap"])
+    //
+    // await verify(hre.network.name, ["WidgetSwap"])
 }
 
 module.exports.tags = ["WidgetSwap"]
