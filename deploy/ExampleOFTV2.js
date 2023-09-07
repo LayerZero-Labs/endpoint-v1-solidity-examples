@@ -1,5 +1,5 @@
 const LZ_ENDPOINTS = require("../constants/layerzeroEndpoints.json")
-const {ethers} = require("hardhat");
+const { ethers } = require("hardhat")
 
 module.exports = async function ({ deployments, getNamedAccounts }) {
     const { deploy } = deployments
@@ -9,7 +9,7 @@ module.exports = async function ({ deployments, getNamedAccounts }) {
     const lzEndpointAddress = LZ_ENDPOINTS[hre.network.name]
     console.log(`[${hre.network.name}] Endpoint Address: ${lzEndpointAddress}`)
     const globalSupply = ethers.utils.parseUnits("1000000", 18)
-    const sharedDecimals = 6;
+    const sharedDecimals = 6
 
     await deploy("ExampleOFTV2", {
         from: deployer,

@@ -2,17 +2,17 @@ const CHAIN_ID = require("../constants/chainIds.json")
 const { getDeploymentAddresses } = require("../utils/readStatic")
 
 module.exports = async function (taskArgs, hre) {
-    let localContract, remoteContract;
+    let localContract, remoteContract
 
-    if(taskArgs.contract) {
-        localContract = taskArgs.contract;
-        remoteContract = taskArgs.contract;
+    if (taskArgs.contract) {
+        localContract = taskArgs.contract
+        remoteContract = taskArgs.contract
     } else {
-        localContract = taskArgs.localContract;
-        remoteContract = taskArgs.remoteContract;
+        localContract = taskArgs.localContract
+        remoteContract = taskArgs.remoteContract
     }
 
-    if(!localContract || !remoteContract) {
+    if (!localContract || !remoteContract) {
         console.log("Must pass in contract name OR pass in both localContract name and remoteContract name")
         return
     }
@@ -27,15 +27,12 @@ module.exports = async function (taskArgs, hre) {
     const remoteChainId = CHAIN_ID[taskArgs.targetNetwork]
 
     // concat remote and local address
-    let remoteAndLocal = hre.ethers.utils.solidityPack(
-        ['address','address'],
-        [remoteAddress, localContractInstance.address]
-    )
+    let remoteAndLocal = hre.ethers.utils.solidityPack(["address", "address"], [remoteAddress, localContractInstance.address])
 
     // check if pathway is already set
-    const isTrustedRemoteSet = await localContractInstance.isTrustedRemote(remoteChainId, remoteAndLocal);
+    const isTrustedRemoteSet = await localContractInstance.isTrustedRemote(remoteChainId, remoteAndLocal)
 
-    if(!isTrustedRemoteSet) {
+    if (!isTrustedRemoteSet) {
         try {
             let tx = await (await localContractInstance.setTrustedRemote(remoteChainId, remoteAndLocal)).wait()
             console.log(`✅ [${hre.network.name}] setTrustedRemote(${remoteChainId}, ${remoteAndLocal})`)

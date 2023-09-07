@@ -2,7 +2,7 @@
 
 pragma solidity >=0.5.0;
 
-import "../ICommonOFT.sol";
+import "../interfaces/ICommonOFT.sol";
 
 /**
  * @dev Interface of the IOFT core standard
