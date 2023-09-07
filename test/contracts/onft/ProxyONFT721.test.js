@@ -156,7 +156,7 @@ describe("ProxyONFT721: ", function () {
         await ERC721Src.mint(owner.address, tokenId)
         await expect(
             ProxyONFT_A.sendFrom(owner.address, chainId_B, owner.address, tokenId, owner.address, ethers.constants.AddressZero, defaultAdapterParams)
-        ).to.be.revertedWith("ERC721: caller is not token owner nor approved")
+        ).to.be.revertedWith("ERC721: caller is not token owner or approved")
     })
 
     it("sendFrom() - reverts if from is not msgSender", async function () {
@@ -339,7 +339,7 @@ describe("ProxyONFT721: ", function () {
                 ethers.constants.AddressZero,
                 defaultAdapterParams
             )
-        ).to.be.revertedWith("ERC721: caller is not token owner nor approved")
+        ).to.be.revertedWith("ERC721: caller is not token owner or approved")
         await expect(
             ProxyONFT_A.connect(warlock).sendFrom(
                 warlock.address,
@@ -350,7 +350,7 @@ describe("ProxyONFT721: ", function () {
                 ethers.constants.AddressZero,
                 defaultAdapterParams
             )
-        ).to.be.revertedWith("ERC721: caller is not token owner nor approved")
+        ).to.be.revertedWith("ERC721: caller is not token owner or approved")
     })
 
     it("sendFrom() - reverts if sender does not own token", async function () {
