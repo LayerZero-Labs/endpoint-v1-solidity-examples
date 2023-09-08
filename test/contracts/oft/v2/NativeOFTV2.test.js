@@ -1,7 +1,7 @@
 const { expect } = require("chai")
 const { ethers } = require("hardhat")
 
-describe.only("NativeOFTV2: ", function () {
+describe("NativeOFTV2: ", function () {
     const localChainId = 1
     const remoteChainId = 2
     const name = "NativeOFTV2"

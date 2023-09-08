@@ -147,7 +147,7 @@ describe("ProxyONFT1155: ", function () {
 
         await expect(
             ProxyONFT_A.sendFrom(owner.address, chainId_B, owner.address, tokenId, amount, owner.address, ethers.constants.AddressZero, "0x")
-        ).to.be.revertedWith("ERC1155: caller is not token owner nor approved")
+        ).to.be.revertedWith("ERC1155: caller is not token owner or approved")
     })
 
     it("sendFrom() - reverts if from is not msgSender", async function () {
@@ -194,7 +194,7 @@ describe("ProxyONFT1155: ", function () {
                 ethers.constants.AddressZero,
                 "0x"
             )
-        ).to.be.revertedWith("ERC1155: caller is not token owner nor approved")
+        ).to.be.revertedWith("ERC1155: caller is not token owner or approved")
         await expect(
             ProxyONFT_A.connect(warlock).sendFrom(
                 warlock.address,
@@ -206,7 +206,7 @@ describe("ProxyONFT1155: ", function () {
                 ethers.constants.AddressZero,
                 "0x"
             )
-        ).to.be.revertedWith("ERC1155: caller is not token owner nor approved")
+        ).to.be.revertedWith("ERC1155: caller is not token owner or approved")
     })
 
     it("sendFrom() - on non proxy", async function () {
@@ -459,7 +459,7 @@ describe("ProxyONFT1155: ", function () {
                 ethers.constants.AddressZero,
                 "0x"
             )
-        ).to.be.revertedWith("ERC1155: caller is not token owner nor approved")
+        ).to.be.revertedWith("ERC1155: caller is not token owner or approved")
     })
 
     it("sendBatch() - reverts if mismatched amounts and tokenIds", async function () {
