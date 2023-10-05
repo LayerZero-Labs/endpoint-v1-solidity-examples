@@ -1,5 +1,5 @@
 const CHAIN_ID = require("../constants/chainIds.json")
-const ENDPOINTS = require("../constants/layerzeroEndpoints.json");
+const ENDPOINTS = require("../constants/layerzeroEndpoints.json")
 
 module.exports = async function (taskArgs, hre) {
     const remoteChainId = CHAIN_ID[taskArgs.targetNetwork]
@@ -12,12 +12,7 @@ module.exports = async function (taskArgs, hre) {
     let fees = await endpoint.estimateFees(remoteChainId, omniCounter.address, "0x", false, adapterParams)
     console.log(`fees[0] (wei): ${fees[0]} / (eth): ${ethers.utils.formatEther(fees[0])}`)
 
-    let tx = await (
-        await omniCounter.incrementCounter(
-            remoteChainId,
-            { value: fees[0] }
-        )
-    ).wait()
+    let tx = await (await omniCounter.incrementCounter(remoteChainId, { value: fees[0] })).wait()
     console.log(`✅ Message Sent [${hre.network.name}] incrementCounter on destination OmniCounter @ [${remoteChainId}]`)
     console.log(`tx: ${tx.transactionHash}`)
 

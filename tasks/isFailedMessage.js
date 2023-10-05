@@ -1,12 +1,9 @@
 module.exports = async function (taskArgs, hre) {
-    console.log({taskArgs})
+    console.log({ taskArgs })
     const nonBlockingApp = await ethers.getContractAt("NonblockingLzApp", taskArgs.desAddress)
 
     // concat remote and local address
-    let remoteAndLocal = hre.ethers.utils.solidityPack(
-        ['address','address'],
-        [taskArgs.srcAddress, taskArgs.desAddress]
-    )
+    let remoteAndLocal = hre.ethers.utils.solidityPack(["address", "address"], [taskArgs.srcAddress, taskArgs.desAddress])
 
     let bool = await nonBlockingApp.failedMessages(taskArgs.srcChainId, remoteAndLocal, taskArgs.nonce)
     console.log(`failedMessages: ${bool}`)

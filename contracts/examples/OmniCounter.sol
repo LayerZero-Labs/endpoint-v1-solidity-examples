@@ -12,11 +12,20 @@ contract OmniCounter is NonblockingLzApp {
 
     constructor(address _lzEndpoint) NonblockingLzApp(_lzEndpoint) {}
 
-    function _nonblockingLzReceive(uint16, bytes memory, uint64, bytes memory) internal override {
+    function _nonblockingLzReceive(
+        uint16,
+        bytes memory,
+        uint64,
+        bytes memory
+    ) internal override {
         counter += 1;
     }
 
-    function estimateFee(uint16 _dstChainId, bool _useZro, bytes calldata _adapterParams) public view returns (uint nativeFee, uint zroFee) {
+    function estimateFee(
+        uint16 _dstChainId,
+        bool _useZro,
+        bytes calldata _adapterParams
+    ) public view returns (uint nativeFee, uint zroFee) {
         return lzEndpoint.estimateFees(_dstChainId, address(this), PAYLOAD, _useZro, _adapterParams);
     }
 

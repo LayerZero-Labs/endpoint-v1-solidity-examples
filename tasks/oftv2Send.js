@@ -3,25 +3,25 @@ const CHAIN_ID = require("../constants/chainIds.json")
 module.exports = async function (taskArgs, hre) {
     let signers = await ethers.getSigners()
     let owner = signers[0]
-    let toAddress = owner.address;
+    let toAddress = owner.address
     let qty = ethers.utils.parseEther(taskArgs.qty)
 
-    let localContract, remoteContract;
+    let localContract, remoteContract
 
-    if(taskArgs.contract) {
-        localContract = taskArgs.contract;
-        remoteContract = taskArgs.contract;
+    if (taskArgs.contract) {
+        localContract = taskArgs.contract
+        remoteContract = taskArgs.contract
     } else {
-        localContract = taskArgs.localContract;
-        remoteContract = taskArgs.remoteContract;
+        localContract = taskArgs.localContract
+        remoteContract = taskArgs.remoteContract
     }
 
-    if(!localContract || !remoteContract) {
+    if (!localContract || !remoteContract) {
         console.log("Must pass in contract name OR pass in both localContract name and remoteContract name")
         return
     }
 
-    let toAddressBytes = ethers.utils.defaultAbiCoder.encode(['address'],[toAddress])
+    let toAddressBytes = ethers.utils.defaultAbiCoder.encode(["address"], [toAddress])
 
     // get remote chain id
     const remoteChainId = CHAIN_ID[taskArgs.targetNetwork]
@@ -37,10 +37,10 @@ module.exports = async function (taskArgs, hre) {
 
     let tx = await (
         await localContractInstance.sendFrom(
-            owner.address,                 // 'from' address to send tokens
-            remoteChainId,                 // remote LayerZero chainId
-            toAddressBytes,                     // 'to' address to send tokens
-            qty,                           // amount of tokens to send (in wei)
+            owner.address, // 'from' address to send tokens
+            remoteChainId, // remote LayerZero chainId
+            toAddressBytes, // 'to' address to send tokens
+            qty, // amount of tokens to send (in wei)
             [owner.address, ethers.constants.AddressZero, "0x"],
             { value: fees[0] }
         )

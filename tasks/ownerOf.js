@@ -7,7 +7,7 @@ module.exports = async function (taskArgs, hre) {
         console.log(`✅ [${hre.network.name}] ownerOf(${tokenId})`)
         console.log(` Owner address: ${address}`)
     } catch (e) {
-        if(e?.reason) {
+        if (e?.reason) {
             console.log(e.reason)
         } else {
             console.log(e)

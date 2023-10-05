@@ -4,7 +4,7 @@ module.exports = {
             files: "*.sol",
             options: {
                 bracketSpacing: false,
-                printWidth: 300,
+                printWidth: 145,
                 tabWidth: 4,
                 useTabs: false,
                 singleQuote: false,
