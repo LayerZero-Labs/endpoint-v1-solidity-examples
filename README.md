@@ -35,23 +35,23 @@ If the decimal point is 18, then uint64 can only represent approximately 18 toke
 1. Add a .env file (to the root project directory) with your MNEMONIC="" and fund your wallet in order to deploy!
 2. Follow any of the tutorials below
 
-## OFTV2.sol - an omnichain ERC20
+## OFTV2Mock.sol - an omnichain ERC20
 
-> WARNING: **You must perform the setTrustedRemote() (step 2).**
+> WARNING: **You must perform the setTrustedRemote() (step 2). This is a mock deployment that auto mints tokens to msg.sender**
 
 1. Deploy two contracts:
 ```angular2html
-npx hardhat --network goerli deploy --tags ExampleOFTV2
-npx hardhat --network fuji deploy --tags ExampleOFTV2
+npx hardhat --network goerli deploy --tags OFTV2Mock
+npx hardhat --network fuji deploy --tags OFTV2Mock
 ```
 2. Set the "trusted remotes" (ie: your contracts) so each of them can receive messages from one another, and `only` one another.
 ```angular2html
-npx hardhat --network goerli setTrustedRemote --target-network fuji --contract ExampleOFTV2
-npx hardhat --network fuji setTrustedRemote --target-network goerli --contract ExampleOFTV2
+npx hardhat --network goerli setTrustedRemote --target-network fuji --contract OFTV2Mock
+npx hardhat --network fuji setTrustedRemote --target-network goerli --contract OFTV2Mock
 ```
 3. Send tokens from goerli to fuji
 ```angular2html
-npx hardhat --network goerli oftv2Send --target-network fuji --qty 42 --contract ExampleOFTV2
+npx hardhat --network goerli oftv2Send --target-network fuji --qty 42 --contract OFTV2Mock
 ```
  Pro-tip: Check the ERC20 transactions tab of the destination chain block explorer and await your tokens!
 
@@ -59,44 +59,44 @@ npx hardhat --network goerli oftv2Send --target-network fuji --qty 42 --contract
 
 This ONFT contract allows minting of `nftId`s on separate chains. To ensure two chains can not mint the same `nfId` each contract on each chain is only allowed to mint`nftIds` in certain ranges.
 Check `constants/onftArgs.json` for the specific test configuration used in this demo.
-## UniversalONFT.sol 
+## ONFT721Mock.sol 
 
 > WARNING: **You must perform the setTrustedRemote() (step 2).**
 
 1. Deploy two contracts:
 ```angular2html
- npx hardhat --network bsc-testnet deploy --tags ExampleUniversalONFT721
- npx hardhat --network fuji deploy --tags ExampleUniversalONFT721
+ npx hardhat --network bsc-testnet deploy --tags ONFT721Mock
+ npx hardhat --network fuji deploy --tags ONFT721Mock
 ```
 2. Set the "trusted remotes", so each contract can send & receive messages from one another, and `only` one another.
 ```angular2html
-npx hardhat --network bsc-testnet setTrustedRemote --target-network fuji --contract ExampleUniversalONFT721
-npx hardhat --network fuji setTrustedRemote --target-network bsc-testnet --contract ExampleUniversalONFT721
+npx hardhat --network bsc-testnet setTrustedRemote --target-network fuji --contract ONFT721Mock
+npx hardhat --network fuji setTrustedRemote --target-network bsc-testnet --contract ONFT721Mock
 ```
 3. Set the min gas required on the destination
 ```angular2html
-npx hardhat --network bsc-testnet setMinDstGas --target-network fuji --contract ExampleUniversalONFT721 --packet-type 1 --min-gas 100000
-npx hardhat --network fuji setMinDstGas --target-network bsc-testnet --contract ExampleUniversalONFT721 --packet-type 1 --min-gas 100000
+npx hardhat --network bsc-testnet setMinDstGas --target-network fuji --contract ONFT721Mock --packet-type 1 --min-gas 100000
+npx hardhat --network fuji setMinDstGas --target-network bsc-testnet --contract ONFT721Mock --packet-type 1 --min-gas 100000
 ```
 4. Mint an NFT on each chain!
 ```angular2html
-npx hardhat --network bsc-testnet onftMint --contract ExampleUniversalONFT721
-npx hardhat --network fuji onftMint --contract ExampleUniversalONFT721
+npx hardhat --network bsc-testnet onftMint --contract ONFT721Mock
+npx hardhat --network fuji onftMint --contract ONFT721Mock
 ```
 5. [Optional] Show the token owner(s)
 ```angular2html
-npx hardhat --network bsc-testnet ownerOf --token-id 1 --contract ExampleUniversalONFT721
-npx hardhat --network fuji ownerOf --token-id 11 --contract ExampleUniversalONFT721
+npx hardhat --network bsc-testnet ownerOf --token-id 1 --contract ONFT721Mock
+npx hardhat --network fuji ownerOf --token-id 11 --contract ONFT721Mock
 ```
 6. Send ONFT across chains
 ```angular2html
-npx hardhat --network bsc-testnet onftSend --target-network fuji --token-id 1 --contract ExampleUniversalONFT721
-npx hardhat --network fuji onftSend --target-network bsc-testnet --token-id 11 --contract ExampleUniversalONFT721 
+npx hardhat --network bsc-testnet onftSend --target-network fuji --token-id 1 --contract ONFT721Mock
+npx hardhat --network fuji onftSend --target-network bsc-testnet --token-id 11 --contract ONFT721Mock 
 ```
 7. Verify your token no longer exists in your wallet on the source chain & wait for it to reach the destination side.
 ```angular2html
-npx hardhat --network bsc-testnet ownerOf --token-id 1 --contract ExampleUniversalONFT721
-npx hardhat --network fuji ownerOf --token-id 1 --contract ExampleUniversalONFT721
+npx hardhat --network bsc-testnet ownerOf --token-id 1 --contract ONFT721Mock
+npx hardhat --network fuji ownerOf --token-id 1 --contract ONFT721Mock
 ```
 
 
@@ -128,15 +128,11 @@ npx hardhat --network fuji ocPoll
 
 # Check your setTrustedRemote's are wired up correctly
 Just use our checkWireUpAll task to check if your contracts are wired up correctly. You can use it on the example contracts deployed above.
-1) ExampleBasedOFT and ExampleOFT
+1) UniversalONFT
 ```angular2html
-npx hardhat checkWireUpAll --e testnet --contract ExampleOFT --proxy-contract ExampleBasedOFT --proxy-chain goerli
+npx hardhat checkWireUpAll --e testnet --contract ONFT721Mock
 ```
-2) UniversalONFT
-```angular2html
-npx hardhat checkWireUpAll --e testnet --contract ExampleUniversalONFT721
-```
-3) OmniCounter
+2) OmniCounter
 ```angular2html
 npx hardhat checkWireUpAll --e testnet --contract OmniCounter
 ```
