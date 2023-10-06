@@ -11,8 +11,6 @@ module.exports = async function (taskArgs, hre) {
     let tx = await (
         await pingPong.ping(
             dstChainId,
-            dstPingPongAddr,
-            0 // start at 0 pings counter
         )
     ).wait()
     console.log(`✅ Pings started! [${hre.network.name}] pinging with target chain [${dstChainId}] @ [${dstPingPongAddr}]`)
