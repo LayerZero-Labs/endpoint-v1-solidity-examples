@@ -58,7 +58,7 @@ npx hardhat --network goerli oftv2Send --target-network fuji --qty 42 --contract
 # OmnichainNonFungibleToken721 (ONFT721)
 
 This ONFT contract allows minting of `nftId`s on separate chains. To ensure two chains can not mint the same `nfId` each contract on each chain is only allowed to mint`nftIds` in certain ranges.
-Check `constants/onftArgs.json` for the specific test configuration used in this demo.
+Check the `ONFT_ARGS` constant defined in ONFT721 deploy script for the specific test configuration used in this demo.
 ## ONFT721Mock.sol 
 
 > WARNING: **You must perform the setTrustedRemote() (step 2).**

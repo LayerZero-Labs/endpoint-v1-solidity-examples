@@ -1,5 +1,19 @@
 const LZ_ENDPOINTS = require("../constants/layerzeroEndpoints.json")
-const ONFT_ARGS = require("../constants/onftArgs.json")
+const ONFT_ARGS = {
+    "bsc-testnet": {
+        "startMintId": 1,
+        "endMintId": 10
+    },
+    "fuji": {
+        "startMintId": 11,
+        "endMintId": 20
+    },
+    "goerli": {
+        "startMintId": 21,
+        "endMintId": 30
+    }
+}
+
 
 module.exports = async function ({ deployments, getNamedAccounts }) {
     const { deploy } = deployments
