@@ -42,10 +42,9 @@ task("pingPongSetTrustedRemote", "set the trusted remote", require("./pingPongSe
     "the targetNetwork to set as trusted"
 )
 
-task("ping", "call ping to start the pingPong with the target network", require("./ping")).addParam(
-    "targetNetwork",
-    "the targetNetwork to commence pingponging with"
-)
+task("ping", "call ping to start the pingPong with the target network", require("./ping"))
+    .addParam("targetNetwork", "the targetNetwork to commence pingponging with")
+    .addOptionalParam("n", "number of pings to send", 2, types.int)
 
 task("getSigners", "show the signers of the current mnemonic", require("./getSigners")).addOptionalParam("n", "how many to show", 3, types.int)
 
