@@ -11,7 +11,7 @@
  ### Install & Run tests
 ```shell
 yarn install
-npx hardhat test 
+yarn test
 ```
 
 * The code in the `/contracts` folder demonstrates LayerZero behaviours.
