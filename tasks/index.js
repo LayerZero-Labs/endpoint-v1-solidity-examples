@@ -96,6 +96,11 @@ task(
     .addOptionalParam("contract", "If both contracts are the same name")
 
 //
+task("oftMint", "mint tokens", require("./oftMint"))
+    .addParam("toAddress", "address to mint to")
+    .addParam("qty", "qty of tokens to mint")
+
+//
 task("oftSend", "send tokens to another chain", require("./oftSend"))
     .addParam("qty", "qty of tokens to send")
     .addParam("targetNetwork", "the target network to let this instance receive messages from")

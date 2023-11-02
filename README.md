@@ -40,13 +40,13 @@ If the decimal point is 18, then uint64 can only represent approximately 18 toke
 
 ## OFTV2Mock.sol - an omnichain ERC20
 
-> :warning: **You must perform `setTrustedRemote()` (step 2). This is a mock deployment that auto mints tokens to `msg.sender`**
+:warning: **You must perform `setTrustedRemote()` (step 2). This is a mock deployment that auto mints tokens to `msg.sender`**
 
 1. Deploy two contracts:
 
 ```shell
-npx hardhat --network goerli deploy --tags OFTV2Mock
-npx hardhat --network fuji deploy --tags OFTV2Mock
+npx hardhat --network goerli deploy --tags ExampleOFTV2
+npx hardhat --network fuji deploy --tags ExampleOFTV2
 ```
 
 2. Set the "trusted remotes" (ie: your contracts) so each of them can receive messages from one another, and `only` one another.
@@ -56,7 +56,16 @@ npx hardhat --network goerli setTrustedRemote --target-network fuji --contract O
 npx hardhat --network fuji setTrustedRemote --target-network goerli --contract OFTV2Mock
 ```
 
-3. Send tokens from goerli to fuji
+3. Set the "minDstGas" required on the destination chain.
+
+```shell
+npx hardhat --network goerli setMinDstGas --packet-type 0 --target-network fuji --contract OFTV2Mock --min-gas 100000
+npx hardhat --network fuji setMinDstGas --packet-type 0 --target-network goerli --contract OFTV2Mock --min-gas 100000
+```
+
+:warning: Although `100000` is used for `min-gas` in this example, you should set this value based on careful gas consumption analysis.
+
+4. Send tokens from goerli to fuji
 
 ```shell
 npx hardhat --network goerli oftv2Send --target-network fuji --qty 42 --contract OFTV2Mock
@@ -71,13 +80,13 @@ Check the `ONFT_ARGS` constant defined in ONFT721 deploy script for the specific
 
 ## ONFT721Mock.sol 
 
-> :warning: **You must perform the `setTrustedRemote()` (step 2).**
+:warning: **You must perform the `setTrustedRemote()` (step 2).**
 
 1. Deploy two contracts:
 
 ```shell
- npx hardhat --network bsc-testnet deploy --tags ONFT721Mock
- npx hardhat --network fuji deploy --tags ONFT721Mock
+npx hardhat --network bsc-testnet deploy --tags ONFT721
+npx hardhat --network fuji deploy --tags ONFT721
 ```
 
 2. Set the "trusted remotes", so each contract can send & receive messages from one another, and **only** one another.
