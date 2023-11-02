@@ -2,7 +2,7 @@ module.exports = async function (taskArgs, hre) {
     let contract = await ethers.getContract(taskArgs.contract)
 
     try {
-        let tx = await (await contract.mint()).wait()
+        let tx = await (await contract.mint(taskArgs.toAddress, taskArgs.tokenId)).wait()
         console.log(`✅ [${hre.network.name}] mint()`)
         console.log(` tx: ${tx.transactionHash}`)
         let onftTokenId = await ethers.provider.getTransactionReceipt(tx.transactionHash)
@@ -15,6 +15,3 @@ module.exports = async function (taskArgs, hre) {
         }
     }
 }
-
-// npx hardhat --network bsc-testnet onftMint --contract ExampleUniversalONFT721
-// npx hardhat --network fuji onftMint --contract ExampleUniversalONFT721
