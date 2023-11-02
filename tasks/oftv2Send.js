@@ -41,7 +41,11 @@ module.exports = async function (taskArgs, hre) {
             remoteChainId, // remote LayerZero chainId
             toAddressBytes, // 'to' address to send tokens
             qty, // amount of tokens to send (in wei)
-            [owner.address, ethers.constants.AddressZero, "0x"],
+            {
+                refundAddress: owner.address,
+                zroPaymentAddress: ethers.constants.AddressZero,
+                adapterParams,
+            },
             { value: fees[0] }
         )
     ).wait()
