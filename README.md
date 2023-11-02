@@ -106,8 +106,8 @@ npx hardhat --network fuji setMinDstGas --target-network bsc-testnet --contract 
 4. Mint an NFT on each chain!
 
 ```shell
-npx hardhat --network bsc-testnet onftMint --contract ONFT721Mock
-npx hardhat --network fuji onftMint --contract ONFT721Mock
+npx hardhat --network bsc-testnet onftMint --contract ONFT721Mock --to-address <address> --token-id 1
+npx hardhat --network fuji onftMint --contract ONFT721Mock --to-address <address> --token-id 11
 ```
 
 5. [Optional] Show the token owner(s)

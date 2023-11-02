@@ -117,7 +117,10 @@ task("oftv2Send", "send tokens to another chain", require("./oftv2Send"))
     .addOptionalParam("contract", "If both contracts are the same name")
 
 //
-task("onftMint", "mint() mint ONFT", require("./onftMint")).addParam("contract", "Name of contract")
+task("onftMint", "mint() mint ONFT", require("./onftMint"))
+    .addParam("toAddress", "address to mint the ONFT to")
+    .addParam("tokenId", "the tokenId of the ONFT")
+    .addParam("contract", "Name of contract")
 
 //
 task("ownerOf", "ownerOf(tokenId) to get the owner of a token", require("./ownerOf"))
