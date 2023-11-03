@@ -6,10 +6,11 @@ module.exports = async function (taskArgs, hre) {
     const omniCounter = await ethers.getContract("OmniCounter")
 
     // quote fee with default adapterParams
-    let adapterParams = ethers.utils.solidityPack(["uint16", "uint256"], [1, 200000]) // default adapterParams example
+    const adapterParams = ethers.utils.solidityPack(["uint16", "uint256"], [1, 200000]) // default adapterParams example
 
+    const payload = await omniCounter.PAYLOAD()
     const endpoint = await ethers.getContractAt("ILayerZeroEndpoint", ENDPOINTS[hre.network.name])
-    let fees = await endpoint.estimateFees(remoteChainId, omniCounter.address, "0x", false, adapterParams)
+    const fees = await endpoint.estimateFees(remoteChainId, omniCounter.address, payload, false, adapterParams)
     console.log(`fees[0] (wei): ${fees[0]} / (eth): ${ethers.utils.formatEther(fees[0])}`)
 
     let tx = await (await omniCounter.incrementCounter(remoteChainId, { value: fees[0] })).wait()
