@@ -65,18 +65,19 @@ contract NativeOFTWithFee is OFTWithFee, ReentrancyGuard {
 
     function _debitFromNative(address _from, uint _amount, uint16 _dstChainId) internal returns (uint messageFee, uint amount) {
         uint fee = quoteOFTFee(_dstChainId, _amount);
+        uint newMsgValue = msg.value;
 
-        // subtract fee from _amount
-        _amount -= fee;
+        if(fee > 0) {
+            // subtract fee from _amount
+            _amount -= fee;
 
-        // pay fee and update newMsgValue
-        uint newMsgValue;
-        if(balanceOf(_from) > fee) {
-            _transferFrom(_from, feeOwner, fee);
-            newMsgValue = msg.value;
-        } else {
-            _mint(feeOwner, fee);
-            newMsgValue = msg.value - fee;
+            // pay fee and update newMsgValue
+            if(balanceOf(_from) >= fee) {
+                _transferFrom(_from, feeOwner, fee);
+            } else {
+                _mint(feeOwner, fee);
+                newMsgValue = msg.value - fee;
+            }
         }
 
         (amount,) = _removeDust(_amount);
