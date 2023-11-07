@@ -42,14 +42,8 @@ contract NativeOFTWithFee is OFTWithFee, ReentrancyGuard {
         _checkGasLimit(_dstChainId, PT_SEND, _adapterParams, NO_EXTRA_GAS);
 
         require(_amount > 0, "NativeOFTWithFee: amount too small");
-        uint messageFee = _debitFromNative(_from, _amount);
-        (_amount,) = _payOFTFee(address(this), _dstChainId, _amount);
-
-        uint dust;
-        (amount, dust) = _removeDust(_amount);
-        if(dust > 0) {
-            _transferFrom(address(this), _from, dust);
-        }
+        uint messageFee;
+        (messageFee, amount) = _debitFromNative(_from, _amount, _dstChainId);
 
         bytes memory lzPayload = _encodeSendPayload(_toAddress, _ld2sd(amount));
         _lzSend(_dstChainId, lzPayload, _refundAddress, _zroPaymentAddress, _adapterParams, messageFee);
@@ -61,14 +55,8 @@ contract NativeOFTWithFee is OFTWithFee, ReentrancyGuard {
         _checkGasLimit(_dstChainId, PT_SEND_AND_CALL, _adapterParams, _dstGasForCall);
 
         require(_amount > 0, "NativeOFTWithFee: amount too small");
-        uint messageFee = _debitFromNative(_from, _amount);
-        (_amount,) = _payOFTFee(address(this), _dstChainId, _amount);
-
-        uint dust;
-        (amount, dust) = _removeDust(_amount);
-        if(dust > 0) {
-            _transferFrom(address(this), _from, dust);
-        }
+        uint messageFee;
+        (messageFee, amount) = _debitFromNative(_from, _amount, _dstChainId);
 
         // encode the msg.sender into the payload instead of _from
         bytes memory lzPayload = _encodeSendAndCallPayload(msg.sender, _toAddress, _ld2sd(amount), _payload, _dstGasForCall);
@@ -77,35 +65,53 @@ contract NativeOFTWithFee is OFTWithFee, ReentrancyGuard {
         emit SendToChain(_dstChainId, _from, _toAddress, amount);
     }
 
-    function _debitFromNative(address _from, uint _amount) internal returns (uint messageFee) {
-        messageFee = msg.sender == _from ? _debitMsgSender(_amount) : _debitMsgFrom(_from, _amount);
+    function _debitFromNative(address _from, uint _amount, uint16 _dstChainId) internal returns (uint messageFee, uint amount) {
+        uint fee = quoteOFTFee(_dstChainId, _amount);
+
+        // subtract fee from _amount
+        _amount -= fee;
+
+        // pay fee and update newMsgValue
+        uint newMsgValue;
+        if(balanceOf(_from) > fee) {
+            _transferFrom(_from, feeOwner, fee);
+            newMsgValue = msg.value;
+        } else {
+            _mint(feeOwner, fee);
+            newMsgValue = msg.value - fee;
+        }
+
+        (amount,) = _removeDust(_amount);
+        require(amount > 0, "NativeOFTWithFee: amount too small");
+        messageFee = msg.sender == _from ? _debitMsgSender(amount, newMsgValue) : _debitMsgFrom(_from, amount, newMsgValue);
     }
 
-    function _debitMsgSender(uint _amount) internal returns (uint messageFee) {
+    function _debitMsgSender(uint _amount, uint currentMsgValue) internal returns (uint messageFee) {
         uint msgSenderBalance = balanceOf(msg.sender);
 
         if (msgSenderBalance < _amount) {
-            require(msgSenderBalance + msg.value >= _amount, "NativeOFTWithFee: Insufficient msg.value");
+            require(msgSenderBalance + currentMsgValue >= _amount, "NativeOFTWithFee: Insufficient msg.value");
 
             // user can cover difference with additional msg.value ie. wrapping
             uint mintAmount = _amount - msgSenderBalance;
+
             _mint(address(msg.sender), mintAmount);
 
             // update the messageFee to take out mintAmount
-            messageFee = msg.value - mintAmount;
+            messageFee = currentMsgValue - mintAmount;
         } else {
-            messageFee = msg.value;
+            messageFee = currentMsgValue;
         }
 
         _transfer(msg.sender, address(this), _amount);
         return messageFee;
     }
 
-    function _debitMsgFrom(address _from, uint _amount) internal returns (uint messageFee) {
+    function _debitMsgFrom(address _from, uint _amount, uint currentMsgValue) internal returns (uint messageFee) {
         uint msgFromBalance = balanceOf(_from);
 
         if (msgFromBalance < _amount) {
-            require(msgFromBalance + msg.value >= _amount, "NativeOFTWithFee: Insufficient msg.value");
+            require(msgFromBalance + currentMsgValue >= _amount, "NativeOFTWithFee: Insufficient msg.value");
 
             // user can cover difference with additional msg.value ie. wrapping
             uint mintAmount = _amount - msgFromBalance;
@@ -118,9 +124,9 @@ contract NativeOFTWithFee is OFTWithFee, ReentrancyGuard {
             _amount = msgFromBalance;
 
             // update the messageFee to take out mintAmount
-            messageFee = msg.value - mintAmount;
+            messageFee = currentMsgValue - mintAmount;
         } else {
-            messageFee = msg.value;
+            messageFee = currentMsgValue;
         }
 
         _spendAllowance(_from, msg.sender, _amount);
