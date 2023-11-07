@@ -76,7 +76,7 @@ contract NativeOFTWithFee is OFTWithFee, ReentrancyGuard {
                 _transferFrom(_from, feeOwner, fee);
             } else {
                 _mint(feeOwner, fee);
-                newMsgValue = msg.value - fee;
+                newMsgValue -= fee;
             }
         }
 
