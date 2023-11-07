@@ -41,7 +41,6 @@ contract NativeOFTWithFee is OFTWithFee, ReentrancyGuard {
     function _send(address _from, uint16 _dstChainId, bytes32 _toAddress, uint _amount, address payable _refundAddress, address _zroPaymentAddress, bytes memory _adapterParams) internal virtual override returns (uint amount) {
         _checkGasLimit(_dstChainId, PT_SEND, _adapterParams, NO_EXTRA_GAS);
 
-        require(_amount > 0, "NativeOFTWithFee: amount too small");
         uint messageFee;
         (messageFee, amount) = _debitFromNative(_from, _amount, _dstChainId);
 
@@ -54,7 +53,6 @@ contract NativeOFTWithFee is OFTWithFee, ReentrancyGuard {
     function _sendAndCall(address _from, uint16 _dstChainId, bytes32 _toAddress, uint _amount, bytes memory _payload, uint64 _dstGasForCall, address payable _refundAddress, address _zroPaymentAddress, bytes memory _adapterParams) internal virtual override returns (uint amount) {
         _checkGasLimit(_dstChainId, PT_SEND_AND_CALL, _adapterParams, _dstGasForCall);
 
-        require(_amount > 0, "NativeOFTWithFee: amount too small");
         uint messageFee;
         (messageFee, amount) = _debitFromNative(_from, _amount, _dstChainId);
 
