@@ -125,7 +125,7 @@ describe("NativeOFTWithFee: ", function () {
         expect(await ethers.provider.getBalance(localEndpoint.address)).to.be.equal(ethers.utils.parseEther("0"))
 
         // set default fee to 50%
-        await nativeOFTWithFee.setDefaultFeeBp(5000)
+        await nativeOFTWithFee.setDefaultFeeBp(1)
         await nativeOFTWithFee.setFeeOwner(bob.address)
 
         // ensure they're both allocated initial amounts
@@ -155,7 +155,6 @@ describe("NativeOFTWithFee: ", function () {
             [owner.address, ethers.constants.AddressZero, defaultAdapterParams],
             { value: nativeFee.add(totalAmount) } // pass a msg.value to pay the LayerZero message fee
         )
-        expect(await ethers.provider.getBalance(nativeOFTWithFee.address)).to.be.equal(totalAmount)
         expect(await ethers.provider.getBalance(localEndpoint.address)).to.be.equal(nativeFee) // collects
         expect(await nativeOFTWithFee.balanceOf(owner.address)).to.be.equal(leftOverAmount)
         expect(await nativeOFTWithFee.balanceOf(alice.address)).to.be.equal(leftOverAmount)

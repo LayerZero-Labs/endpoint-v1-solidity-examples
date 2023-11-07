@@ -30,22 +30,26 @@ contract NativeOFTWithFee is OFTWithFee, ReentrancyGuard {
     ************************************************************************/
     function sendFrom(address _from, uint16 _dstChainId, bytes32 _toAddress, uint _amount, uint _minAmount, LzCallParams calldata _callParams) public payable virtual override {
         _amount = _send(_from, _dstChainId, _toAddress, _amount, _callParams.refundAddress, _callParams.zroPaymentAddress, _callParams.adapterParams);
-        (_amount,) = _payOFTFee(address(this), _dstChainId, _amount);
         require(_amount >= _minAmount, "BaseOFTWithFee: amount is less than minAmount");
     }
 
     function sendAndCall(address _from, uint16 _dstChainId, bytes32 _toAddress, uint _amount, uint _minAmount, bytes calldata _payload, uint64 _dstGasForCall, LzCallParams calldata _callParams) public payable virtual override {
         _amount = _sendAndCall(_from, _dstChainId, _toAddress, _amount, _payload, _dstGasForCall, _callParams.refundAddress, _callParams.zroPaymentAddress, _callParams.adapterParams);
-        (_amount,) = _payOFTFee(address(this), _dstChainId, _amount);
         require(_amount >= _minAmount, "BaseOFTWithFee: amount is less than minAmount");
     }
 
     function _send(address _from, uint16 _dstChainId, bytes32 _toAddress, uint _amount, address payable _refundAddress, address _zroPaymentAddress, bytes memory _adapterParams) internal virtual override returns (uint amount) {
         _checkGasLimit(_dstChainId, PT_SEND, _adapterParams, NO_EXTRA_GAS);
 
-        (amount,) = _removeDust(_amount);
-        require(amount > 0, "NativeOFTWithFee: amount too small");
-        uint messageFee = _debitFromNative(_from, amount);
+        require(_amount > 0, "NativeOFTWithFee: amount too small");
+        uint messageFee = _debitFromNative(_from, _amount);
+        (_amount,) = _payOFTFee(address(this), _dstChainId, _amount);
+
+        uint dust;
+        (amount, dust) = _removeDust(_amount);
+        if(dust > 0) {
+            _transferFrom(address(this), _from, dust);
+        }
 
         bytes memory lzPayload = _encodeSendPayload(_toAddress, _ld2sd(amount));
         _lzSend(_dstChainId, lzPayload, _refundAddress, _zroPaymentAddress, _adapterParams, messageFee);
@@ -56,9 +60,15 @@ contract NativeOFTWithFee is OFTWithFee, ReentrancyGuard {
     function _sendAndCall(address _from, uint16 _dstChainId, bytes32 _toAddress, uint _amount, bytes memory _payload, uint64 _dstGasForCall, address payable _refundAddress, address _zroPaymentAddress, bytes memory _adapterParams) internal virtual override returns (uint amount) {
         _checkGasLimit(_dstChainId, PT_SEND_AND_CALL, _adapterParams, _dstGasForCall);
 
-        (amount,) = _removeDust(_amount);
-        require(amount > 0, "NativeOFTWithFee: amount too small");
-        uint messageFee = _debitFromNative(_from, amount);
+        require(_amount > 0, "NativeOFTWithFee: amount too small");
+        uint messageFee = _debitFromNative(_from, _amount);
+        (_amount,) = _payOFTFee(address(this), _dstChainId, _amount);
+
+        uint dust;
+        (amount, dust) = _removeDust(_amount);
+        if(dust > 0) {
+            _transferFrom(address(this), _from, dust);
+        }
 
         // encode the msg.sender into the payload instead of _from
         bytes memory lzPayload = _encodeSendAndCallPayload(msg.sender, _toAddress, _ld2sd(amount), _payload, _dstGasForCall);
