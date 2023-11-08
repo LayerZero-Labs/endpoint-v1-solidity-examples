@@ -128,7 +128,7 @@ describe("NativeOFTWithFee: ", function () {
     it("sendFrom() w/ fee change - tokens from main to other chain", async function () {
         expect(await ethers.provider.getBalance(localEndpoint.address)).to.be.equal(ethers.utils.parseEther("0"))
 
-        // set default fee to 50%
+        // set default fee to 0.01%
         await nativeOFTWithFee.setDefaultFeeBp(1)
         await nativeOFTWithFee.setFeeOwner(bob.address)
 
