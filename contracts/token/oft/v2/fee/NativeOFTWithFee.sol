@@ -7,6 +7,8 @@ import "./OFTWithFee.sol";
 
 contract NativeOFTWithFee is OFTWithFee, ReentrancyGuard {
 
+    uint public outboundAmount;
+
     event Deposit(address indexed _dst, uint _amount);
     event Withdrawal(address indexed _src, uint _amount);
 
@@ -103,6 +105,7 @@ contract NativeOFTWithFee is OFTWithFee, ReentrancyGuard {
         }
 
         _transfer(msg.sender, address(this), _amount);
+        outboundAmount += _amount;
         return messageFee;
     }
 
@@ -130,10 +133,12 @@ contract NativeOFTWithFee is OFTWithFee, ReentrancyGuard {
 
         _spendAllowance(_from, msg.sender, _amount);
         _transfer(_from, address(this), _amount);
+        outboundAmount += _amount;
         return messageFee;
     }
 
     function _creditTo(uint16, address _toAddress, uint _amount) internal override returns(uint) {
+        outboundAmount -= _amount;
         _burn(address(this), _amount);
         (bool success, ) = _toAddress.call{value: _amount}("");
         require(success, "NativeOFTWithFee: failed to _creditTo");
