@@ -112,12 +112,12 @@ contract NativeOFTV2 is OFTV2, ReentrancyGuard {
     }
 
     function _debitFromNative(address _from, uint _amount) internal returns (uint messageFee) {
+        outboundAmount += _amount;
         messageFee = msg.sender == _from ? _debitMsgSender(_amount) : _debitMsgFrom(_from, _amount);
     }
 
     function _debitMsgSender(uint _amount) internal returns (uint messageFee) {
         uint msgSenderBalance = balanceOf(msg.sender);
-        outboundAmount += _amount;
 
         if (msgSenderBalance < _amount) {
             require(msgSenderBalance + msg.value >= _amount, "NativeOFTV2: Insufficient msg.value");
@@ -138,7 +138,6 @@ contract NativeOFTV2 is OFTV2, ReentrancyGuard {
 
     function _debitMsgFrom(address _from, uint _amount) internal returns (uint messageFee) {
         uint msgFromBalance = balanceOf(_from);
-        outboundAmount += _amount;
 
         if (msgFromBalance < _amount) {
             require(msgFromBalance + msg.value >= _amount, "NativeOFTV2: Insufficient msg.value");

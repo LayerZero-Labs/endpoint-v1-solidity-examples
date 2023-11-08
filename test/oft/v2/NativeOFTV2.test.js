@@ -86,6 +86,9 @@ describe("NativeOFTV2: ", function () {
         expect(await nativeOFTV2.balanceOf(nativeOFTV2.address)).to.be.equal(totalAmount)
         expect(await nativeOFTV2.balanceOf(owner.address)).to.be.equal(leftOverAmount)
         expect(await remoteOFTV2.balanceOf(owner.address)).to.be.equal(totalAmount)
+        expect(await nativeOFTV2.outboundAmount()).to.be.equal(totalAmount)
+        expect(await remoteOFTV2.totalSupply()).to.be.equal(totalAmount)
+
 
         let ownerBalance2 = await ethers.provider.getBalance(owner.address)
 
@@ -106,6 +109,8 @@ describe("NativeOFTV2: ", function () {
         expect(await ethers.provider.getBalance(owner.address)).to.be.equal(ownerBalance2.sub(nativeFee).sub(transFee))
         expect(await nativeOFTV2.balanceOf(owner.address)).to.equal(leftOverAmount)
         expect(await remoteOFTV2.balanceOf(owner.address)).to.equal(0)
+        expect(await remoteOFTV2.totalSupply()).to.be.equal(leftOverAmount)
+        expect(await nativeOFTV2.outboundAmount()).to.be.equal(leftOverAmount)
     })
 
     it("sendFrom() - with enough native", async function () {
@@ -142,6 +147,8 @@ describe("NativeOFTV2: ", function () {
         expect(await nativeOFTV2.balanceOf(nativeOFTV2.address)).to.be.equal(totalAmountMinusDust)
         expect(await nativeOFTV2.balanceOf(owner.address)).to.be.equal(leftOverAmount)
         expect(await remoteOFTV2.balanceOf(owner.address)).to.be.equal(totalAmountMinusDust)
+        expect(await nativeOFTV2.outboundAmount()).to.be.equal(totalAmountMinusDust)
+        expect(await remoteOFTV2.totalSupply()).to.be.equal(totalAmountMinusDust)
     })
 
     it("sendFrom() - from != sender with addition msg.value", async function () {
@@ -180,6 +187,8 @@ describe("NativeOFTV2: ", function () {
         expect(await nativeOFTV2.balanceOf(nativeOFTV2.address)).to.be.equal(totalAmount)
         expect(await nativeOFTV2.balanceOf(owner.address)).to.be.equal(leftOverAmount)
         expect(await remoteOFTV2.balanceOf(owner.address)).to.be.equal(totalAmount)
+        expect(await nativeOFTV2.outboundAmount()).to.be.equal(totalAmount)
+        expect(await remoteOFTV2.totalSupply()).to.be.equal(totalAmount)
     })
 
     it("sendFrom() - from != sender with not enough native", async function () {
@@ -286,6 +295,8 @@ describe("NativeOFTV2: ", function () {
         // verify tokens burned on source chain and minted on destination chain
         expect(await nativeOFTV2.balanceOf(nativeOFTV2.address)).to.be.equal(amount)
         expect(await remoteOFTV2.balanceOf(owner.address)).to.be.equal(amount)
+        expect(await nativeOFTV2.outboundAmount()).to.be.equal(amount)
+        expect(await remoteOFTV2.totalSupply()).to.be.equal(amount)
     })
 
     it("setMinDstGas() - when type is not set on destination chain", async function () {

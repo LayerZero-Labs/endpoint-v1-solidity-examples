@@ -83,12 +83,12 @@ contract NativeOFTWithFee is OFTWithFee, ReentrancyGuard {
 
         (amount,) = _removeDust(_amount);
         require(amount > 0, "NativeOFTWithFee: amount too small");
+        outboundAmount += amount;
         messageFee = msg.sender == _from ? _debitMsgSender(amount, newMsgValue) : _debitMsgFrom(_from, amount, newMsgValue);
     }
 
     function _debitMsgSender(uint _amount, uint currentMsgValue) internal returns (uint messageFee) {
         uint msgSenderBalance = balanceOf(msg.sender);
-        outboundAmount += _amount;
 
         if (msgSenderBalance < _amount) {
             require(msgSenderBalance + currentMsgValue >= _amount, "NativeOFTWithFee: Insufficient msg.value");
@@ -110,7 +110,6 @@ contract NativeOFTWithFee is OFTWithFee, ReentrancyGuard {
 
     function _debitMsgFrom(address _from, uint _amount, uint currentMsgValue) internal returns (uint messageFee) {
         uint msgFromBalance = balanceOf(_from);
-        outboundAmount += _amount;
 
         if (msgFromBalance < _amount) {
             require(msgFromBalance + currentMsgValue >= _amount, "NativeOFTWithFee: Insufficient msg.value");
