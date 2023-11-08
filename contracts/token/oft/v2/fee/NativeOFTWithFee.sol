@@ -6,7 +6,6 @@ import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
 import "./OFTWithFee.sol";
 
 contract NativeOFTWithFee is OFTWithFee, ReentrancyGuard {
-
     uint public outboundAmount;
 
     event Deposit(address indexed _dst, uint _amount);
@@ -89,6 +88,7 @@ contract NativeOFTWithFee is OFTWithFee, ReentrancyGuard {
 
     function _debitMsgSender(uint _amount, uint currentMsgValue) internal returns (uint messageFee) {
         uint msgSenderBalance = balanceOf(msg.sender);
+        outboundAmount += _amount;
 
         if (msgSenderBalance < _amount) {
             require(msgSenderBalance + currentMsgValue >= _amount, "NativeOFTWithFee: Insufficient msg.value");
@@ -105,12 +105,12 @@ contract NativeOFTWithFee is OFTWithFee, ReentrancyGuard {
         }
 
         _transfer(msg.sender, address(this), _amount);
-        outboundAmount += _amount;
         return messageFee;
     }
 
     function _debitMsgFrom(address _from, uint _amount, uint currentMsgValue) internal returns (uint messageFee) {
         uint msgFromBalance = balanceOf(_from);
+        outboundAmount += _amount;
 
         if (msgFromBalance < _amount) {
             require(msgFromBalance + currentMsgValue >= _amount, "NativeOFTWithFee: Insufficient msg.value");
@@ -133,7 +133,6 @@ contract NativeOFTWithFee is OFTWithFee, ReentrancyGuard {
 
         _spendAllowance(_from, msg.sender, _amount);
         _transfer(_from, address(this), _amount);
-        outboundAmount += _amount;
         return messageFee;
     }
 
