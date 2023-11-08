@@ -194,7 +194,6 @@ describe("NativeOFTWithFee: ", function () {
         let nativeFee = (await nativeOFTWithFee.estimateSendFee(remoteChainId, aliceAddressBytes32, totalAmount, false, defaultAdapterParams))
             .nativeFee
 
-
         let ld2sdRate = 10 ** (18 - sharedDecimals)
         let dust = totalAmount.sub(fee).mod(ld2sdRate)
         let totalMintAmount = (totalAmount.sub(fee)).sub(dust)
@@ -252,7 +251,7 @@ describe("NativeOFTWithFee: ", function () {
                 [owner.address, ethers.constants.AddressZero, defaultAdapterParams],
                 { value: nativeFee.add(totalAmount.sub(depositAmount)) } // pass a msg.value to pay the LayerZero message fee
             )
-        ).to.be.revertedWith("BaseOFTWithFee: amount is less than minAmount")
+        ).to.be.revertedWith("NativeOFTWithFee: amount is less than minAmount")
 
         expect(await ethers.provider.getBalance(nativeOFTWithFee.address)).to.be.equal(depositAmount)
         expect(await ethers.provider.getBalance(localEndpoint.address)).to.be.equal(0)
