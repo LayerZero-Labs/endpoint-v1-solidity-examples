@@ -6,6 +6,8 @@ import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
 import "./OFTV2.sol";
 
 contract NativeOFTV2 is OFTV2, ReentrancyGuard {
+    uint public outboundAmount;
+
     event Deposit(address indexed _dst, uint _amount);
     event Withdrawal(address indexed _src, uint _amount);
 
@@ -110,6 +112,7 @@ contract NativeOFTV2 is OFTV2, ReentrancyGuard {
     }
 
     function _debitFromNative(address _from, uint _amount) internal returns (uint messageFee) {
+        outboundAmount += _amount;
         messageFee = msg.sender == _from ? _debitMsgSender(_amount) : _debitMsgFrom(_from, _amount);
     }
 
@@ -165,6 +168,7 @@ contract NativeOFTV2 is OFTV2, ReentrancyGuard {
         address _toAddress,
         uint _amount
     ) internal override returns (uint) {
+        outboundAmount -= _amount;
         _burn(address(this), _amount);
         (bool success, ) = _toAddress.call{value: _amount}("");
         require(success, "NativeOFTV2: failed to _creditTo");

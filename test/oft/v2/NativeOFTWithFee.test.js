@@ -97,6 +97,8 @@ describe("NativeOFTWithFee: ", function () {
         expect(await nativeOFTWithFee.balanceOf(nativeOFTWithFee.address)).to.be.equal(totalAmount)
         expect(await nativeOFTWithFee.balanceOf(owner.address)).to.be.equal(leftOverAmount)
         expect(await remoteOFTWithFee.balanceOf(owner.address)).to.be.equal(totalAmount)
+        expect(await nativeOFTWithFee.outboundAmount()).to.be.equal(totalAmount)
+        expect(await remoteOFTWithFee.totalSupply()).to.be.equal(totalAmount)
 
         let ownerBalance2 = await ethers.provider.getBalance(owner.address)
 
@@ -119,9 +121,102 @@ describe("NativeOFTWithFee: ", function () {
         expect(await ethers.provider.getBalance(owner.address)).to.be.equal(ownerBalance2.sub(nativeFee).sub(transFee))
         expect(await nativeOFTWithFee.balanceOf(owner.address)).to.equal(leftOverAmount)
         expect(await remoteOFTWithFee.balanceOf(owner.address)).to.equal(0)
+        expect(await nativeOFTWithFee.outboundAmount()).to.be.equal(leftOverAmount)
+        expect(await remoteOFTWithFee.totalSupply()).to.be.equal(leftOverAmount)
     })
 
     it("sendFrom() w/ fee change - tokens from main to other chain", async function () {
+        expect(await ethers.provider.getBalance(localEndpoint.address)).to.be.equal(ethers.utils.parseEther("0"))
+
+        // set default fee to 0.01%
+        await nativeOFTWithFee.setDefaultFeeBp(1)
+        await nativeOFTWithFee.setFeeOwner(bob.address)
+
+        // ensure they're both allocated initial amounts
+        expect(await nativeOFTWithFee.balanceOf(owner.address)).to.equal(0)
+        expect(await remoteOFTWithFee.balanceOf(owner.address)).to.equal(0)
+        expect(await ethers.provider.getBalance(nativeOFTWithFee.address)).to.equal(0)
+
+        let leftOverAmount = ethers.utils.parseEther("0")
+        let totalAmount = ethers.utils.parseEther("8")
+
+        expect(await ethers.provider.getBalance(localEndpoint.address)).to.be.equal(0)
+        expect(await nativeOFTWithFee.balanceOf(nativeOFTWithFee.address)).to.be.equal(0)
+        expect(await nativeOFTWithFee.balanceOf(owner.address)).to.be.equal(0)
+        expect(await remoteOFTWithFee.balanceOf(owner.address)).to.be.equal(0)
+
+        const aliceAddressBytes32 = ethers.utils.defaultAbiCoder.encode(["address"], [alice.address])
+        // estimate nativeFees
+        let fee = await nativeOFTWithFee.quoteOFTFee(remoteChainId, totalAmount)
+        let nativeFee = (await nativeOFTWithFee.estimateSendFee(remoteChainId, aliceAddressBytes32, totalAmount, false, defaultAdapterParams))
+            .nativeFee
+        await nativeOFTWithFee.sendFrom(
+            owner.address,
+            remoteChainId, // destination chainId
+            aliceAddressBytes32, // destination address to send tokens to
+            totalAmount, // quantity of tokens to send (in units of wei)
+            totalAmount.sub(fee), // quantity of tokens to send (in units of wei)
+            [owner.address, ethers.constants.AddressZero, defaultAdapterParams],
+            { value: nativeFee.add(totalAmount) } // pass a msg.value to pay the LayerZero message fee
+        )
+        expect(await ethers.provider.getBalance(localEndpoint.address)).to.be.equal(nativeFee) // collects
+        expect(await nativeOFTWithFee.balanceOf(owner.address)).to.be.equal(leftOverAmount)
+        expect(await nativeOFTWithFee.balanceOf(alice.address)).to.be.equal(leftOverAmount)
+        expect(await nativeOFTWithFee.balanceOf(bob.address)).to.be.equal(fee)
+        expect(await nativeOFTWithFee.balanceOf(nativeOFTWithFee.address)).to.be.equal(totalAmount.sub(fee))
+        expect(await nativeOFTWithFee.outboundAmount()).to.be.equal(totalAmount.sub(fee))
+        expect(await remoteOFTWithFee.totalSupply()).to.be.equal(totalAmount.sub(fee))
+    })
+
+    it("sendFrom() w/ fee change - tokens from main to other chain without taking dust", async function () {
+        expect(await ethers.provider.getBalance(localEndpoint.address)).to.be.equal(ethers.utils.parseEther("0"))
+
+        // set default fee to 50%
+        await nativeOFTWithFee.setDefaultFeeBp(1)
+        await nativeOFTWithFee.setFeeOwner(bob.address)
+
+        // ensure they're both allocated initial amounts
+        expect(await nativeOFTWithFee.balanceOf(owner.address)).to.equal(0)
+        expect(await remoteOFTWithFee.balanceOf(owner.address)).to.equal(0)
+        expect(await ethers.provider.getBalance(nativeOFTWithFee.address)).to.equal(0)
+
+        let leftOverAmount = ethers.utils.parseEther("0")
+        let totalAmount = ethers.utils.parseEther("8.123456789")
+
+        expect(await ethers.provider.getBalance(localEndpoint.address)).to.be.equal(0)
+        expect(await nativeOFTWithFee.balanceOf(nativeOFTWithFee.address)).to.be.equal(0)
+        expect(await nativeOFTWithFee.balanceOf(owner.address)).to.be.equal(0)
+        expect(await remoteOFTWithFee.balanceOf(owner.address)).to.be.equal(0)
+
+        const aliceAddressBytes32 = ethers.utils.defaultAbiCoder.encode(["address"], [alice.address])
+        // estimate nativeFees
+        let fee = await nativeOFTWithFee.quoteOFTFee(remoteChainId, totalAmount)
+        let nativeFee = (await nativeOFTWithFee.estimateSendFee(remoteChainId, aliceAddressBytes32, totalAmount, false, defaultAdapterParams))
+            .nativeFee
+
+        let ld2sdRate = 10 ** (18 - sharedDecimals)
+        let dust = totalAmount.sub(fee).mod(ld2sdRate)
+        let totalMintAmount = (totalAmount.sub(fee)).sub(dust)
+
+        await nativeOFTWithFee.sendFrom(
+            owner.address,
+            remoteChainId, // destination chainId
+            aliceAddressBytes32, // destination address to send tokens to
+            totalAmount, // quantity of tokens to send (in units of wei)
+            totalMintAmount, // quantity of tokens to send (in units of wei)
+            [owner.address, ethers.constants.AddressZero, defaultAdapterParams],
+            { value: nativeFee.add(totalAmount) } // pass a msg.value to pay the LayerZero message fee
+        )
+        expect(await ethers.provider.getBalance(localEndpoint.address)).to.be.equal(nativeFee) // collects
+        expect(await nativeOFTWithFee.balanceOf(owner.address)).to.be.equal(leftOverAmount)
+        expect(await nativeOFTWithFee.balanceOf(bob.address)).to.be.equal(fee)
+        expect(await nativeOFTWithFee.balanceOf(nativeOFTWithFee.address)).to.be.equal(totalMintAmount)
+        expect(await remoteOFTWithFee.balanceOf(alice.address)).to.be.equal(totalMintAmount)
+        expect(await nativeOFTWithFee.outboundAmount()).to.be.equal(totalMintAmount)
+        expect(await remoteOFTWithFee.totalSupply()).to.be.equal(totalMintAmount)
+    })
+
+    it("sendFrom() w/ fee change - deposit before send", async function () {
         expect(await ethers.provider.getBalance(localEndpoint.address)).to.be.equal(ethers.utils.parseEther("0"))
 
         // set default fee to 50%
@@ -156,13 +251,15 @@ describe("NativeOFTWithFee: ", function () {
                 [owner.address, ethers.constants.AddressZero, defaultAdapterParams],
                 { value: nativeFee.add(totalAmount.sub(depositAmount)) } // pass a msg.value to pay the LayerZero message fee
             )
-        ).to.be.revertedWith("BaseOFTWithFee: amount is less than minAmount")
+        ).to.be.revertedWith("NativeOFTWithFee: amount is less than minAmount")
 
         expect(await ethers.provider.getBalance(nativeOFTWithFee.address)).to.be.equal(depositAmount)
         expect(await ethers.provider.getBalance(localEndpoint.address)).to.be.equal(0)
         expect(await nativeOFTWithFee.balanceOf(nativeOFTWithFee.address)).to.be.equal(0)
         expect(await nativeOFTWithFee.balanceOf(owner.address)).to.be.equal(depositAmount)
         expect(await remoteOFTWithFee.balanceOf(owner.address)).to.be.equal(0)
+        expect(await nativeOFTWithFee.outboundAmount()).to.be.equal(leftOverAmount)
+        expect(await remoteOFTWithFee.totalSupply()).to.be.equal(leftOverAmount)
 
         const aliceAddressBytes32 = ethers.utils.defaultAbiCoder.encode(["address"], [alice.address])
         // estimate nativeFees
@@ -184,6 +281,8 @@ describe("NativeOFTWithFee: ", function () {
         expect(await nativeOFTWithFee.balanceOf(alice.address)).to.be.equal(leftOverAmount)
         expect(await nativeOFTWithFee.balanceOf(bob.address)).to.be.equal(fee)
         expect(await nativeOFTWithFee.balanceOf(nativeOFTWithFee.address)).to.be.equal(totalAmount.sub(fee))
+        expect(await nativeOFTWithFee.outboundAmount()).to.be.equal(totalAmount.div(2))
+        expect(await remoteOFTWithFee.totalSupply()).to.be.equal(totalAmount.div(2))
     })
 
     it("quote oft fee", async function () {
@@ -246,6 +345,8 @@ describe("NativeOFTWithFee: ", function () {
         expect(await nativeOFTWithFee.balanceOf(nativeOFTWithFee.address)).to.be.equal(totalAmountMinusDust)
         expect(await nativeOFTWithFee.balanceOf(owner.address)).to.be.equal(leftOverAmount)
         expect(await remoteOFTWithFee.balanceOf(owner.address)).to.be.equal(totalAmountMinusDust)
+        expect(await nativeOFTWithFee.outboundAmount()).to.be.equal(totalAmountMinusDust)
+        expect(await remoteOFTWithFee.totalSupply()).to.be.equal(totalAmountMinusDust)
     })
 
     it("sendFrom() - from != sender with addition msg.value", async function () {
@@ -285,6 +386,8 @@ describe("NativeOFTWithFee: ", function () {
         expect(await nativeOFTWithFee.balanceOf(nativeOFTWithFee.address)).to.be.equal(totalAmount)
         expect(await nativeOFTWithFee.balanceOf(owner.address)).to.be.equal(leftOverAmount)
         expect(await remoteOFTWithFee.balanceOf(owner.address)).to.be.equal(totalAmount)
+        expect(await nativeOFTWithFee.outboundAmount()).to.be.equal(totalAmount)
+        expect(await remoteOFTWithFee.totalSupply()).to.be.equal(totalAmount)
     })
 
     it("sendFrom() - from != sender with not enough native", async function () {
@@ -395,6 +498,8 @@ describe("NativeOFTWithFee: ", function () {
         // verify tokens burned on source chain and minted on destination chain
         expect(await nativeOFTWithFee.balanceOf(nativeOFTWithFee.address)).to.be.equal(amount)
         expect(await remoteOFTWithFee.balanceOf(owner.address)).to.be.equal(amount)
+        expect(await nativeOFTWithFee.outboundAmount()).to.be.equal(amount)
+        expect(await remoteOFTWithFee.totalSupply()).to.be.equal(amount)
     })
 
     it("setMinDstGas() - when type is not set on destination chain", async function () {
