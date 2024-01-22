@@ -4,7 +4,21 @@
 
 ---
 
-# LayerZero Omnichain Contract Examples
+# LayerZero V1 Solidity Examples
+
+
+> **LayerZero V2** is available [here](https://github.com/LayerZero-Labs/LayerZero-v2), offering improvements in cross-chain transaction speed, gas efficiency, and more. 
+>
+> Review the [LayerZero V2 Documentation](https://docs.layerzero.network/) for a comprehensive overview of the new feature set.
+>
+> For these reasons, we recommend deploying to LayerZero V2 instead of LayerZero V1.
+
+
+Welcome to the solidity-examples repository, showcasing various contract examples utilizing LayerZero. LayerZero is an Omnichain Interoperability Protocol, facilitating reliable, trustless communication between different blockchain networks.
+
+**Disclaimer**: This repository contains example contracts to demonstrate the capabilities and usage of LayerZero. For actual implementation in your projects, it's recommended to use the official LayerZero contracts (such as LZApp, OFT, OFTV2, etc.) directly from the[ npm package](https://www.npmjs.com/package/@layerzerolabs/solidity-examples). 
+
+You can find instructions for inheriting, deploying, and best practices for the provided contracts in the [LayerZero V1 Documentation](https://layerzero.gitbook.io/docs/layerzero-v1/introduction).
 
 * Formal audit(s) (May 21, 2022) can be found in [audit](./audit)
 
@@ -15,11 +29,78 @@ yarn install
 yarn test
 ```
 
-* The code in the [contracts](./contracts) folder demonstrates LayerZero behaviours.
-* [NonblockingLzApp](./contracts/lzApp/NonblockingLzApp.sol) is a great contract to extend. Take a look at how `OmniCounter` overrides `_nonblockingLzReceive` and `_LzReceive` to easily handle messaging. There are also example for [OFT](./contracts/token/oft) and [ONFT](./contracts/token) which illustrate erc20 and erc721 cross chain functionality.
+The code in the [contracts](./contracts) folder demonstrates LayerZero contract behaviours:
+
+* [NonblockingLzApp](./contracts/lzApp/NonblockingLzApp.sol) provides a generic message passing interface to send and receive arbitrary pieces of data between contracts existing on different blockchain networks. Take a look at how `OmniCounter` inherits `NonblockingLzApp` to easily handle omnichain messaging.
+
+* The [OFT](./contracts/token/oft/v1/OFT.sol) Standard allows ERC20 tokens to be transferred across multiple EVM-compatible blockchains without asset wrapping or middlechains.
+
+* The [OFTV2](./contracts/token/oft/v2/OFTV2.sol) Standard allows fungible tokens to be transferred across both EVM and non-EVM compatible blockchains supported by LayerZero.
+
+* The [ONFT721](./contracts/token/onft721/ONFT721.sol) Standard allows ERC721 NFTs to be moved across EVM chains.
+
+* The [ONFT1155](./contracts/token/onft1155/ONFT1155.sol) Standard allows ERC1155 tokens to be sent to EVM chains.
+
+**Notice**: Each of the above standards comes with a `Proxy` variant for sending tokens that have already been deployed cross-chain. 
+
+> **There can only be one `Proxy` per deployment**.
+> Multiple Proxies break omnichain unified liquidity by effectively creating token pools. If you create Proxies on multiple chains, you have no way to guarantee finality for token transfers due to the fact that the source chain has no knowledge of the destination pool's supply (or lack of supply). This can create race conditions where if a sent amount exceeds the available supply on the destination chain, those sent tokens will be permanently lost.
+
 * Always audit your own code and test extensively on `testnet` before going to mainnet 🙏
 
 > The examples below use two chains, however you could substitute any LayerZero supported chain! 
+
+# OmniCounter.sol
+
+OmniCounter is a simple example of `NonblockingLzApp` contract that increments a counter on multiple chains. You can only *remotely* increment the counter!
+
+1. Deploy both OmniCounters:
+
+```shell
+npx hardhat --network bsc-testnet deploy --tags OmniCounter
+npx hardhat --network fuji deploy --tags OmniCounter
+````
+
+2. Set the remote addresses, so each contract can receive messages
+
+```shell
+npx hardhat --network bsc-testnet setTrustedRemote --target-network fuji --contract OmniCounter
+npx hardhat --network fuji setTrustedRemote --target-network bsc-testnet --contract OmniCounter
+```
+
+3. Send a cross chain message from `bsc-testnet` to `fuji` !
+
+```shell
+npx hardhat --network bsc-testnet incrementCounter --target-network fuji
+```
+
+Optionally use this command in a separate terminal to watch the counter increment in real-time.
+
+```shell
+npx hardhat --network fuji ocPoll
+```
+
+# Check your setTrustedRemote's are wired up correctly
+
+Just use our [checkWireUpAll](./tasks/checkWireUpAll.js) task to check if your contracts are wired up correctly. You can use it on the example contracts deployed above.
+
+1) UniversalONFT
+
+```shell
+npx hardhat checkWireUpAll --e testnet --contract ONFT721Mock
+```
+
+2) OmniCounter
+
+```shell
+npx hardhat checkWireUpAll --e testnet --contract OmniCounter
+```
+
+### See some examples in `/contracts`  🙌
+
+Many of the example contracts make use of `LayerZeroEndpointMock.sol` which is a nice way to test LayerZero locally!
+
+### For further reading, and a list of endpoint ids and deployed LayerZero contract addresses please take a look at the Gitbook here: https://layerzero.gitbook.io/
 
 # OmnichainFungibleToken (OFT)
 
@@ -129,58 +210,6 @@ npx hardhat --network fuji onftSend --target-network bsc-testnet --token-id 11 -
 npx hardhat --network bsc-testnet ownerOf --token-id 1 --contract ONFT721Mock
 npx hardhat --network fuji ownerOf --token-id 1 --contract ONFT721Mock
 ```
-
-# OmniCounter.sol
-
-OmniCounter is a simple contract with a counter. You can only *remotely* increment the counter!
-
-1. Deploy both OmniCounters:
-
-```shell
-npx hardhat --network bsc-testnet deploy --tags OmniCounter
-npx hardhat --network fuji deploy --tags OmniCounter
-````
-
-2. Set the remote addresses, so each contract can receive messages
-
-```shell
-npx hardhat --network bsc-testnet setTrustedRemote --target-network fuji --contract OmniCounter
-npx hardhat --network fuji setTrustedRemote --target-network bsc-testnet --contract OmniCounter
-```
-
-3. Send a cross chain message from `bsc-testnet` to `fuji` !
-
-```shell
-npx hardhat --network bsc-testnet incrementCounter --target-network fuji
-```
-
-Optionally use this command in a separate terminal to watch the counter increment in real-time.
-
-```shell
-npx hardhat --network fuji ocPoll
-```
-
-# Check your setTrustedRemote's are wired up correctly
-
-Just use our [checkWireUpAll](./tasks/checkWireUpAll.js) task to check if your contracts are wired up correctly. You can use it on the example contracts deployed above.
-
-1) UniversalONFT
-
-```shell
-npx hardhat checkWireUpAll --e testnet --contract ONFT721Mock
-```
-
-2) OmniCounter
-
-```shell
-npx hardhat checkWireUpAll --e testnet --contract OmniCounter
-```
-
-### See some examples in `/contracts`  🙌
-
-Many of the example contracts make use of LayerZeroEndpointMock.sol which is a nice way to test LayerZero locally!
-
-### For further reading, and a list of endpoint ids and deployed LayerZero contract addresses please take a look at the Gitbook here: https://layerzero.gitbook.io/
 
 
 # See testnet and mainnet chainIds and addresses, and the format for connecting contracts on different chains:
