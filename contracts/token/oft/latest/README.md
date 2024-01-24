@@ -1,4 +1,4 @@
-## OFT V2
+## Endpoint V1 OFT: Latest
 
 > **NOTE:** This document should be read in conjunction with the <a href="https://layerzero.gitbook.io/docs/evm-guides/oft-walkthrough">LayerZero V1 OFT Docs</a>.
 
