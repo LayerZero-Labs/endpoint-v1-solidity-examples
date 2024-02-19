@@ -19,7 +19,7 @@
 
 Welcome to the solidity-examples repository, showcasing various contract examples utilizing LayerZero. LayerZero is an Omnichain Interoperability Protocol, facilitating reliable, trustless communication between different blockchain networks.
 
-**Disclaimer**: This repository contains example contracts to demonstrate the capabilities and usage of LayerZero. For actual implementation in your projects, it's recommended to use the official LayerZero contracts (such as LZApp, OFT, OFTV2, etc.) directly from the[ npm package](https://www.npmjs.com/package/@layerzerolabs/solidity-examples). 
+**Disclaimer**: This repository contains example contracts to demonstrate the capabilities and usage of LayerZero. For actual implementation in your projects, it's recommended to use the official LayerZero contracts (such as LZApp, OFT, OFTV1.2, etc.) directly from the[ npm package](https://www.npmjs.com/package/@layerzerolabs/solidity-examples). 
 
 You can find instructions for inheriting, deploying, and best practices for the provided contracts in the [LayerZero V1 Documentation](https://layerzero.gitbook.io/docs/layerzero-v1/introduction).
 
@@ -36,9 +36,9 @@ The code in the [contracts](./contracts) folder demonstrates LayerZero contract 
 
 * [NonblockingLzApp](./contracts/lzApp/NonblockingLzApp.sol) provides a generic message passing interface to send and receive arbitrary pieces of data between contracts existing on different blockchain networks. Take a look at how `OmniCounter` inherits `NonblockingLzApp` to easily handle omnichain messaging.
 
-* The [OFT](./contracts/token/oft/v1/OFT.sol) Standard allows ERC20 tokens to be transferred across multiple EVM-compatible blockchains without asset wrapping or middlechains.
+* The [OFTV1](./contracts/token/oft/v1/OFT.sol) Standard allows ERC20 tokens to be transferred across multiple EVM-compatible blockchains without asset wrapping or middlechains.
 
-* The [OFTV2](./contracts/token/oft/v2/OFTV2.sol) Standard allows fungible tokens to be transferred across both EVM and non-EVM compatible blockchains supported by LayerZero.
+* The [OFTV1.2](./contracts/token/oft/v2/OFTV2.sol) Standard allows fungible tokens to be transferred across both EVM and non-EVM compatible blockchains supported by LayerZero.
 
 * The [ONFT721](./contracts/token/onft721/ONFT721.sol) Standard allows ERC721 NFTs to be moved across EVM chains.
 
@@ -107,10 +107,10 @@ Many of the example contracts make use of `LayerZeroEndpointMock.sol` which is a
 
 # OmnichainFungibleToken (OFT)
 
-## About OFTV2
+## About OFTV1.2
 
 ```text
-NOTE: the OFTV2 uses uint64 to encode value transfer for compatability of Aptos and Solana. 
+NOTE: the OFTV1.2 uses uint64 to encode value transfer for compatability of Aptos and Solana. 
 
 The deployer is expected to set a lower decimal points like 6 or 8. 
 
