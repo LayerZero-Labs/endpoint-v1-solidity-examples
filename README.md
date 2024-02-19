@@ -7,11 +7,14 @@
 # LayerZero V1 Solidity Examples
 
 
-> **LayerZero V2** is available [here](https://github.com/LayerZero-Labs/LayerZero-v2), offering improvements in cross-chain transaction speed, gas efficiency, and more. 
+>[!IMPORTANT]
+> **LayerZero V2** is now available [here](https://github.com/LayerZero-Labs/LayerZero-v2), offering improvements in cross-chain transaction speed, gas efficiency, and more. 
 >
 > Review the [LayerZero V2 Documentation](https://docs.layerzero.network/) for a comprehensive overview of the new feature set.
 >
 > For these reasons, we recommend deploying to LayerZero V2 instead of LayerZero V1.
+>
+> The contracts available in this repo should be considered legacy for Endpoint V1.
 
 
 Welcome to the solidity-examples repository, showcasing various contract examples utilizing LayerZero. LayerZero is an Omnichain Interoperability Protocol, facilitating reliable, trustless communication between different blockchain networks.
