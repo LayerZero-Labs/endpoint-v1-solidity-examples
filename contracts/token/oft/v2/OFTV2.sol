@@ -6,7 +6,7 @@ import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 import "./BaseOFTV2.sol";
 
 /// @dev Notice: This contract represents OFT V1.2. 
-/// It was created prior to LayerZero V2 and does not use any of the new protocol contracts.
+/// This contract only works on Endpoint.sol (protocol version 1).
 
 contract OFTV2 is BaseOFTV2, ERC20 {
     uint internal immutable ld2sdRate;
