@@ -21,7 +21,7 @@ Welcome to the solidity-examples repository, showcasing various contract example
 
 **Disclaimer**: This repository contains example contracts to demonstrate the capabilities and usage of LayerZero. For actual implementation in your projects, it's recommended to use the official LayerZero contracts (such as LZApp, OFT, OFTV1.2, etc.) directly from the[ npm package](https://www.npmjs.com/package/@layerzerolabs/solidity-examples). 
 
-You can find instructions for inheriting, deploying, and best practices for the provided contracts in the [LayerZero V1 Documentation](https://layerzero.gitbook.io/docs/layerzero-v1/introduction).
+You can find instructions for inheriting, deploying, and best practices for the provided contracts in the [LayerZero V1 Documentation](https://docs.layerzero.network/v1/developers/build/what-you-can-build).
 
 * Formal audit(s) (May 21, 2022) can be found in [audit](./audit)
 
@@ -103,7 +103,7 @@ npx hardhat checkWireUpAll --e testnet --contract OmniCounter
 
 Many of the example contracts make use of `LayerZeroEndpointMock.sol` which is a nice way to test LayerZero locally!
 
-### For further reading, and a list of endpoint ids and deployed LayerZero contract addresses please take a look at the Gitbook here: https://layerzero.gitbook.io/
+### For further reading, and a list of endpoint ids and deployed LayerZero contract addresses please take a look at the Documentation here: https://docs.layerzero.network/v1/developers/build/what-you-can-build
 
 # OmnichainFungibleToken (OFT)
 
@@ -219,9 +219,9 @@ npx hardhat --network fuji ownerOf --token-id 1 --contract ONFT721Mock
 
  https://github.com/LayerZero-Labs/set-trusted-remotes
 
- https://layerzero.gitbook.io/docs/technical-reference/testnet/testnet-addresses
+ https://docs.layerzero.network/v1/developers/technical-reference/testnet/testnet-addresses
 
- https://layerzero.gitbook.io/docs/technical-reference/mainnet/supported-chain-ids
+ https://docs.layerzero.network/v1/developers/technical-reference/mainnet/mainnet-addresses
 
 
 ## Most recently tested with node version `16.13.1` 
