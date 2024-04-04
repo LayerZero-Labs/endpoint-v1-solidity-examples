@@ -5,6 +5,9 @@ pragma solidity ^0.8.0;
 import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 import "./BaseOFTV2.sol";
 
+/// @title OFT V2 Contract
+/// @notice This contract is version 1.2 of the OFT Standard, enabling cross-chain token transfers between EVM and non-EVM contracts.
+/// @dev This contract is only compatible with Endpoint V1 and not Endpoint V2.
 contract OFTV2 is BaseOFTV2, ERC20 {
     uint internal immutable ld2sdRate;
 
