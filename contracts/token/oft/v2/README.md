@@ -11,7 +11,7 @@ We recommend new developers use the [LayerZero V2 OFT Standard](https://github.c
 
 With the release of LayerZero V2, you should consider only using this V2 OFT Standard for your deployments. LayerZero V2 offers developers a smoother developer experience and optimizations to core protocol contracts.
 
-Read the full [LayerZero V2 Overview](https://docs.layerzero.network/contracts/oft) to learn more.
+Read the full [LayerZero V2 Overview](https://docs.layerzero.network/v2/developers/evm/oft/quickstart) to learn more.
 
 #### When to use LayerZero V1 OFT V1.2
 
