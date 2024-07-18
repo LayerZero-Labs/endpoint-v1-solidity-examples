@@ -1,6 +1,6 @@
 {
   "name": "@layerzerolabs/solidity-examples",
-  "version": "1.0.13",
+  "version": "1.1.1",
   "license": "MIT",
   "files": [
     "artifacts/",
