@@ -6,7 +6,6 @@
 
 # LayerZero V1 Solidity Examples
 
-
 >[!IMPORTANT]
 > **LayerZero V2** is now available [here](https://github.com/LayerZero-Labs/LayerZero-v2), offering improvements in cross-chain transaction speed, gas efficiency, and more. 
 >
@@ -16,12 +15,11 @@
 >
 > All of the contracts available in this repo should be considered legacy for Endpoint V1.
 
-
 Welcome to the solidity-examples repository, showcasing various contract examples utilizing LayerZero. LayerZero is an Omnichain Interoperability Protocol, facilitating reliable, trustless communication between different blockchain networks.
 
 **Disclaimer**: This repository contains example contracts to demonstrate the capabilities and usage of LayerZero. For actual implementation in your projects, it's recommended to use the official LayerZero contracts (such as LZApp, OFT, OFTV1.2, etc.) directly from the[ npm package](https://www.npmjs.com/package/@layerzerolabs/solidity-examples). 
 
-You can find instructions for inheriting, deploying, and best practices for the provided contracts in the [LayerZero V1 Documentation](https://docs.layerzero.network/v1/developers/build/what-you-can-build).
+You can find instructions for inheriting, deploying, and best practices for the provided contracts in the [LayerZero V1 Documentation](https://docs.layerzero.network/v1/developers/evm/build/what-you-can-build).
 
 * Formal audit(s) (May 21, 2022) can be found in [audit](./audit)
 
@@ -103,14 +101,14 @@ npx hardhat checkWireUpAll --e testnet --contract OmniCounter
 
 Many of the example contracts make use of `LayerZeroEndpointMock.sol` which is a nice way to test LayerZero locally!
 
-### For further reading, and a list of endpoint ids and deployed LayerZero contract addresses please take a look at the Documentation here: https://docs.layerzero.network/v1/developers/build/what-you-can-build
+### For further reading, and a list of endpoint ids and deployed LayerZero contract addresses please take a look at the Documentation here: https://docs.layerzero.network/v1/developers/evm/build/what-you-can-build
 
 # OmnichainFungibleToken (OFT)
 
 ## About OFTV1.2
 
 ```text
-NOTE: the OFTV1.2 uses uint64 to encode value transfer for compatability of Aptos and Solana. 
+NOTE: the OFTV1.2 uses uint64 to encode value transfer for compatibility of Aptos and Solana. 
 
 The deployer is expected to set a lower decimal points like 6 or 8. 
 
@@ -214,15 +212,12 @@ npx hardhat --network bsc-testnet ownerOf --token-id 1 --contract ONFT721Mock
 npx hardhat --network fuji ownerOf --token-id 1 --contract ONFT721Mock
 ```
 
-
 # See testnet and mainnet chainIds and addresses, and the format for connecting contracts on different chains:
 
- https://github.com/LayerZero-Labs/set-trusted-remotes
+https://github.com/LayerZero-Labs/set-trusted-remotes
 
- https://docs.layerzero.network/v1/developers/technical-reference/testnet/testnet-addresses
+https://docs.layerzero.network/v1/developers/evm/technical-reference/testnet/testnet-addresses
 
- https://docs.layerzero.network/v1/developers/technical-reference/mainnet/mainnet-addresses
+https://docs.layerzero.network/v1/developers/evm/technical-reference/mainnet/mainnet-addresses
 
-
-## Most recently tested with node version `16.13.1` 
-
+## Most recently tested with node version `18.16.0` 
