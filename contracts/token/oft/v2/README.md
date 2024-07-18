@@ -5,7 +5,7 @@
 > [!IMPORTANT]
 > Please note that this repo contains OFTV1.2, and is NOT the LayerZero V2 OFT Standard, but rather a second version of OFT built on Endpoint V1.
 
-We recommend new developers use the [LayerZero V2 OFT Standard](https://github.com/LayerZero-Labs/LayerZero-v2/blob/main/oapp/contracts/oft/OFT.sol) (found in the LayerZero V2 repo) over both the Endpoint V1 OFT V1 and Endpoint V1 OFT V1.2 implementations, as the protocol update comes with improved interfaces, gas optimizations, and greater composability.
+We recommend new developers use the [LayerZero V2 OFT Standard](https://github.com/LayerZero-Labs/LayerZero-v2/blob/main/packages/layerzero-v2/evm/oapp/contracts/oft/OFT.sol) (found in the LayerZero V2 repo) over both the Endpoint V1 OFT V1 and Endpoint V1 OFT V1.2 implementations, as the protocol update comes with improved interfaces, gas optimizations, and greater composability.
 
 #### When to use LayerZero V2 OFT
 
