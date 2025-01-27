@@ -144,7 +144,7 @@ module.exports = {
         },
 
         "op-sepolia": {
-            url: "https://optimism-sepolia.infura.io/v3/98ac0a62193e4712bf799e3e6846f7d1", // public infura endpoint
+            url: "", // public infura endpoint
             chainId: 11155420,
             accounts: accounts(),
         },
@@ -154,7 +154,7 @@ module.exports = {
             accounts: accounts(),
         },
         "base-sepolia": {
-            url: `https://base-sepolia.infura.io/v3/98ac0a62193e4712bf799e3e6846f7d1`,
+            url: ``,
             chainId: 84532,
             accounts: accounts(),
         },

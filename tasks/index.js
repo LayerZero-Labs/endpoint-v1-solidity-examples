@@ -84,6 +84,12 @@ task("checkWireUpAll", "check wire up all", require("./checkWireUpAll"))
     .addOptionalParam("proxyContract", "name of proxy contract")
     .addOptionalParam("proxyChain", "name of proxy chain")
 
+
+//
+task("checkEndpointVersion", "check endpoint version", require("./checkEndpointVersion"))
+    .addParam("e", "environment testnet/mainet")
+    .addParam("contract", "the contract to inspect")
+
 //
 task(
     "setTrustedRemote",
