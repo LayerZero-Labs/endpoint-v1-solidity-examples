@@ -144,7 +144,7 @@ module.exports = {
         },
 
         "op-sepolia": {
-            url: "", // public infura endpoint
+            url: "https://optimism-sepolia.gateway.tenderly.co",
             chainId: 11155420,
             accounts: accounts(),
         },
@@ -154,7 +154,7 @@ module.exports = {
             accounts: accounts(),
         },
         "base-sepolia": {
-            url: ``,
+            url: "https://base-sepolia.gateway.tenderly.co",
             chainId: 84532,
             accounts: accounts(),
         },
