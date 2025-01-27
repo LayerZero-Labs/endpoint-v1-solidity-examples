@@ -15,5 +15,8 @@
   "optimism-goerli":  10132,
   "fantom-testnet":   10112,
   "meter-testnet":    10156,
-  "zksync-testnet":   10165
+  "zksync-testnet":   10165,
+
+  "op-sepolia": 10232,
+  "base-sepolia": 10245
 }

@@ -143,19 +143,19 @@ module.exports = {
             accounts: accounts(),
         },
 
-        goerli: {
-            url: "https://goerli.infura.io/v3/9aa3d95b3bc440fa88ea12eaa4456161", // public infura endpoint
-            chainId: 5,
-            accounts: accounts(),
-        },
-        "bsc-testnet": {
-            url: "https://data-seed-prebsc-1-s1.binance.org:8545/",
-            chainId: 97,
+        "op-sepolia": {
+            url: "https://optimism-sepolia.infura.io/v3/98ac0a62193e4712bf799e3e6846f7d1", // public infura endpoint
+            chainId: 11155420,
             accounts: accounts(),
         },
         fuji: {
             url: `https://api.avax-test.network/ext/bc/C/rpc`,
             chainId: 43113,
+            accounts: accounts(),
+        },
+        "base-sepolia": {
+            url: `https://base-sepolia.infura.io/v3/98ac0a62193e4712bf799e3e6846f7d1`,
+            chainId: 84532,
             accounts: accounts(),
         },
         mumbai: {
